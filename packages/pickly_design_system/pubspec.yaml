@@ -1,8 +1,7 @@
-name: pickly_mobile
-description: "Pickly 모바일 앱 (정부 정책/혜택 정보 서비스)"
-publish_to: "none"
-
-version: 1.0.0+1
+name: pickly_design_system
+description: "Pickly 디자인 시스템 패키지"
+version: 0.0.1
+homepage:
 
 environment:
   sdk: ">=3.9.0 <4.0.0"
@@ -10,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
 
 dev_dependencies:
   flutter_test:
