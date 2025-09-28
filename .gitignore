@@ -27,3 +27,30 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Additional Flutter/Dart
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.pub-cache/
+.pub/
+**/build/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# Coverage
+coverage/
+lcov.info
+
+# Melos
+.melos_tool/
+
+# Claude Flow
+.claude-flow/metrics/
+.claude-flow/agents/coder-*.json
+.claude-flow/agents/coordinator-*.json

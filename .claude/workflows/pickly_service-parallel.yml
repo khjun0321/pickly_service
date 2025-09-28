@@ -1,0 +1,11 @@
+name: pickly_service-parallel
+coordinator: pickly_service-mesh-coordinator
+parallel: true
+memory: true
+tasks:
+  - agent: pickly_service-struct-architect
+    goal: "구조 일관성 검증 & 누락 폴더 자동 보정 (contexts/features/docs)"
+  - agent: pickly_service-flutter-ui-coder
+    goal: "features/filter 스캐폴드 + 라우팅/상태 템플릿 생성"
+  - agent: pickly_service-tdd-guardian
+    goal: "apps/pickly_mobile/test/ 템플릿 생성 + 테스트 실행 가이드"

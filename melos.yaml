@@ -1,0 +1,38 @@
+name: pickly_service
+repository: https://github.com/khjun0321/pickly_service
+
+packages:
+  - apps/**
+  - packages/**
+
+command:
+  bootstrap:
+    usePubspecOverrides: true
+
+scripts:
+  analyze:
+    run: flutter analyze
+    exec:
+      concurrency: 1
+
+  test:
+    run: flutter test
+    exec:
+      concurrency: 1
+
+  build:android:
+    run: flutter build appbundle
+    exec:
+      concurrency: 1
+    packageFilters:
+      dirExists: android
+
+  format:
+    run: dart format .
+    exec:
+      concurrency: 1
+
+  check:
+    run: |
+      melos analyze && melos test
+    description: Run analyze and test
