@@ -1,0 +1,15 @@
+{
+  "id": "coder-1759063173790",
+  "name": "struct-architect",
+  "type": "coder",
+  "status": "active",
+  "activeTasks": 0,
+  "lastActivity": 1759063173790,
+  "capabilities": [
+    "Code Generation",
+    "Implementation",
+    "Refactoring",
+    "Debugging"
+  ],
+  "createdAt": 1759063173790
+}

@@ -1,0 +1,81 @@
+# Pickly 화면 정의서 (screen_registry.yaml)
+
+meta:
+  app: pickly_mobile
+  version: 1.0
+  route_prefix: "/"
+
+conventions:
+  numbering: "스플래시는 0, 온보딩은 100번대, 탐색/필터는 200번대"
+  feature_folder: "apps/pickly_mobile/lib/features/{feature}"
+  context_folder: "apps/pickly_mobile/lib/contexts/{context}"
+
+screens:
+  - id: 0
+    name: splash_screen
+    route: /splash
+    feature: splash
+    function: "앱 최초 실행 시 로고 노출 후 조건 분기"
+    ui:
+      - 로고 이미지
+      - 브랜드명 텍스트
+    strategy:
+      frontend: "앱 실행 → 2초 대기 후 isFirstRun 체크 → 라우팅"
+      backend: "없음"
+      state: "isFirstRun 플래그 확인"
+
+  - id: 100
+    name: onboarding_start
+    route: /onboarding/start
+    feature: onboarding
+    function: "앱 소개 및 온보딩 시작"
+    ui:
+      - 타이틀/설명
+      - 일러스트
+      - CTA 버튼('시작하기')
+    strategy:
+      frontend: "CTA 클릭 시 /onboarding/household 이동"
+      backend: "없음"
+      state: "isFirstRun → false 저장"
+
+  - id: 110
+    name: onboarding_household
+    route: /onboarding/household
+    feature: onboarding
+    function: "세대 유형 수집 (단독/신혼/다자녀)"
+    ui:
+      - Chip Filter (옵션 선택)
+      - CTA 버튼('다음')
+    strategy:
+      frontend: "Chip 선택 시 householdType 업데이트, CTA 클릭 시 /onboarding/region 이동"
+      backend: "없음"
+      state: "householdType 로컬 저장, 재실행 시 복원"
+
+  - id: 120
+    name: onboarding_region
+    route: /onboarding/region
+    feature: onboarding
+    function: "거주 지역 수집"
+    ui:
+      - AppBar(뒤로가기)
+      - 검색 입력
+      - 지역 리스트
+      - CTA 버튼('완료')
+    strategy:
+      frontend: "지역 선택 시 region 업데이트, CTA 클릭 시 /filter 이동"
+      backend: "추후 지역 API 연동 가능"
+      state: "region 로컬 저장, 재실행 시 복원"
+
+  - id: 200
+    name: filter_home
+    route: /filter
+    feature: filter
+    function: "조건 기반 정책/혜택 탐색"
+    ui:
+      - 필터 영역(나이, 지역, 세대)
+      - 적용/초기화 버튼
+      - 결과 리스트
+    strategy:
+      frontend: "필터 변경 시 상태 업데이트, CTA 클릭 시 목록 리프레시"
+      backend: "Supabase API 호출로 정책/혜택 데이터 가져오기"
+      state: "최근 선택 필터 로컬 저장, 앱 재실행 시 복원"

@@ -1,0 +1,23 @@
+id: pickly_service-bootstrap
+name: "Pickly Monorepo Bootstrap"
+description: "Flutter 앱/모노레포 기본 뼈대 자동 생성"
+steps:
+  - type: coder
+    name: "Create monorepo skeleton"
+    goal: |
+      1) 다음 디렉토리 생성:
+         - apps/pickly_mobile
+         - packages/pickly_design_system
+         - docs/prd
+      2) Flutter 앱 생성:
+         - 명령: flutter create --org app.pickly --platforms=ios,android apps/pickly_mobile
+      3) 폴더 구조 정리(분리 원칙):
+         - apps/pickly_mobile/lib/features
+         - apps/pickly_mobile/lib/contexts
+      4) 루트에 melos.yaml 생성(모노레포 관리)
+      5) README.md, .gitignore 기본 추가
+      6) 아무 것도 덮어쓰지 말고, 기존 파일 있으면 보존
+    outputs:
+      - "apps/pickly_mobile"
+      - "packages/pickly_design_system"
+      - "docs/prd"

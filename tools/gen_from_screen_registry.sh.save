@@ -1,0 +1,3 @@
+mkdir -p tools
+nano tools/gen_from_screen_registry.sh
+
