@@ -11,6 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
+  flutter_svg: ^2.0.0
+  
+  # Pickly 디자인 시스템
+  pickly_design_system:
+    path: ../../packages/pickly_design_system
 
 dev_dependencies:
   flutter_test:

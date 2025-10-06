@@ -1,1 +1,24 @@
-{}
+{
+  "coder": {
+    "total": 2,
+    "successful": 2,
+    "failed": 0,
+    "totalDuration": 0.0004579999999947404,
+    "actions": [
+      {
+        "id": "coder-1759753368641",
+        "action": "spawn",
+        "duration": 0.0002080000000006521,
+        "success": true,
+        "timestamp": 1759753368643
+      },
+      {
+        "id": "coder-1759753741471",
+        "action": "spawn",
+        "duration": 0.0002499999999940883,
+        "success": true,
+        "timestamp": 1759753741473
+      }
+    ]
+  }
+}

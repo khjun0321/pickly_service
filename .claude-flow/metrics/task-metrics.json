@@ -30,5 +30,37 @@
     "duration": 3.649667000000008,
     "timestamp": 1759073180149,
     "metadata": {}
+  },
+  {
+    "id": "cmd-agent-1759753368498",
+    "type": "agent",
+    "success": true,
+    "duration": 4.218000000000018,
+    "timestamp": 1759753368502,
+    "metadata": {}
+  },
+  {
+    "id": "cmd-agent-1759753368640",
+    "type": "agent",
+    "success": true,
+    "duration": 4.146874999999994,
+    "timestamp": 1759753368645,
+    "metadata": {}
+  },
+  {
+    "id": "cmd-agent-1759753741333",
+    "type": "agent",
+    "success": true,
+    "duration": 3.9364590000000135,
+    "timestamp": 1759753741337,
+    "metadata": {}
+  },
+  {
+    "id": "cmd-agent-1759753741470",
+    "type": "agent",
+    "success": true,
+    "duration": 4.404375000000002,
+    "timestamp": 1759753741475,
+    "metadata": {}
   }
 ]
