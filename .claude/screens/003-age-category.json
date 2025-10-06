@@ -1,0 +1,38 @@
+{
+  "id": "003",
+  "name": "age-category",
+  "title": "현재 연령 및 세대 기준을 선택해주세요",
+  "subtitle": "나에게 맞는 정책과 혜택에 대해 안내해드려요",
+  "step": 3,
+  "totalSteps": 5,
+  
+  "dataSource": {
+    "table": "age_categories",
+    "type": "realtime",
+    "filters": { "is_active": true },
+    "orderBy": "sort_order",
+    "saveField": "selected_categories"
+  },
+  
+  "ui": {
+    "type": "selection-list",
+    "component": "SelectionCard",
+    "selectionMode": "multiple",
+    "itemLayout": "icon-card"
+  },
+  
+  "validation": {
+    "minSelection": 1,
+    "errorMessage": "최소 1개 이상 선택해주세요"
+  },
+  
+  "navigation": {
+    "previous": "/onboarding/002-region",
+    "next": "/onboarding/004-income"
+  },
+  
+  "admin": {
+    "manageable": true,
+    "crudPage": "AgeCategoryManagement"
+  }
+}
