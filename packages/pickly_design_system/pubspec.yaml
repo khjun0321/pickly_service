@@ -1,7 +1,6 @@
 name: pickly_design_system
 description: "Pickly 디자인 시스템 패키지"
 version: 0.0.1
-homepage:
 
 environment:
   sdk: ">=3.9.0 <4.0.0"
@@ -9,6 +8,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_svg: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -17,3 +17,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
+  assets:
+    - assets/images/
