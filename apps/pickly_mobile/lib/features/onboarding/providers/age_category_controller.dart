@@ -265,22 +265,28 @@ class AgeCategoryController extends StateNotifier<AgeCategorySelectionState> {
 
           // Validate that the category IDs exist in the database
           final repository = ref.read(ageCategoryRepositoryProvider);
-          final areValid = await repository.validateCategoryIds(selectedList);
 
-          if (!areValid) {
-            state = state.copyWith(
-              isSaving: false,
-              errorMessage: '선택한 카테고리가 유효하지 않습니다',
-            );
-            return false;
+          if (repository != null) {
+            final areValid = await repository.validateCategoryIds(selectedList);
+
+            if (!areValid) {
+              state = state.copyWith(
+                isSaving: false,
+                errorMessage: '선택한 카테고리가 유효하지 않습니다',
+              );
+              return false;
+            }
+
+            // Upsert user profile with selected categories
+            await supabase.client!.from('user_profiles').upsert({
+              'user_id': userId,
+              'selected_categories': selectedList,
+              'updated_at': DateTime.now().toIso8601String(),
+            }, onConflict: 'user_id');
+          } else {
+            // Repository not available, just save locally
+            debugPrint('Repository not available, skipping server validation');
           }
-
-          // Upsert user profile with selected categories
-          await supabase.client!.from('user_profiles').upsert({
-            'user_id': userId,
-            'selected_categories': selectedList,
-            'updated_at': DateTime.now().toIso8601String(),
-          }, onConflict: 'user_id');
         }
       }
 

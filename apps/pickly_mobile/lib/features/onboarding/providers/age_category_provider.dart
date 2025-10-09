@@ -12,9 +12,16 @@ final supabaseServiceProvider = Provider<SupabaseService>((ref) {
 });
 
 /// Provider for age category repository
-final ageCategoryRepositoryProvider = Provider<AgeCategoryRepository>((ref) {
+final ageCategoryRepositoryProvider = Provider<AgeCategoryRepository?>((ref) {
   final supabase = ref.watch(supabaseServiceProvider);
-  return AgeCategoryRepository(client: supabase.client);
+
+  // Only create repository if Supabase is properly initialized
+  if (supabase.isInitialized && supabase.client != null) {
+    return AgeCategoryRepository(client: supabase.client!);
+  }
+
+  // Return null if Supabase not available (will use mock data instead)
+  return null;
 });
 
 /// AsyncNotifier for managing age categories with realtime updates
@@ -36,29 +43,102 @@ class AgeCategoryNotifier extends AsyncNotifier<List<AgeCategory>> {
   }
 
   /// Fetch age categories from Supabase using repository
+  /// Falls back to mock data if Supabase is not available
   Future<List<AgeCategory>> _fetchCategories() async {
     try {
       final repository = ref.read(ageCategoryRepositoryProvider);
-      return await repository.fetchActiveCategories();
+
+      // If repository is available (Supabase initialized), use it
+      if (repository != null) {
+        return await repository.fetchActiveCategories();
+      }
+
+      // Otherwise, return mock data for offline/development mode
+      debugPrint('⚠️ Supabase not available, using mock age category data');
+      return _getMockCategories();
     } on AgeCategoryException {
-      rethrow;
+      // If Supabase fails, fallback to mock data
+      debugPrint('⚠️ Supabase error, falling back to mock data');
+      return _getMockCategories();
     } catch (e, stackTrace) {
-      // TODO: Replace with proper logging (e.g., logger package)
       debugPrint('Error fetching age categories: $e');
       debugPrint('Stack trace: $stackTrace');
-      throw AgeCategoryException('Failed to load age categories');
+      // Fallback to mock data instead of throwing
+      return _getMockCategories();
     }
+  }
+
+  /// Get mock age categories for offline/development mode
+  List<AgeCategory> _getMockCategories() {
+    final now = DateTime.now();
+    return [
+      AgeCategory(
+        id: 'mock-1',
+        title: '청년',
+        description: '(만 19-34세) 대학생, 취업준비생, 직장인',
+        iconComponent: 'youth',
+        iconUrl: 'https://placeholder.com/icon1.png',
+        minAge: 19,
+        maxAge: 34,
+        sortOrder: 1,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      ),
+      AgeCategory(
+        id: 'mock-2',
+        title: '중장년',
+        description: '(만 35-49세) 경력직, 중견 직장인',
+        iconComponent: 'middle_age',
+        iconUrl: 'https://placeholder.com/icon2.png',
+        minAge: 35,
+        maxAge: 49,
+        sortOrder: 2,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      ),
+      AgeCategory(
+        id: 'mock-3',
+        title: '장년',
+        description: '(만 50-64세) 은퇴 준비 세대',
+        iconComponent: 'senior',
+        iconUrl: 'https://placeholder.com/icon3.png',
+        minAge: 50,
+        maxAge: 64,
+        sortOrder: 3,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      ),
+      AgeCategory(
+        id: 'mock-4',
+        title: '노년',
+        description: '(만 65세 이상) 노후 생활',
+        iconComponent: 'elderly',
+        iconUrl: 'https://placeholder.com/icon4.png',
+        minAge: 65,
+        maxAge: null,
+        sortOrder: 4,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    ];
   }
 
   /// Setup realtime subscription for age_categories table
   void _setupRealtimeSubscription() {
     final repository = ref.read(ageCategoryRepositoryProvider);
 
-    _channel = repository.subscribeToCategories(
-      onInsert: (_) => refresh(),
-      onUpdate: (_) => refresh(),
-      onDelete: (_) => refresh(),
-    );
+    // Only subscribe if repository is available
+    if (repository != null) {
+      _channel = repository.subscribeToCategories(
+        onInsert: (_) => refresh(),
+        onUpdate: (_) => refresh(),
+        onDelete: (_) => refresh(),
+      );
+    }
   }
 
   /// Manually refresh categories
@@ -112,5 +192,13 @@ final ageCategoryByIdProvider = Provider.family<AgeCategory?, String>((ref, id) 
 /// Provider to validate a list of category IDs
 final validateCategoryIdsProvider = FutureProvider.family<bool, List<String>>((ref, ids) async {
   final repository = ref.read(ageCategoryRepositoryProvider);
+
+  // If repository not available, just check if IDs exist in current categories
+  if (repository == null) {
+    final categories = ref.read(ageCategoriesListProvider);
+    final categoryIds = categories.map((c) => c.id).toSet();
+    return ids.every((id) => categoryIds.contains(id));
+  }
+
   return await repository.validateCategoryIds(ids);
 });
