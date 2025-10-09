@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/onboarding/splash_screen.dart';
 
 void main() {
-  runApp(const PicklyApp());
+  runApp(
+    const ProviderScope(
+      child: PicklyApp(),
+    ),
+  );
 }
 
 class PicklyApp extends StatelessWidget {
