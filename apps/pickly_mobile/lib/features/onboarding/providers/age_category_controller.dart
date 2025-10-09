@@ -91,13 +91,21 @@ class AgeCategoryController extends StateNotifier<AgeCategorySelectionState> {
       state = state.copyWith(isLoading: true, clearError: true);
 
       final supabase = ref.read(supabaseServiceProvider);
-      final userId = supabase.currentUserId;
 
-      // If user is authenticated, load from Supabase
-      if (userId != null) {
-        await _loadFromSupabase(userId);
+      // Check if Supabase is initialized before accessing it
+      if (supabase.isInitialized) {
+        final userId = supabase.currentUserId;
+
+        // If user is authenticated, load from Supabase
+        if (userId != null) {
+          await _loadFromSupabase(userId);
+        } else {
+          // Otherwise, load from local storage (SharedPreferences)
+          await _loadFromLocalStorage();
+        }
       } else {
-        // Otherwise, load from local storage (SharedPreferences)
+        // Supabase not initialized, use local storage only
+        debugPrint('Supabase not initialized, using local storage');
         await _loadFromLocalStorage();
       }
 
@@ -116,7 +124,13 @@ class AgeCategoryController extends StateNotifier<AgeCategorySelectionState> {
   Future<void> _loadFromSupabase(String userId) async {
     final supabase = ref.read(supabaseServiceProvider);
 
-    final response = await supabase.client
+    // Safety check: ensure client is initialized
+    if (supabase.client == null) {
+      debugPrint('Supabase client not available');
+      return;
+    }
+
+    final response = await supabase.client!
         .from('user_profiles')
         .select('selected_categories')
         .eq('user_id', userId)
@@ -238,33 +252,36 @@ class AgeCategoryController extends StateNotifier<AgeCategorySelectionState> {
       state = state.copyWith(isSaving: true, clearError: true);
 
       final supabase = ref.read(supabaseServiceProvider);
-      final userId = supabase.currentUserId;
 
       // Save to local storage first (always)
       await _saveToLocalStorage(state.selectedIds);
 
-      // If authenticated, also save to Supabase
-      if (userId != null) {
-        final selectedList = state.selectedIds.toList();
+      // If Supabase is initialized and user is authenticated, also save to Supabase
+      if (supabase.isInitialized && supabase.client != null) {
+        final userId = supabase.currentUserId;
 
-        // Validate that the category IDs exist in the database
-        final repository = ref.read(ageCategoryRepositoryProvider);
-        final areValid = await repository.validateCategoryIds(selectedList);
+        if (userId != null) {
+          final selectedList = state.selectedIds.toList();
 
-        if (!areValid) {
-          state = state.copyWith(
-            isSaving: false,
-            errorMessage: '선택한 카테고리가 유효하지 않습니다',
-          );
-          return false;
+          // Validate that the category IDs exist in the database
+          final repository = ref.read(ageCategoryRepositoryProvider);
+          final areValid = await repository.validateCategoryIds(selectedList);
+
+          if (!areValid) {
+            state = state.copyWith(
+              isSaving: false,
+              errorMessage: '선택한 카테고리가 유효하지 않습니다',
+            );
+            return false;
+          }
+
+          // Upsert user profile with selected categories
+          await supabase.client!.from('user_profiles').upsert({
+            'user_id': userId,
+            'selected_categories': selectedList,
+            'updated_at': DateTime.now().toIso8601String(),
+          }, onConflict: 'user_id');
         }
-
-        // Upsert user profile with selected categories
-        await supabase.client.from('user_profiles').upsert({
-          'user_id': userId,
-          'selected_categories': selectedList,
-          'updated_at': DateTime.now().toIso8601String(),
-        }, onConflict: 'user_id');
       }
 
       state = state.copyWith(
