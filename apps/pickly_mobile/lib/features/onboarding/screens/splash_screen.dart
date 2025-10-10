@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,14 +21,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final isFirstRun = prefs.getBool('isFirstRun') ?? true;
-
-    if (isFirstRun) {
-      context.go('/onboarding/start');
-    } else {
-      context.go('/filter');
-    }
+    // Navigate to age category selection screen
+    context.go('/onboarding/age-category');
   }
 
   @override

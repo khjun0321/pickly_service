@@ -1,23 +1,55 @@
+/// Age Category Model
+///
+/// Represents an age category from the `age_categories` Supabase table.
+/// Used in the onboarding flow (step 3) to allow users to select their
+/// applicable age/generation categories.
+///
+/// This model corresponds to the screen config:
+/// `.claude/screens/003-age-category.json`
+library;
+
 import 'package:flutter/foundation.dart';
 
-/// Age category model representing onboarding screen 003
+/// Immutable model representing an age category option.
 ///
-/// Represents a demographic category for user selection during onboarding.
-/// Matches the Supabase `age_categories` table schema.
+/// Age categories help personalize policy recommendations based on
+/// life stage (e.g., youth, newlyweds, parents, seniors, etc.).
 @immutable
 class AgeCategory {
+  /// Unique identifier (UUID from Supabase)
   final String id;
+
+  /// Display title (e.g., "청년", "신혼부부·예비부부")
   final String title;
+
+  /// Detailed description (e.g., "(만 19세-39세) 대학생, 취업준비생, 직장인")
   final String description;
+
+  /// Icon component identifier for UI rendering
   final String iconComponent;
+
+  /// Optional icon URL (can be null)
   final String? iconUrl;
+
+  /// Minimum age for eligibility (null if not applicable)
   final int? minAge;
+
+  /// Maximum age for eligibility (null if not applicable)
   final int? maxAge;
+
+  /// Display order in lists
   final int sortOrder;
+
+  /// Whether this category is currently active/visible
   final bool isActive;
+
+  /// Creation timestamp
   final DateTime createdAt;
+
+  /// Last update timestamp
   final DateTime updatedAt;
 
+  /// Creates an immutable [AgeCategory] instance.
   const AgeCategory({
     required this.id,
     required this.title,
@@ -32,7 +64,9 @@ class AgeCategory {
     required this.updatedAt,
   });
 
-  /// Create from Supabase JSON response
+  /// Creates an [AgeCategory] from Supabase JSON response.
+  ///
+  /// Handles type conversions and null safety for all fields.
   factory AgeCategory.fromJson(Map<String, dynamic> json) {
     return AgeCategory(
       id: json['id'] as String,
@@ -49,7 +83,7 @@ class AgeCategory {
     );
   }
 
-  /// Convert to JSON for Supabase
+  /// Converts this [AgeCategory] to JSON for Supabase operations.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -66,21 +100,7 @@ class AgeCategory {
     };
   }
 
-  /// Get age range display text in Korean
-  ///
-  /// Returns formatted age range or empty string if no age constraints
-  String get ageRangeText {
-    if (minAge != null && maxAge != null) {
-      return '(만 $minAge세-$maxAge세)';
-    } else if (minAge != null) {
-      return '(만 $minAge세 이상)';
-    } else if (maxAge != null) {
-      return '(만 $maxAge세 이하)';
-    }
-    return '';
-  }
-
-  /// Create a copy with updated fields
+  /// Creates a copy with optional field overrides.
   AgeCategory copyWith({
     String? id,
     String? title,
@@ -109,6 +129,18 @@ class AgeCategory {
     );
   }
 
+  /// Checks if a given age falls within this category's age range.
+  ///
+  /// Returns true if:
+  /// - No age constraints are defined (minAge and maxAge are null)
+  /// - Age is within the defined range (inclusive)
+  bool isAgeInRange(int age) {
+    if (minAge == null && maxAge == null) return true;
+    if (minAge != null && age < minAge!) return false;
+    if (maxAge != null && age > maxAge!) return false;
+    return true;
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -119,5 +151,8 @@ class AgeCategory {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() => 'AgeCategory(id: $id, title: $title, sortOrder: $sortOrder)';
+  String toString() {
+    return 'AgeCategory(id: $id, title: $title, description: $description, '
+        'iconComponent: $iconComponent, sortOrder: $sortOrder, isActive: $isActive)';
+  }
 }
