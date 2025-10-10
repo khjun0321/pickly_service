@@ -11,12 +11,19 @@
   - 공통 에이전트 + 설정 기반 개발 방식
   - 새 화면 추가 방법
   - UI 타입별 설정
+  - SelectionListItem 사용 예시 🆕
+  - Figma 워크플로우 🆕
 
 ### 아키텍처
 - [공통 에이전트 아키텍처](architecture/common-agent-architecture.md) ⭐
   - 재사용 가능한 구조
   - 에이전트 목록
   - 워크플로우 설명
+- [온보딩 아키텍처](architecture/onboarding-architecture.md) 🆕
+  - Contexts/Features 분리 구조
+  - Provider 패턴 설명
+  - Widget 재사용 전략
+  - Figma assets 통합 방식
 
 ### API & 스키마
 - [화면 설정 파일 스키마](api/screen-config-schema.md) ⭐
@@ -29,6 +36,7 @@
   - 제품 요구사항 정의
   - 기능 목록
   - 로드맵
+  - v5.1 업데이트 (2025.10.11) 🆕
 
 ---
 
@@ -124,6 +132,49 @@ cat .claude/agents/core/onboarding-coordinator.md
 ### API
 - [화면 설정 스키마](./api/screen-config-schema.md)
 - [Supabase API 가이드](./api/supabase-api.md) (작성 예정)
+
+---
+
+## 📊 현재 개발 현황 (2025.10.11)
+
+### ✅ 완료된 작업
+
+**온보딩 시스템 기반**:
+- Supabase 로컬 환경 구축 ✅
+- age_categories 테이블 및 RLS 정책 ✅
+- 6개 연령/세대 카테고리 초기 데이터 시딩 ✅
+
+**003 화면 (연령/세대 선택)** ✅:
+- SelectionListItem 공통 위젯 구현
+- Figma 아이콘 연동 (SVG 지원)
+- Realtime 구독으로 즉시 반영
+- 다중 선택 상태 관리
+- Provider 기반 상태 관리
+
+**공통 컴포넌트**:
+- SelectionCard (카드형 선택) ✅
+- SelectionListItem (리스트형 선택) ✅
+- OnboardingHeader (단계 표시) ✅
+- NextButton (다음 버튼) ✅
+
+**문서화**:
+- 온보딩 개발 가이드 ✅
+- 공통 에이전트 아키텍처 ✅
+- 온보딩 아키텍처 문서 🆕
+- PRD v5.1 업데이트 🆕
+
+### 🔄 진행 중
+
+- 001 화면 (개인정보 입력) 구현
+- 002 화면 (지역 선택) 구현
+- 온보딩 플로우 통합 및 네비게이션
+
+### 📅 다음 단계
+
+- 004 화면 (소득 구간 선택)
+- 005 화면 (관심 정책 선택)
+- 정책 피드 화면 개발
+- 정책 상세 화면 개발
 
 ---
 

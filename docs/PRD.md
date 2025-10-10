@@ -433,11 +433,17 @@ pickly_service/
 - [x] Claude Flow 에이전트 시스템 구축
 - [x] 화면 설정 JSON 구조 확립
 
-#### 🔄 진행 중 (Week 2-3)
-- [ ] 003 온보딩 화면 개발 (연령/세대 선택)
+#### ✅ 완료 (Week 2-3)
+- [x] 003 온보딩 화면 개발 (연령/세대 선택)
+  - SelectionListItem 공통 위젯 구현
+  - Figma 아이콘 연동 완료
+  - Realtime 구독 기능 구현
+  - 다중 선택 상태 관리
+
+#### 🔄 진행 중 (Week 3-4)
 - [ ] 001 온보딩 화면 개발 (개인정보 입력)
 - [ ] 002 온보딩 화면 개발 (지역 선택)
-- [ ] 온보딩 플로우 통합
+- [ ] 온보딩 플로우 통합 및 네비게이션
 
 #### 📅 예정 (Week 4-6)
 - [ ] 정책 피드 화면
@@ -530,6 +536,26 @@ pickly_service/
 ---
 
 ## 15. 변경 이력
+
+### v5.1 (2025.10.11) - 🎨 Figma 연동 및 공통 컴포넌트 구축
+- **003 온보딩 화면 완성**:
+  - SelectionListItem 공통 위젯 구현 (재사용 가능)
+  - Figma 아이콘 자동 연동 시스템
+  - SVG 아이콘 지원 (flutter_svg)
+  - Realtime 구독으로 관리자 수정사항 즉시 반영
+- **공통 컴포넌트 체계 확립**:
+  - SelectionCard (카드형 선택)
+  - SelectionListItem (리스트형 선택)
+  - OnboardingHeader (단계 표시)
+  - NextButton (다음 버튼)
+- **Figma 워크플로우**:
+  - iconMapping을 통한 자동 경로 변환
+  - Design System 패키지에 아이콘 통합
+  - 일관된 아이콘 표시 방식
+- **개발 가이드 강화**:
+  - SelectionListItem 사용 예시 추가
+  - Figma assets 연동 가이드
+  - 화면 상태 추적 테이블 업데이트
 
 ### v5.0 (2025.10.07) - 🤖 AI 자동화 시스템 도입
 - **구조 단순화**: React 웹 제거, Flutter 모바일 단일 플랫폼

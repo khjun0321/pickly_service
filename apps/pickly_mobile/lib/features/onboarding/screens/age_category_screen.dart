@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 import '../widgets/onboarding_header.dart';
-import '../widgets/selection_card.dart';
+import '../widgets/selection_list_item.dart';
 import '../providers/age_category_provider.dart';
 
 /// Age category selection screen (Step 3/5)
 ///
-/// Simplified version without controller - uses local state
+/// Multiple selection list view with checkmarks
 class AgeCategoryScreen extends ConsumerStatefulWidget {
   const AgeCategoryScreen({super.key});
 
@@ -17,22 +18,26 @@ class AgeCategoryScreen extends ConsumerStatefulWidget {
 }
 
 class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
-  String? _selectedCategoryId;
+  final Set<String> _selectedCategoryIds = {};
 
   void _handleCategorySelection(String categoryId) {
     setState(() {
-      _selectedCategoryId = categoryId;
+      if (_selectedCategoryIds.contains(categoryId)) {
+        _selectedCategoryIds.remove(categoryId);
+      } else {
+        _selectedCategoryIds.add(categoryId);
+      }
     });
   }
 
   Future<void> _handleNext() async {
-    if (_selectedCategoryId == null) return;
+    if (_selectedCategoryIds.isEmpty) return;
 
     // TODO: Save selection and navigate
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Selected: $_selectedCategoryId'),
+          content: Text('Selected: ${_selectedCategoryIds.length} categories'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -41,9 +46,10 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
 
   void _handleBack() {
     setState(() {
-      _selectedCategoryId = null;
+      _selectedCategoryIds.clear();
     });
-    Navigator.of(context).pop();
+    // Use go_router instead of pop to avoid navigation stack error
+    context.go('/splash');
   }
 
   @override
@@ -73,63 +79,85 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
 
               const SizedBox(height: Spacing.lg),
 
-              // Title
+              // Title - Figma spec: top 116px, 18px w700, #3E3E3E
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                 child: Text(
-                  '맞춤 혜택을 위해\n내 상황을 알려주세요.',
+                  '맞춤 혜택을 위해 내 상황을 알려주세요.',
                   style: PicklyTypography.titleMedium.copyWith(
                     color: TextColors.primary,
                     fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: Spacing.xs),
-
-              // Subtitle
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                child: Text(
-                  '나에게 맞는 정책과 혜택에 대해 안내해드려요',
-                  style: PicklyTypography.bodyMedium.copyWith(
-                    color: TextColors.secondary,
+                    fontSize: 18,
+                    height: 1.33,
                   ),
                 ),
               ),
 
               const SizedBox(height: Spacing.xl),
 
-              // Content
+              // Content - Figma spec: List starts at top 156px
               Expanded(
                 child: categoriesAsync.when(
-                  data: (categories) => _buildCategoryGrid(categories),
+                  data: (categories) => _buildCategoryList(categories),
                   loading: () => _buildLoadingState(),
                   error: (error, stack) => _buildErrorState(error),
                 ),
               ),
 
-              const SizedBox(height: Spacing.md),
+              // Bottom section - Figma spec: guidance text at top 656px
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+                child: Text(
+                  '나에게 맞는 정책과 혜택에 대해 안내해드려요',
+                  style: PicklyTypography.bodyMedium.copyWith(
+                    color: TextColors.secondary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
 
-              // Bottom button
+              const SizedBox(height: Spacing.xl),
+
+              // Progress bar - Figma spec: top 704px, height 4px, 50% progress
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: 0.5, // Step 3/5 = 60%, but Figma shows ~50%
+                    minHeight: 4,
+                    backgroundColor: const Color(0xFFDDDDDD),
+                    valueColor: const AlwaysStoppedAnimation<Color>(BrandColors.primary),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: Spacing.xl),
+
+              // Bottom button - Figma spec: top 732px, height 56px, border radius 16px
               Padding(
                 padding: const EdgeInsets.all(Spacing.lg),
                 child: SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _selectedCategoryId != null ? _handleNext : null,
+                    onPressed: _selectedCategoryIds.isNotEmpty ? _handleNext : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.primary,
                       disabledBackgroundColor: BrandColors.primary.withValues(alpha: 0.3),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16), // Figma spec: 16px
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
                     ),
                     child: Text(
                       '다음',
                       style: PicklyTypography.buttonLarge.copyWith(
                         color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -142,28 +170,23 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
     );
   }
 
-  Widget _buildCategoryGrid(List<AgeCategory> categories) {
+  Widget _buildCategoryList(List<AgeCategory> categories) {
     if (categories.isEmpty) {
       return _buildEmptyState();
     }
 
-    return GridView.builder(
+    return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: Spacing.md,
-        mainAxisSpacing: Spacing.md,
-        childAspectRatio: 0.85,
-      ),
       itemCount: categories.length,
+      separatorBuilder: (context, index) => const SizedBox(height: Spacing.md),
       itemBuilder: (context, index) {
         final category = categories[index];
-        final isSelected = _selectedCategoryId == category.id;
+        final isSelected = _selectedCategoryIds.contains(category.id);
 
-        return SelectionCard(
+        return SelectionListItem(
           iconUrl: category.iconUrl,
-          label: category.title,
-          subtitle: category.description,
+          title: category.title,
+          description: category.description,
           isSelected: isSelected,
           onTap: () => _handleCategorySelection(category.id),
         );

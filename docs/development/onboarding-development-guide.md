@@ -289,13 +289,19 @@ testWidgets('Should save data on next button', ...);
 
 ## 📊 현재 온보딩 화면 목록
 
-| ID | 화면명 | UI 타입 | Realtime | 백오피스 |
-|----|--------|---------|----------|----------|
-| 001 | 개인정보 | form | ❌ | ❌ |
-| 002 | 지역선택 | map | ❌ | ❌ |
-| 003 | 연령/세대 | selection-list | ✅ | ✅ |
-| 004 | 소득구간 | slider | ❌ | ❌ |
-| 005 | 관심정책 | selection-list | ✅ | ✅ |
+| ID | 화면명 | UI 타입 | Realtime | 백오피스 | 상태 |
+|----|--------|---------|----------|----------|------|
+| 001 | 개인정보 | form | ❌ | ❌ | 📝 설계 완료 |
+| 002 | 지역선택 | map | ❌ | ❌ | 📝 설계 완료 |
+| 003 | 연령/세대 | selection-list | ✅ | ✅ | ✅ 구현 완료 |
+| 004 | 소득구간 | slider | ❌ | ❌ | 📅 대기 중 |
+| 005 | 관심정책 | selection-list | ✅ | ✅ | 📅 대기 중 |
+
+**범례**:
+- ✅ 구현 완료: 코드 작성 및 테스트 완료
+- 🔄 진행 중: 현재 개발 중
+- 📝 설계 완료: JSON 설정 파일 작성 완료
+- 📅 대기 중: 구현 예정
 
 ---
 
@@ -323,6 +329,47 @@ NextButton(isEnabled: controller.isValid, onPressed: ...)
 // ❌ 나쁜 예
 Container(/* 헤더 직접 구현 */)
 ```
+
+### SelectionListItem 사용 예시
+
+**003 화면 (연령/세대 선택)**에서 사용된 실제 예시:
+
+```dart
+import 'package:pickly_mobile/features/onboarding/widgets/selection_list_item.dart';
+
+// 기본 사용법
+SelectionListItem(
+  iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/young_man.svg',
+  title: '청년',
+  description: '만 19세 ~ 34세',
+  isSelected: selectedIds.contains(category.id),
+  onTap: () => controller.toggleSelection(category.id),
+)
+
+// 아이콘 없이 사용
+SelectionListItem(
+  title: '옵션 제목',
+  description: '옵션 설명',
+  isSelected: isSelected,
+  onTap: onSelect,
+)
+
+// 비활성화 상태
+SelectionListItem(
+  title: '사용 불가',
+  enabled: false,
+  isSelected: false,
+)
+```
+
+**주요 속성**:
+- `iconUrl`: SVG 아이콘 경로 (선택사항)
+- `icon`: Material Icon (iconUrl이 없을 때 대체)
+- `title`: 제목 (필수)
+- `description`: 설명 (선택사항)
+- `isSelected`: 선택 상태 (기본값: false)
+- `onTap`: 탭 콜백
+- `enabled`: 활성화 여부 (기본값: true)
 
 ---
 
@@ -357,8 +404,86 @@ jq . .claude/screens/006-preference.json
 
 ---
 
+## 🎨 Figma Assets 연동
+
+Pickly는 Figma 디자인의 아이콘을 자동으로 Flutter 코드에 연결합니다.
+
+### 설정 방법
+
+화면 설정 JSON에 `figma` 섹션을 추가:
+
+```json
+{
+  "figma": {
+    "designUrl": "https://www.figma.com/design/xOpx8v3FiYmCxSLkj9sgcu/pickly?node-id=481-10088",
+    "componentSet": "Age Categories",
+    "iconPath": "packages/pickly_design_system/assets/icons/age_categories/",
+    "iconMapping": {
+      "youth": "young_man.svg",
+      "newlywed": "bride.svg",
+      "parenting": "baby.svg",
+      "multi_child": "kinder.svg",
+      "elderly": "old_man.svg",
+      "disability": "wheel_chair.svg"
+    }
+  }
+}
+```
+
+### 워크플로우
+
+1. **Figma에서 아이콘 내보내기**:
+   - SVG 형식으로 내보내기
+   - 파일명: `young_man.svg`, `bride.svg` 등
+
+2. **Design System에 배치**:
+   ```bash
+   # 아이콘 복사
+   cp icons/*.svg packages/pickly_design_system/assets/icons/age_categories/
+   ```
+
+3. **JSON 설정에 매핑 추가**:
+   - `iconMapping`에 `"DB 값": "파일명.svg"` 형태로 추가
+
+4. **자동 처리**:
+   - Screen Builder가 `iconComponent` → `iconUrl` 자동 변환
+   - Provider가 Mock 데이터에 올바른 경로 포함
+   - `SelectionListItem` 위젯이 자동으로 SVG 로드
+
+### 실제 사용 예시 (003 화면)
+
+```dart
+// DB에서 가져온 데이터
+final category = AgeCategory(
+  id: '1',
+  name: '청년',
+  description: '만 19세 ~ 34세',
+  iconComponent: 'youth', // DB 저장 값
+);
+
+// iconMapping을 통해 자동 변환
+// 'youth' → 'packages/pickly_design_system/assets/icons/age_categories/young_man.svg'
+
+// SelectionListItem에서 자동 표시
+SelectionListItem(
+  iconUrl: iconPath, // 자동 변환된 경로
+  title: category.name,
+  description: category.description,
+)
+```
+
+### 아이콘 요구사항
+
+- **형식**: SVG (권장), PNG도 가능
+- **크기**: 32x32px (자동 조정됨)
+- **색상**: 단색 (컬러필터 적용 가능)
+- **명명**: 소문자, 언더스코어 사용 (`young_man.svg`)
+
+---
+
 ## 📚 참고 문서
 
+- [Figma Assets Guide](./figma-assets-guide.md) 🆕
 - [공통 에이전트 구조](../architecture/common-agent-architecture.md)
 - [설정 파일 스키마](../api/screen-config-schema.md)
 - [백오피스 개발](./admin-development-guide.md)

@@ -10,4 +10,5 @@
 
 export 'onboarding_header.dart';
 export 'selection_card.dart';
+export 'selection_list_item.dart';
 export 'next_button.dart';
