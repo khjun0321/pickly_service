@@ -4,24 +4,11 @@ import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 import '../widgets/onboarding_header.dart';
 import '../widgets/selection_card.dart';
-import '../widgets/next_button.dart';
 import '../providers/age_category_provider.dart';
-import '../providers/age_category_controller.dart';
 
 /// Age category selection screen (Step 3/5)
 ///
-/// Allows users to select ONE age category/generation
-/// for personalized policy recommendations.
-/// Based on Figma: https://www.figma.com/design/xOpx8v3FiYmCxSLkj9sgcu/pickly?node-id=287-5211
-///
-/// Uses reusable components:
-/// - OnboardingHeader (with back button and progress bar)
-/// - SelectionCard (for age category cards)
-/// - NextButton (bottom CTA button)
-///
-/// Uses Riverpod providers:
-/// - ageCategoryProvider (for fetching categories from Supabase)
-/// - ageCategoryControllerProvider (for managing selection state)
+/// Simplified version without controller - uses local state
 class AgeCategoryScreen extends ConsumerStatefulWidget {
   const AgeCategoryScreen({super.key});
 
@@ -30,43 +17,45 @@ class AgeCategoryScreen extends ConsumerStatefulWidget {
 }
 
 class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
+  String? _selectedCategoryId;
+
+  void _handleCategorySelection(String categoryId) {
+    setState(() {
+      _selectedCategoryId = categoryId;
+    });
+  }
+
   Future<void> _handleNext() async {
-    final notifier = ref.read(ageCategoryControllerProvider.notifier);
-    await notifier.saveAndContinue();
+    if (_selectedCategoryId == null) return;
 
-    if (!mounted) return;
-
-    final selectionState = ref.read(ageCategoryControllerProvider);
-
-    if (selectionState.errorMessage != null) {
-      // Error occurred - state already updated by notifier
-      return;
+    // TODO: Save selection and navigate
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Selected: $_selectedCategoryId'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
-
-    // Navigate to next screen
-    // TODO: Implement navigation
-    // Navigator.of(context).pushNamed('/onboarding/004-income');
   }
 
   void _handleBack() {
-    // Clear selection and navigate back
-    ref.read(ageCategoryControllerProvider.notifier).clearSelection();
+    setState(() {
+      _selectedCategoryId = null;
+    });
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Watch category data from provider
     final categoriesAsync = ref.watch(ageCategoryProvider);
 
-    // Watch selection state
-    final selectionState = ref.watch(ageCategoryControllerProvider);
-    final hasSelection = ref.watch(isAgeCategorySelectionValidProvider);
-
-    return WillPopScope(
-      onWillPop: () async {
-        _handleBack();
-        return false; // Prevent default back behavior
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleBack();
+        }
       },
       child: Scaffold(
         backgroundColor: BackgroundColors.app,
@@ -74,7 +63,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with back button and progress bar
+              // Header
               OnboardingHeader(
                 currentStep: 2,
                 totalSteps: 5,
@@ -111,19 +100,40 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
 
               const SizedBox(height: Spacing.xl),
 
-              // Content area (scrollable cards)
+              // Content
               Expanded(
-                child: _buildContent(categoriesAsync, selectionState),
+                child: categoriesAsync.when(
+                  data: (categories) => _buildCategoryGrid(categories),
+                  loading: () => _buildLoadingState(),
+                  error: (error, stack) => _buildErrorState(error),
+                ),
               ),
 
               const SizedBox(height: Spacing.md),
 
               // Bottom button
-              NextButton(
-                label: '다음',
-                enabled: hasSelection,
-                isLoading: selectionState.isLoading,
-                onPressed: _handleNext,
+              Padding(
+                padding: const EdgeInsets.all(Spacing.lg),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _selectedCategoryId != null ? _handleNext : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: BrandColors.primary,
+                      disabledBackgroundColor: BrandColors.primary.withValues(alpha: 0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      '다음',
+                      style: PicklyTypography.buttonLarge.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -132,45 +142,32 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
     );
   }
 
-  Widget _buildContent(
-    AsyncValue<List<AgeCategory>> categoriesAsync,
-    AgeCategorySelectionState selectionState,
-  ) {
-    return categoriesAsync.when(
-      data: (categories) {
-        if (categories.isEmpty) {
-          return _buildEmptyState();
-        }
+  Widget _buildCategoryGrid(List<AgeCategory> categories) {
+    if (categories.isEmpty) {
+      return _buildEmptyState();
+    }
 
-        return GridView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: Spacing.md,
-            mainAxisSpacing: Spacing.md,
-            childAspectRatio: 0.85,
-          ),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            final category = categories[index];
-            final isSelected = selectionState.isSelected(category.id);
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: Spacing.md,
+        mainAxisSpacing: Spacing.md,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: categories.length,
+      itemBuilder: (context, index) {
+        final category = categories[index];
+        final isSelected = _selectedCategoryId == category.id;
 
-            return SelectionCard(
-              iconUrl: category.iconUrl,
-              label: category.title,
-              subtitle: category.description,
-              isSelected: isSelected,
-              onTap: () {
-                ref
-                    .read(ageCategoryControllerProvider.notifier)
-                    .selectCategory(category.id);
-              },
-            );
-          },
+        return SelectionCard(
+          iconUrl: category.iconUrl,
+          label: category.title,
+          subtitle: category.description,
+          isSelected: isSelected,
+          onTap: () => _handleCategorySelection(category.id),
         );
       },
-      loading: () => _buildLoadingState(),
-      error: (error, stack) => _buildErrorState(error),
     );
   }
 
@@ -216,11 +213,14 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
             const SizedBox(height: Spacing.xl),
             SizedBox(
               width: 160,
-              child: PicklyButton.primary(
-                text: '다시 시도',
+              child: ElevatedButton(
                 onPressed: () {
-                  ref.read(ageCategoryProvider.notifier).retry();
+                  ref.read(ageCategoryProvider.notifier).refresh();
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: BrandColors.primary,
+                ),
+                child: const Text('다시 시도'),
               ),
             ),
           ],
