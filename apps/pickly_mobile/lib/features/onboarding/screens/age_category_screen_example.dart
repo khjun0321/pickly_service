@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/models/age_category.dart';
+import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 import '../providers/age_category_provider.dart';
 import '../providers/age_category_controller.dart';
 

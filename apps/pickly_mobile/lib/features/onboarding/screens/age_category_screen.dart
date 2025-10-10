@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
-import '../../../models/age_category.dart';
+import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 import '../widgets/onboarding_header.dart';
 import '../widgets/selection_card.dart';
 import '../widgets/next_button.dart';

@@ -14,13 +14,13 @@ dependencies:
   flutter_svg: ^2.0.0
 
   # State management
-  flutter_riverpod: ^2.6.1
+  flutter_riverpod: ^3.0.3
 
   # Supabase integration
   supabase_flutter: ^2.6.0
 
   # Local storage
-  shared_preferences: ^2.3.2
+  shared_preferences: ^2.5.3
 
   # Environment variables
   flutter_dotenv: ^5.1.0
@@ -28,6 +28,7 @@ dependencies:
   # Pickly 디자인 시스템
   pickly_design_system:
     path: ../../packages/pickly_design_system
+  go_router: ^16.2.4
 
 dev_dependencies:
   flutter_test:

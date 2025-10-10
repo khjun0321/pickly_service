@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../models/age_category.dart';
-import '../../../repositories/age_category_repository.dart';
+import 'package:pickly_mobile/contexts/user/models/age_category.dart';
+import 'package:pickly_mobile/contexts/user/repositories/age_category_repository.dart';
 import '../../../core/services/supabase_service.dart';
 
 /// Provider for accessing Supabase service
