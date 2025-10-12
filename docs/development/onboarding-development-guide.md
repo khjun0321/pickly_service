@@ -11,6 +11,99 @@ Pickly의 온보딩 화면은 **설정 파일 기반**으로 개발됩니다.
 
 ---
 
+## 📁 프로젝트 구조 (2025.10.11 업데이트)
+
+### 디렉토리 구조
+
+```
+lib/
+├─ contexts/user/           # User Context (DDD)
+│  ├─ models/
+│  │  └─ age_category.dart  ✅ 공식 모델 위치 (contexts/user/models 사용)
+│  └─ repositories/
+│     └─ age_category_repository.dart
+│
+├─ features/onboarding/     # Onboarding Feature
+│  ├─ screens/
+│  │  ├─ splash_screen.dart
+│  │  └─ age_category_screen.dart
+│  ├─ providers/
+│  │  └─ age_category_provider.dart  ✅ Riverpod AsyncNotifier
+│  └─ widgets/
+│     ├─ onboarding_header.dart      (온보딩 전용, 로컬)
+│     └─ selection_list_item.dart    (온보딩 전용, 로컬)
+│
+├─ core/
+│  ├─ router.dart           ✅ GoRouter 설정
+│  └─ services/
+│
+└─ main.dart
+
+packages/pickly_design_system/   # 공통 디자인 시스템
+├─ lib/widgets/
+│  └─ buttons/
+│     └─ next_button.dart   ✅ 공통 위젯 (Design System)
+└─ assets/icons/
+   └─ age_categories/       ✅ Figma 아이콘
+
+examples/                   # 예제 및 참조 코드
+└─ onboarding/
+   └─ age_category_screen_example.dart
+```
+
+### Import 규칙
+
+**✅ 올바른 Import**
+```dart
+// 모델 Import (contexts/user/models 사용 - 단일 진실 공급원)
+import 'package:pickly_mobile/contexts/user/models/age_category.dart';
+
+// Repository Import
+import 'package:pickly_mobile/contexts/user/repositories/age_category_repository.dart';
+
+// Provider Import
+import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
+
+// Design System (공통 위젯 - 패키지에서 제공)
+import 'package:pickly_design_system/widgets/buttons/next_button.dart';
+
+// 온보딩 전용 위젯 (로컬 위젯)
+import 'package:pickly_mobile/features/onboarding/widgets/onboarding_header.dart';
+import 'package:pickly_mobile/features/onboarding/widgets/selection_list_item.dart';
+```
+
+**❌ 잘못된 Import**
+```dart
+// ❌ 삭제된 중복 파일 (v5.2에서 제거됨)
+import 'package:pickly_mobile/core/models/age_category.dart';
+
+// ❌ 상대 경로 사용 금지 (절대 경로 사용 필수)
+import '../models/age_category.dart';
+
+// ❌ 제거된 미사용 컨트롤러
+import '../providers/age_category_controller.dart';
+```
+
+### 위젯 소스 구분
+
+**Design System (공통 위젯)**:
+- NextButton - 모든 온보딩 화면에서 사용
+- 기타 공통 UI 컴포넌트
+
+**로컬 온보딩 위젯**:
+- OnboardingHeader - 온보딩 화면 전용 헤더
+- SelectionListItem - 온보딩 선택 리스트 아이템
+
+### 파일 위치 원칙
+
+1. **모델**: 항상 `lib/contexts/{domain}/models/`
+2. **Repository**: 항상 `lib/contexts/{domain}/repositories/`
+3. **화면**: `lib/features/{feature}/screens/`
+4. **상태관리**: `lib/features/{feature}/providers/`
+5. **공통 위젯**: `packages/pickly_design_system/lib/widgets/`
+6. **기능별 위젯**: `lib/features/{feature}/widgets/`
+7. **예제**: `examples/{feature}/`
+
 ## 📋 새 화면 추가 방법
 
 ### 1단계: 설정 파일 작성

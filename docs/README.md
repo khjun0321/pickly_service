@@ -135,6 +135,95 @@ cat .claude/agents/core/onboarding-coordinator.md
 
 ---
 
+## 🗂️ 프로젝트 구조 원칙
+
+### DDD (Domain-Driven Design) 적용
+
+Pickly는 도메인 주도 설계를 따릅니다:
+
+- **Contexts**: 도메인별 비즈니스 로직 경계 (User, Policy, Filter 등)
+- **Features**: 기능별 UI 및 프레젠테이션 로직
+- **Core**: 공통 인프라 (Router, Services, Theme)
+
+### 파일 배치 규칙
+
+1. **모델**: `lib/contexts/{domain}/models/`
+   - 예: `lib/contexts/user/models/age_category.dart`
+   - 단일 진실 공급원(Single Source of Truth) 유지
+
+2. **Repository**: `lib/contexts/{domain}/repositories/`
+   - 예: `lib/contexts/user/repositories/age_category_repository.dart`
+   - 데이터 접근 로직 캡슐화
+
+3. **화면**: `lib/features/{feature}/screens/`
+   - 예: `lib/features/onboarding/screens/age_category_screen.dart`
+   - UI 구현 및 사용자 인터랙션
+
+4. **상태관리**: `lib/features/{feature}/providers/`
+   - 예: `lib/features/onboarding/providers/age_category_provider.dart`
+   - Riverpod을 통한 상태 관리
+
+5. **위젯**:
+   - **공통 위젯**: `packages/pickly_design_system/lib/widgets/`
+   - **기능별 위젯**: `lib/features/{feature}/widgets/`
+
+6. **예제 및 참조**: `examples/{feature}/`
+
+### Import 정책
+
+#### ✅ 필수 규칙
+
+```dart
+// 절대 경로 사용 (권장)
+import 'package:pickly_mobile/contexts/user/models/age_category.dart';
+
+// 패키지 Import
+import 'package:pickly_design_system/widgets/buttons/next_button.dart';
+```
+
+#### ❌ 금지 사항
+
+```dart
+// 상대 경로 사용 금지
+import '../models/age_category.dart';
+
+// 중복 파일 Import 금지 (단일 진실 공급원 위반)
+import 'package:pickly_mobile/core/models/age_category.dart'; // 삭제됨
+```
+
+### 의존성 방향
+
+```
+┌──────────────┐
+│   Features   │  ←─── UI Layer (화면, 위젯, Provider)
+└──────┬───────┘
+       │ depends on
+       ↓
+┌──────────────┐
+│   Contexts   │  ←─── Domain Layer (모델, Repository)
+└──────────────┘
+```
+
+**중요**:
+- `contexts → features` 의존 **허용** ✅
+- `features → contexts` 의존 **금지** ❌
+- Contexts는 UI에 대해 알지 못함
+
+### 파일 중복 방지
+
+**v5.2 이전 문제**:
+```
+❌ lib/core/models/age_category.dart        (중복)
+✅ lib/contexts/user/models/age_category.dart (정식)
+```
+
+**v5.2 이후 해결**:
+```
+✅ lib/contexts/user/models/age_category.dart (단일 소스)
+```
+
+**규칙**: 동일한 모델은 하나의 위치에만 존재해야 함
+
 ## 📊 현재 개발 현황 (2025.10.11)
 
 ### ✅ 완료된 작업

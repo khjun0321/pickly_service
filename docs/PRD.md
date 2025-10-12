@@ -537,6 +537,40 @@ pickly_service/
 
 ## 15. 변경 이력
 
+### v5.2 (2025.10.11) - 🧹 프로젝트 구조 정리 및 표준화
+
+#### 주요 변경사항
+- **중복 파일 제거**:
+  - `lib/core/models/age_category.dart` 삭제
+  - 모든 모델을 `contexts/user/models`로 통합
+  - 단일 진실 공급원(Single Source of Truth) 확립
+
+- **온보딩 위젯 소스 통일**:
+  - Design System 패키지 위젯 우선 사용 (NextButton 등)
+  - 온보딩 전용 위젯만 로컬 유지 (OnboardingHeader, SelectionListItem)
+  - 위젯 소스 출처 명확화
+
+- **파일 구조 정리**:
+  - 예제 파일을 `examples/` 폴더로 이동
+  - 미사용 컨트롤러 파일 제거 (age_category_controller.dart)
+  - 테스트 파일 정리 및 표준화
+
+- **Import 경로 표준화**:
+  - 모든 import를 절대 경로로 통일
+  - `package:pickly_mobile/...` 형식 강제
+  - 상대 경로 사용 금지
+
+#### 기술 부채 해결
+- ✅ 중복 모델 파일 제거로 혼란 방지
+- ✅ 온보딩 위젯 소스 명확화로 유지보수성 향상
+- ✅ Import 경로 일관성 확보로 코드 가독성 개선
+- ✅ 미사용 파일 정리로 프로젝트 정돈
+
+#### 개발 경험 개선
+- 새로운 개발자 온보딩 용이성 향상
+- 파일 위치 예측 가능성 증대
+- 의존성 관계 명확화
+
 ### v5.1 (2025.10.11) - 🎨 Figma 연동 및 공통 컴포넌트 구축
 - **003 온보딩 화면 완성**:
   - SelectionListItem 공통 위젯 구현 (재사용 가능)
