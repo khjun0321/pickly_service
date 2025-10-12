@@ -132,19 +132,14 @@ class OnboardingHeader extends StatelessWidget {
 
   /// Builds the linear progress indicator
   Widget _buildProgressBar() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(PicklyBorderRadius.full),
-      child: SizedBox(
+    return Semantics(
+      label: 'Progress indicator',
+      value: '${(_progress * 100).toInt()}%',
+      child: ProgressBar(
+        value: _progress,
         height: progressBarHeight,
-        child: LinearProgressIndicator(
-          value: _progress,
-          backgroundColor: BackgroundColors.muted,
-          valueColor: const AlwaysStoppedAnimation<Color>(
-            BrandColors.primary,
-          ),
-          semanticsLabel: 'Progress indicator',
-          semanticsValue: '${(_progress * 100).toInt()}%',
-        ),
+        backgroundColor: BackgroundColors.muted,
+        progressColor: BrandColors.primary,
       ),
     );
   }

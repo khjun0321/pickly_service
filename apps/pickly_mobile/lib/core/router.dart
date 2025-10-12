@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-// Onboarding screens
-import '../features/onboarding/screens/splash_screen.dart';
-import '../features/onboarding/screens/age_category_screen.dart';
+import 'package:pickly_mobile/features/onboarding/screens/splash_screen.dart';
+import 'package:pickly_mobile/features/onboarding/screens/age_category_screen.dart';
 // TODO: Import remaining onboarding screens when implemented
 // import '../features/onboarding/screens/onboarding_start_screen.dart';
 // import '../features/onboarding/screens/personal_info_screen.dart';

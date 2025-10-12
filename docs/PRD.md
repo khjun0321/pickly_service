@@ -537,6 +537,52 @@ pickly_service/
 
 ## 15. 변경 이력
 
+### v5.3 (2025.10.12) - 🎨 컴포넌트 정리 및 Design System 통합
+
+#### 주요 변경사항
+- **버튼 컴포넌트 통합**:
+  - 온보딩 내 여러 버튼 위젯(NextButton, OnboardingBottomButton 등) 제거
+  - Design System의 `PicklyButton` 사용으로 통일
+  - Primary/Secondary 변형으로 모든 버튼 스타일 커버
+
+- **SelectionListItem Design System 이동**:
+  - `features/onboarding/widgets/selection_list_item.dart` → `packages/pickly_design_system/lib/widgets/cards/selection_list_item.dart`
+  - 다른 Feature에서도 재사용 가능하도록 공통 컴포넌트화
+  - Import 경로 변경: `package:pickly_design_system/widgets/cards/selection_list_item.dart`
+
+- **온보딩 위젯 최적화**:
+  - 중복 버튼 컴포넌트 제거 (next_button.dart, onboarding_bottom_button.dart)
+  - Selection 관련 카드 위젯 통합 (age_selection_card.dart, selection_card.dart)
+  - OnboardingHeader만 로컬 위젯으로 유지
+
+#### 기술 부채 해결
+- ✅ 버튼 컴포넌트 중복 제거로 일관성 확보
+- ✅ SelectionListItem의 재사용성 향상
+- ✅ Design System 범위 명확화
+- ✅ Import 경로 단순화
+
+#### 마이그레이션 가이드
+```dart
+// Before (v5.2)
+import 'package:pickly_mobile/features/onboarding/widgets/next_button.dart';
+import 'package:pickly_mobile/features/onboarding/widgets/selection_list_item.dart';
+
+NextButton(
+  label: '다음',
+  enabled: true,
+  onPressed: () {},
+)
+
+// After (v5.3)
+import 'package:pickly_design_system/widgets/buttons/pickly_button.dart';
+import 'package:pickly_design_system/widgets/cards/selection_list_item.dart';
+
+PicklyButton.primary(
+  text: '다음',
+  onPressed: () {},
+)
+```
+
 ### v5.2 (2025.10.11) - 🧹 프로젝트 구조 정리 및 표준화
 
 #### 주요 변경사항

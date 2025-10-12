@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/contexts/user/models/age_category.dart';
-import '../widgets/onboarding_header.dart';
-import '../widgets/selection_list_item.dart';
-import '../providers/age_category_provider.dart';
+import 'package:pickly_mobile/features/onboarding/widgets/onboarding_header.dart';
+import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
 
 /// Age category selection screen (Step 3/5)
 ///

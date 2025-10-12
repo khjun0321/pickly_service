@@ -65,11 +65,11 @@ import 'package:pickly_mobile/contexts/user/repositories/age_category_repository
 import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
 
 // Design System (공통 위젯 - 패키지에서 제공)
-import 'package:pickly_design_system/widgets/buttons/next_button.dart';
+import 'package:pickly_design_system/widgets/buttons/pickly_button.dart';
+import 'package:pickly_design_system/widgets/cards/selection_list_item.dart'; // v5.3+
 
 // 온보딩 전용 위젯 (로컬 위젯)
 import 'package:pickly_mobile/features/onboarding/widgets/onboarding_header.dart';
-import 'package:pickly_mobile/features/onboarding/widgets/selection_list_item.dart';
 ```
 
 **❌ 잘못된 Import**
@@ -87,12 +87,12 @@ import '../providers/age_category_controller.dart';
 ### 위젯 소스 구분
 
 **Design System (공통 위젯)**:
-- NextButton - 모든 온보딩 화면에서 사용
+- PicklyButton - 모든 화면에서 사용하는 기본 버튼 (Primary/Secondary 변형)
+- SelectionListItem - 선택 리스트 아이템 (v5.3부터 Design System으로 이동)
 - 기타 공통 UI 컴포넌트
 
 **로컬 온보딩 위젯**:
 - OnboardingHeader - 온보딩 화면 전용 헤더
-- SelectionListItem - 온보딩 선택 리스트 아이템
 
 ### 파일 위치 원칙
 
@@ -415,20 +415,27 @@ testWidgets('Should save data on next button', ...);
 직접 구현하지 말고 공통 위젯 사용:
 
 ```dart
-// ✅ 좋은 예
+// ✅ 좋은 예 (v5.3+)
 OnboardingHeader(currentStep: 3, totalSteps: 5)
-NextButton(isEnabled: controller.isValid, onPressed: ...)
+PicklyButton.primary(
+  text: '다음',
+  onPressed: controller.isValid ? () => controller.save() : null,
+)
 
 // ❌ 나쁜 예
 Container(/* 헤더 직접 구현 */)
+ElevatedButton(/* 버튼 직접 구현 */)
 ```
 
 ### SelectionListItem 사용 예시
 
 **003 화면 (연령/세대 선택)**에서 사용된 실제 예시:
 
+**⚠️ v5.3 변경사항**: `SelectionListItem`은 Design System으로 이동되었습니다.
+
 ```dart
-import 'package:pickly_mobile/features/onboarding/widgets/selection_list_item.dart';
+// v5.3+ Import (Design System)
+import 'package:pickly_design_system/widgets/cards/selection_list_item.dart';
 
 // 기본 사용법
 SelectionListItem(

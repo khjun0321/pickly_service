@@ -1,6 +1,6 @@
 # Pickly Mobile 프로젝트 구조 가이드
 
-> **마지막 업데이트**: 2025.10.11 (v5.2)
+> **마지막 업데이트**: 2025.10.12 (v5.3)
 
 ---
 
@@ -207,8 +207,9 @@ pickly_design_system/
 ├─ lib/
 │  └─ widgets/
 │     ├─ buttons/
-│     │  └─ next_button.dart
+│     │  └─ pickly_button.dart
 │     ├─ cards/
+│     │  └─ selection_list_item.dart
 │     └─ inputs/
 │
 └─ assets/
@@ -257,7 +258,8 @@ import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 import 'package:pickly_mobile/contexts/user/repositories/age_category_repository.dart';
 
 // Feature에서 Design System 사용
-import 'package:pickly_design_system/widgets/buttons/next_button.dart';
+import 'package:pickly_design_system/widgets/buttons/pickly_button.dart';
+import 'package:pickly_design_system/widgets/cards/selection_list_item.dart';
 ```
 
 **❌ 잘못된 의존성**:
@@ -330,7 +332,7 @@ policy_card.dart
 ```dart
 import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
-import 'package:pickly_design_system/widgets/buttons/next_button.dart';
+import 'package:pickly_design_system/widgets/buttons/pickly_button.dart';
 ```
 
 **❌ 잘못된 방식**:
@@ -363,7 +365,8 @@ import 'package:pickly_mobile/features/onboarding/widgets/onboarding_header.dart
 import 'package:pickly_mobile/core/router.dart';
 
 // 6. Design System
-import 'package:pickly_design_system/widgets/buttons/next_button.dart';
+import 'package:pickly_design_system/widgets/buttons/pickly_button.dart';
+import 'package:pickly_design_system/widgets/cards/selection_list_item.dart';
 ```
 
 ---
@@ -385,12 +388,12 @@ import 'package:pickly_design_system/widgets/buttons/next_button.dart';
 ### 2. 위젯 소스 명확화
 
 **공통 위젯** (Design System):
-- NextButton
+- PicklyButton (Primary/Secondary 변형)
+- SelectionListItem (v5.3부터 Design System으로 이동)
 - 기타 재사용 가능한 UI 컴포넌트
 
 **기능별 위젯** (Features):
 - OnboardingHeader (온보딩 전용)
-- SelectionListItem (온보딩 전용)
 
 ### 3. 상대 경로 사용 금지
 
@@ -468,6 +471,12 @@ mv lib/experimental/example_screen.dart examples/onboarding/
 ---
 
 ## 🔄 변경 이력
+
+### v5.3 (2025.10.12)
+- Design System 컴포넌트 범위 확대
+- SelectionListItem을 Design System으로 이동
+- PicklyButton으로 버튼 컴포넌트 통일
+- 온보딩 위젯 중복 제거
 
 ### v5.2 (2025.10.11)
 - 프로젝트 구조 가이드 신규 작성

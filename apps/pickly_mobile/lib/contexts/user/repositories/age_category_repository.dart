@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/age_category.dart';
+import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 
 /// Repository for managing age category data from Supabase
 ///
