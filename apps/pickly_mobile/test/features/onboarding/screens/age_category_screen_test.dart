@@ -1,358 +1,245 @@
+// Age Category Screen Tests
+//
+// Comprehensive test suite for the age category selection screen.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 import 'package:pickly_mobile/features/onboarding/screens/age_category_screen.dart';
-import 'package:pickly_mobile/features/onboarding/widgets/onboarding_header.dart';
-import 'package:pickly_mobile/features/onboarding/widgets/selection_card.dart';
-import 'package:pickly_mobile/features/onboarding/widgets/next_button.dart';
+import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
+import 'package:pickly_mobile/features/onboarding/widgets/selection_list_item.dart';
 
 void main() {
   group('AgeCategoryScreen', () {
-    testWidgets('should display screen with correct title and subtitle',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
+    late List<AgeCategory> mockCategories;
+
+    setUp(() {
+      final now = DateTime.now();
+      mockCategories = [
+        AgeCategory(
+          id: 'test-1',
+          title: '청년',
+          description: '만 19세-39세 대학생, 취업준비생, 직장인',
+          iconComponent: 'youth',
+          iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/young_man.svg',
+          minAge: 19,
+          maxAge: 39,
+          sortOrder: 1,
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
         ),
-      );
-
-      // Wait for loading to complete
-      await tester.pumpAndSettle();
-
-      // Verify title
-      expect(
-        find.text('현재 연령 및 세대 기준을\n선택해주세요'),
-        findsOneWidget,
-      );
-
-      // Verify subtitle
-      expect(
-        find.text('나에게 맞는 정책과 혜택에 대해 안내해드려요'),
-        findsOneWidget,
-      );
+        AgeCategory(
+          id: 'test-2',
+          title: '신혼부부·예비부부',
+          description: '결혼 예정 또는 결혼 7년이내',
+          iconComponent: 'newlywed',
+          iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/bride.svg',
+          minAge: null,
+          maxAge: null,
+          sortOrder: 2,
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        AgeCategory(
+          id: 'test-3',
+          title: '어르신',
+          description: '만 65세 이상',
+          iconComponent: 'elderly',
+          iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/old_man.svg',
+          minAge: 65,
+          maxAge: null,
+          sortOrder: 5,
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ];
     });
 
-    testWidgets('should display onboarding header with correct progress',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
+    Widget createTestWidget({
+      required AsyncValue<List<AgeCategory>> providerValue,
+    }) {
+      return ProviderScope(
+        overrides: [
+          ageCategoryProvider.overrideWith(() => TestAgeCategoryNotifier(providerValue)),
+        ],
+        child: const MaterialApp(
           home: AgeCategoryScreen(),
         ),
       );
+    }
 
-      await tester.pumpAndSettle();
+    group('Loading State', () {
+      testWidgets('shows loading indicator when data is loading', (tester) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            providerValue: const AsyncValue.loading(),
+          ),
+        );
 
-      // Verify OnboardingHeader is present
-      expect(find.byType(OnboardingHeader), findsOneWidget);
-
-      // Verify progress text
-      expect(find.text('3 / 5'), findsOneWidget);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(find.byType(SelectionListItem), findsNothing);
+      });
     });
 
-    testWidgets('should display loading indicator initially',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
+    group('Data State', () {
+      testWidgets('displays list of categories when data is loaded', (tester) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            providerValue: AsyncValue.data(mockCategories),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      // Loading should be visible before data loads
-      expect(find.byType(CircularProgressIndicator), findsWidgets);
+        expect(find.byType(SelectionListItem), findsNWidgets(mockCategories.length));
+        expect(find.text('청년'), findsOneWidget);
+        expect(find.text('신혼부부·예비부부'), findsOneWidget);
+        expect(find.text('어르신'), findsOneWidget);
+      });
 
-      // Wait for loading to complete
-      await tester.pumpAndSettle();
+      testWidgets('displays empty state when category list is empty', (tester) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            providerValue: const AsyncValue.data([]),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      // Loading should be gone
-      expect(
-        find.byType(CircularProgressIndicator),
-        findsNothing,
-      );
+        expect(find.text('표시할 카테고리가 없습니다'), findsOneWidget);
+        expect(find.byIcon(Icons.inbox_outlined), findsOneWidget);
+        expect(find.byType(SelectionListItem), findsNothing);
+      });
     });
 
-    testWidgets('should display selection cards after loading',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
+    group('Selection Logic', () {
+      testWidgets('selects category when tapped', (tester) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            providerValue: AsyncValue.data(mockCategories),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.pumpAndSettle();
+        final firstItem = find.byType(SelectionListItem).first;
+        await tester.tap(firstItem);
+        await tester.pumpAndSettle();
 
-      // Verify selection cards are displayed (GridView renders visible items)
-      expect(find.byType(SelectionCard), findsWidgets);
+        final nextButton = find.widgetWithText(ElevatedButton, '다음');
+        expect(nextButton, findsOneWidget);
 
-      // Verify GridView exists
-      expect(find.byType(GridView), findsOneWidget);
+        final button = tester.widget<ElevatedButton>(nextButton);
+        expect(button.onPressed, isNotNull);
+      });
+
+      testWidgets('allows multiple category selection', (tester) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            providerValue: AsyncValue.data(mockCategories),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(SelectionListItem).at(0));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(SelectionListItem).at(1));
+        await tester.pumpAndSettle();
+
+        final nextButton = find.widgetWithText(ElevatedButton, '다음');
+        final button = tester.widget<ElevatedButton>(nextButton);
+        expect(button.onPressed, isNotNull);
+      });
     });
 
-    testWidgets('should have next button disabled initially',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
+    group('Button State', () {
+      testWidgets('next button is disabled when no categories selected', (tester) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            providerValue: AsyncValue.data(mockCategories),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.pumpAndSettle();
+        final nextButton = find.widgetWithText(ElevatedButton, '다음');
+        expect(nextButton, findsOneWidget);
 
-      // Find NextButton
-      final nextButton = find.byType(NextButton);
-      expect(nextButton, findsOneWidget);
+        final button = tester.widget<ElevatedButton>(nextButton);
+        expect(button.onPressed, isNull);
+      });
 
-      // NextButton should be disabled (enabled = false)
-      final nextButtonWidget = tester.widget<NextButton>(nextButton);
-      expect(nextButtonWidget.enabled, false);
+      testWidgets('next button is enabled when category is selected', (tester) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            providerValue: AsyncValue.data(mockCategories),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(SelectionListItem).first);
+        await tester.pumpAndSettle();
+
+        final nextButton = find.widgetWithText(ElevatedButton, '다음');
+        final button = tester.widget<ElevatedButton>(nextButton);
+        expect(button.onPressed, isNotNull);
+      });
     });
 
-    testWidgets('should enable next button when category selected',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
+    group('Error State', () {
+      testWidgets('displays error message when data fetch fails', (tester) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            providerValue: AsyncValue.error(
+              Exception('Network error'),
+              StackTrace.current,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.pumpAndSettle();
-
-      // Tap on first category
-      final firstCard = find.byType(SelectionCard).first;
-      await tester.tap(firstCard);
-      await tester.pumpAndSettle();
-
-      // NextButton should now be enabled
-      final nextButton = find.byType(NextButton);
-      final nextButtonWidget = tester.widget<NextButton>(nextButton);
-      expect(nextButtonWidget.enabled, true);
+        expect(find.text('데이터를 불러오는 데 실패했습니다'), findsOneWidget);
+        expect(find.byIcon(Icons.error_outline), findsOneWidget);
+        expect(find.text('다시 시도'), findsOneWidget);
+      });
     });
 
-    testWidgets('should toggle category selection on tap',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
+    group('UI Elements', () {
+      testWidgets('displays correct title and guidance text', (tester) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            providerValue: AsyncValue.data(mockCategories),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.pumpAndSettle();
-
-      // Find first selection card
-      final firstCard = find.byType(SelectionCard).first;
-      SelectionCard cardWidget = tester.widget<SelectionCard>(firstCard);
-
-      // Initially not selected
-      expect(cardWidget.isSelected, false);
-
-      // Tap to select
-      await tester.tap(firstCard);
-      await tester.pumpAndSettle();
-
-      cardWidget = tester.widget<SelectionCard>(firstCard);
-      expect(cardWidget.isSelected, true);
-
-      // Tap again to deselect
-      await tester.tap(firstCard);
-      await tester.pumpAndSettle();
-
-      cardWidget = tester.widget<SelectionCard>(firstCard);
-      expect(cardWidget.isSelected, false);
-    });
-
-    testWidgets('should allow multiple category selection',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Select two categories (since we only need to verify multiple selection)
-      final cards = find.byType(SelectionCard);
-      await tester.tap(cards.at(0));
-      await tester.pumpAndSettle();
-
-      await tester.tap(cards.at(1));
-      await tester.pumpAndSettle();
-
-      // Verify both are selected
-      SelectionCard card1 = tester.widget<SelectionCard>(cards.at(0));
-      SelectionCard card2 = tester.widget<SelectionCard>(cards.at(1));
-
-      expect(card1.isSelected, true);
-      expect(card2.isSelected, true);
-    });
-
-    testWidgets('should show snackbar when next tapped without selection',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Try to press next button (should be disabled but test the handler)
-      // Note: Since button is disabled, we can't actually tap it
-      // This test verifies the validation logic exists
-
-      // Select a category first
-      final firstCard = find.byType(SelectionCard).first;
-      await tester.tap(firstCard);
-      await tester.pumpAndSettle();
-
-      // Deselect it
-      await tester.tap(firstCard);
-      await tester.pumpAndSettle();
-
-      // Button should be disabled again
-      final nextButton = find.byType(NextButton);
-      final nextButtonWidget = tester.widget<NextButton>(nextButton);
-      expect(nextButtonWidget.enabled, false);
-    });
-
-    testWidgets('should show loading state when saving',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Select a category
-      final firstCard = find.byType(SelectionCard).first;
-      await tester.tap(firstCard);
-      await tester.pumpAndSettle();
-
-      // Tap next button
-      final nextButton = find.byType(ElevatedButton);
-      await tester.tap(nextButton);
-      await tester.pump(); // Start animation
-
-      // Should show loading indicator in button
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-      // Wait for save to complete
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('should show success snackbar after saving',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Select a category
-      final firstCard = find.byType(SelectionCard).first;
-      await tester.tap(firstCard);
-      await tester.pumpAndSettle();
-
-      // Tap next button
-      final nextButton = find.byType(ElevatedButton);
-      await tester.tap(nextButton);
-      await tester.pumpAndSettle();
-
-      // Verify success message appears
-      expect(find.text('선택이 저장되었습니다'), findsOneWidget);
-    });
-
-    testWidgets('should display categories in grid layout',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Verify GridView exists
-      expect(find.byType(GridView), findsOneWidget);
-
-      // Verify selection cards are rendered (at least some visible)
-      expect(find.byType(SelectionCard), findsWidgets);
-    });
-
-    testWidgets('should maintain selection state during rebuild',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Select two categories
-      final cards = find.byType(SelectionCard);
-      await tester.tap(cards.at(0));
-      await tester.pumpAndSettle();
-
-      await tester.tap(cards.at(1));
-      await tester.pumpAndSettle();
-
-      // Force rebuild
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Verify selections are maintained
-      SelectionCard card1 = tester.widget<SelectionCard>(cards.at(0));
-      SelectionCard card2 = tester.widget<SelectionCard>(cards.at(1));
-
-      expect(card1.isSelected, true);
-      expect(card2.isSelected, true);
-    });
-
-    testWidgets('should have correct background color',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Find the Scaffold
-      final scaffold = find.byType(Scaffold);
-      expect(scaffold, findsOneWidget);
-
-      // Verify background color is set
-      final scaffoldWidget = tester.widget<Scaffold>(scaffold);
-      expect(scaffoldWidget.backgroundColor, isNotNull);
-    });
-
-    testWidgets('should display categories with proper layout',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AgeCategoryScreen(),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Verify GridView with proper delegate
-      final gridView = find.byType(GridView);
-      expect(gridView, findsOneWidget);
-
-      // Verify selection cards are rendered
-      expect(find.byType(SelectionCard), findsWidgets);
-
-      // Verify at least 2 cards are visible in viewport
-      expect(find.byType(SelectionCard), findsAtLeastNWidgets(2));
+        expect(find.text('맞춤 혜택을 위해 내 상황을 알려주세요.'), findsOneWidget);
+        expect(find.text('나에게 맞는 정책과 혜택에 대해 안내해드려요'), findsOneWidget);
+        expect(find.byType(LinearProgressIndicator), findsOneWidget);
+        expect(find.text('다음'), findsOneWidget);
+      });
     });
   });
+}
+
+/// Test notifier for mocking AgeCategoryNotifier
+class TestAgeCategoryNotifier extends AgeCategoryNotifier {
+  final AsyncValue<List<AgeCategory>> _testValue;
+
+  TestAgeCategoryNotifier(this._testValue);
+
+  @override
+  Future<List<AgeCategory>> build() async {
+    return _testValue.when(
+      data: (data) => data,
+      loading: () => throw StateError('Loading'),
+      error: (error, stack) => throw error,
+    );
+  }
+
+  @override
+  Future<void> refresh() async {
+    // Mock implementation for testing
+  }
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_mobile/features/onboarding/screens/splash_screen.dart';
+import 'package:pickly_mobile/features/onboarding/screens/start_screen.dart';
 import 'package:pickly_mobile/features/onboarding/screens/age_category_screen.dart';
 // TODO: Import remaining onboarding screens when implemented
-// import '../features/onboarding/screens/onboarding_start_screen.dart';
-// import '../features/onboarding/screens/personal_info_screen.dart';
-// import '../features/onboarding/screens/region_screen.dart';
-// import '../features/onboarding/screens/income_screen.dart';
+// import 'package:pickly_mobile/features/onboarding/screens/personal_info_screen.dart';
+// import 'package:pickly_mobile/features/onboarding/screens/region_screen.dart';
+// import 'package:pickly_mobile/features/onboarding/screens/income_screen.dart';
 
 // Main app screens
 // TODO: Import main app screens when implemented
@@ -71,12 +71,12 @@ final GoRouter appRouter = GoRouter(
     ),
 
     // ==================== ONBOARDING FLOW ====================
-    // TODO: Uncomment when OnboardingStartScreen is implemented
-    // GoRoute(
-    //   path: Routes.onboardingStart,
-    //   name: 'onboarding-start',
-    //   builder: (context, state) => const OnboardingStartScreen(),
-    // ),
+    // 001: Onboarding start screen (IMPLEMENTED)
+    GoRoute(
+      path: Routes.onboardingStart,
+      name: 'onboarding-start',
+      builder: (context, state) => const StartScreen(),
+    ),
 
     // TODO: Uncomment when PersonalInfoScreen is implemented
     // 001: Personal Info (name, age, gender)

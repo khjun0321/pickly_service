@@ -537,6 +537,57 @@ pickly_service/
 
 ## 15. 변경 이력
 
+### v5.4 (2025.10.12) - 📚 아키텍처 문서화 및 구조 표준화
+
+#### 주요 변경사항
+
+**아키텍처 문서 신규 작성**:
+- `docs/architecture/project-structure.md`: 프로젝트 구조 상세 가이드
+  - 모노레포 구조 설명 (apps/, packages/, docs/)
+  - Feature-First 조직화 원칙
+  - 모듈 경계 및 의존성 다이어그램
+  - 파일 명명 규칙
+  - 내비게이션 전략 (GoRouter)
+  - 상태 관리 (Riverpod)
+  - 테스트 전략 (Unit, Widget, Integration)
+
+- `docs/architecture/import-conventions.md`: Import 규칙 가이드
+  - 절대 경로 vs 상대 경로 비교
+  - 표준 Import 순서 (6단계)
+  - Asset Import 패턴
+  - 절대 경로의 이점 설명
+  - 자동화 도구 설정 (VS Code, 린트)
+
+**기술 스택 명확화**:
+- Flutter: Riverpod (상태관리), GoRouter (라우팅), Supabase Client (백엔드)
+- Design System: 공통 컴포넌트 및 디자인 토큰 관리
+- Testing: Unit Tests (80%), Widget Tests (60%), Integration Tests (주요 플로우)
+
+**개발 워크플로우 표준화**:
+- Claude Flow를 통한 화면 자동 생성 프로세스
+- 6개 전문 에이전트 역할 분담 명확화
+- TDD 기반 개발 사이클
+
+**Asset 관리 개선**:
+- Design System: `packages/pickly_design_system/assets/`
+- 앱 전용: `apps/pickly_mobile/assets/`
+- Figma 아이콘 통합 워크플로우
+
+#### 문서화 개선
+
+- ✅ 신규 개발자 온보딩 가이드 완성
+- ✅ 의존성 규칙 다이어그램 추가
+- ✅ Import 규칙 자동화 도구 설정 가이드
+- ✅ 테스트 전략 및 커버리지 목표 명시
+- ✅ FAQ 및 실전 팁 추가
+
+#### 성공 기준
+
+- 신규 개발자가 30분 내에 프로젝트 구조 이해 가능
+- 모든 파일이 명확한 위치에 배치
+- Import 규칙 100% 준수 (린트 강제)
+- 아키텍처 의사결정 문서화 완료
+
 ### v5.3 (2025.10.12) - 🎨 컴포넌트 정리 및 Design System 통합
 
 #### 주요 변경사항

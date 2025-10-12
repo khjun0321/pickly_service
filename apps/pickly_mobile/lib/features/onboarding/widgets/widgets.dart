@@ -16,3 +16,4 @@
 
 // Onboarding-specific widgets
 export 'onboarding_header.dart';
+export 'selection_list_item.dart';

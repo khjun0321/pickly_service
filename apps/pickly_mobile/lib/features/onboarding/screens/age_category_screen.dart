@@ -32,14 +32,27 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
   Future<void> _handleNext() async {
     if (_selectedCategoryIds.isEmpty) return;
 
-    // TODO: Save selection and navigate
+    // TODO: Save selection to user preferences/profile
+    // For now, just store in memory and navigate to next screen
+
+    // Show confirmation message
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Selected: ${_selectedCategoryIds.length} categories'),
-          duration: const Duration(seconds: 2),
+          content: Text('선택 완료: ${_selectedCategoryIds.length}개 카테고리'),
+          duration: const Duration(seconds: 1),
         ),
       );
+
+      // Navigate to next onboarding screen (income screen or home)
+      // Since income screen is not implemented yet, go back to splash for now
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (mounted) {
+        // TODO: Replace with actual next screen route when implemented
+        // context.go(Routes.income);
+        context.go('/splash');
+      }
     }
   }
 

@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pickly_mobile/features/onboarding/screens/age_category_screen.dart';
 import 'package:pickly_mobile/features/onboarding/widgets/onboarding_header.dart';
-import 'package:pickly_mobile/features/onboarding/widgets/selection_list_item.dart';
 import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
 import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';

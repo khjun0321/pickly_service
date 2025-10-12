@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'core/services/supabase_service.dart';
-import 'core/router.dart';
+import 'package:pickly_mobile/core/services/supabase_service.dart';
+import 'package:pickly_mobile/core/router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
