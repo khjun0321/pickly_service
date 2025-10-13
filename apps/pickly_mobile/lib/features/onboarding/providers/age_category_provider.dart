@@ -93,7 +93,7 @@ class AgeCategoryNotifier extends AsyncNotifier<List<AgeCategory>> {
       AgeCategory(
         id: 'mock-1',
         title: '청년',
-        description: '만 19세-39세 대학생, 취업준비생, 직장인',
+        description: '(만 19세-39세) 대학생, 취업준비생, 직장인',
         iconComponent: 'youth',
         iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/young_man.svg',
         minAge: 19,

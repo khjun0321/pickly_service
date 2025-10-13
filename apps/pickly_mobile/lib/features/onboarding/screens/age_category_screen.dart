@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
+import 'package:pickly_mobile/core/router.dart';
 
-/// Age category selection screen (Step 3/5)
+/// Age category selection screen (Step 1/2)
 ///
-/// Single selection list view with radio button behavior
+/// Single-selection grid view with 2 columns layout
+/// Uses custom age category cards for selection
 class AgeCategoryScreen extends ConsumerStatefulWidget {
   const AgeCategoryScreen({super.key});
 
@@ -18,9 +20,9 @@ class AgeCategoryScreen extends ConsumerStatefulWidget {
 class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
   String? _selectedCategoryId;
 
-  void _handleCategorySelection(String categoryId) {
+  void _handleCategorySelect(String categoryId) {
     setState(() {
-      // Single selection: directly set or clear if clicking same item
+      // Single selection: toggle selection
       if (_selectedCategoryId == categoryId) {
         _selectedCategoryId = null; // Deselect if clicking same item
       } else {
@@ -29,30 +31,13 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
     });
   }
 
-  Future<void> _handleNext() async {
+  void _handleNext() {
     if (_selectedCategoryId == null) return;
 
     // TODO: Save selection to user preferences/profile
-    // For now, just store in memory and navigate to next screen
-
-    // Show confirmation message
+    // For now, just navigate to region selection
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('선택 완료: 1개 카테고리'),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-
-      // Navigate to next onboarding screen (income screen or home)
-      // Since income screen is not implemented yet, go back to splash for now
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (mounted) {
-        // TODO: Replace with actual next screen route when implemented
-        // context.go(Routes.income);
-        context.go('/splash');
-      }
+      context.go(Routes.region);
     }
   }
 
@@ -83,12 +68,10 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header area spacing (for consistency with other onboarding screens)
-              // Future screens may have back button here, so reserve the space
-              // Figma shows title at ~116px from top: StatusBar(44px) + Header(72px)
+              // Top spacing (first screen - no header)
               const SizedBox(height: 72),
 
-              // Title - Figma spec: top 116px, 18px w700, #3E3E3E (no header per Figma design)
+              // Title - left aligned
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                 child: Text(
@@ -102,9 +85,9 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
                 ),
               ),
 
-              const SizedBox(height: Spacing.lg),
+              const SizedBox(height: 16),
 
-              // Content - Figma spec: List starts at top 148px (moved up 8px)
+              // Content - Category list
               Flexible(
                 child: categoriesAsync.when(
                   data: (categories) => _buildCategoryList(categories),
@@ -116,7 +99,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
               // Spacing between list and guidance text
               const SizedBox(height: 36),
 
-              // Bottom section - Figma spec: guidance text at top 656px
+              // Guidance text
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
@@ -131,25 +114,20 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
                 ),
               ),
 
-              const SizedBox(height: Spacing.xxl),
+              const SizedBox(height: 24),
 
-              // Progress bar - Figma spec: top 704px, height 4px, 50% progress
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: LinearProgressIndicator(
-                    value: 0.5, // Step 3/5 = 60%, but Figma shows ~50%
-                    minHeight: 4,
-                    backgroundColor: const Color(0xFFDDDDDD),
-                    valueColor: const AlwaysStoppedAnimation<Color>(BrandColors.primary),
-                  ),
+              // Progress bar - Step 1 of 2
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                child: PicklyProgressBar(
+                  currentStep: 1,
+                  totalSteps: 2,
                 ),
               ),
 
-              const SizedBox(height: Spacing.xxl),
+              const SizedBox(height: 24),
 
-              // Bottom button - Figma spec: top 732px, height 56px, border radius 16px
+              // Bottom button
               Padding(
                 padding: const EdgeInsets.all(Spacing.lg),
                 child: SizedBox(
@@ -161,7 +139,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
                       backgroundColor: BrandColors.primary,
                       disabledBackgroundColor: BrandColors.primary.withValues(alpha: 0.3),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16), // Figma spec: 16px
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
                     ),
@@ -202,7 +180,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
           title: category.title,
           description: category.description,
           isSelected: isSelected,
-          onTap: () => _handleCategorySelection(category.id),
+          onTap: () => _handleCategorySelect(category.id),
         );
       },
     );
