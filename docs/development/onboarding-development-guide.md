@@ -67,6 +67,8 @@ import 'package:pickly_mobile/features/onboarding/providers/age_category_provide
 // Design System (공통 위젯 - 패키지에서 제공)
 import 'package:pickly_design_system/widgets/buttons/pickly_button.dart';
 import 'package:pickly_design_system/widgets/cards/selection_list_item.dart'; // v5.3+
+import 'package:pickly_design_system/widgets/checkmarks/selection_checkmark.dart'; // v5.6+
+import 'package:pickly_design_system/widgets/chips/selection_chip.dart'; // v5.7+
 
 // 온보딩 전용 위젯 (로컬 위젯)
 import 'package:pickly_mobile/features/onboarding/widgets/onboarding_header.dart';
@@ -89,6 +91,8 @@ import '../providers/age_category_controller.dart';
 **Design System (공통 위젯)**:
 - PicklyButton - 모든 화면에서 사용하는 기본 버튼 (Primary/Secondary 변형)
 - SelectionListItem - 선택 리스트 아이템 (v5.3부터 Design System으로 이동)
+- SelectionCheckmark - 선택 체크 표시 (v5.6 추가)
+- SelectionChip - 칩 버튼 컴포넌트 (v5.7 추가)
 - 기타 공통 UI 컴포넌트
 
 **로컬 온보딩 위젯**:
@@ -570,6 +574,88 @@ SelectionListItem(
 - `isSelected`: 선택 상태 (기본값: false)
 - `onTap`: 탭 콜백
 - `enabled`: 활성화 여부 (기본값: true)
+
+---
+
+### SelectionChip 사용 예시 (v5.7+)
+
+**지역 선택 화면**에서 사용될 칩 버튼 컴포넌트:
+
+**⚠️ v5.7 신규 추가**: `SelectionChip`은 컴팩트한 선택 UI를 위한 칩 버튼입니다.
+
+```dart
+// v5.7+ Import (Design System)
+import 'package:pickly_design_system/widgets/chips/selection_chip.dart';
+
+// 기본 사용법 (Large)
+SelectionChip(
+  label: '서울',
+  isSelected: selectedRegions.contains('seoul'),
+  onTap: () => toggleRegion('seoul'),
+)
+
+// Small 변형 (필터 등 컴팩트 레이아웃)
+SelectionChip(
+  label: '주거',
+  isSelected: activeFilters.contains('housing'),
+  size: ChipSize.small,
+  onTap: () => toggleFilter('housing'),
+)
+
+// Wrap으로 여러 칩 배치
+Wrap(
+  spacing: 8,
+  runSpacing: 8,
+  children: regions.map((region) {
+    return SelectionChip(
+      label: region.name,
+      isSelected: selectedRegions.contains(region.id),
+      onTap: () => toggleRegion(region.id),
+    );
+  }).toList(),
+)
+
+// 비활성화 상태
+SelectionChip(
+  label: '준비중',
+  isSelected: false,
+  enabled: false,
+  onTap: null,
+)
+```
+
+**주요 속성**:
+- `label`: 칩에 표시될 텍스트 (필수)
+- `isSelected`: 선택 상태 (필수)
+- `size`: 칩 크기 (`ChipSize.large` 또는 `ChipSize.small`)
+- `onTap`: 탭 콜백
+- `enabled`: 활성화 여부 (기본값: true)
+
+**Size Variants**:
+- `ChipSize.large`: 16px 폰트, 48px 최소 높이, 20px 체크마크 (기본값)
+- `ChipSize.small`: 14px 폰트, 36px 최소 높이, 16px 체크마크
+
+**SelectionChip vs SelectionListItem**:
+
+| 특성 | SelectionChip | SelectionListItem |
+|------|---------------|-------------------|
+| **Layout** | 인라인, Wrap 배치 | 전체 너비, ListView 배치 |
+| **크기** | 컴팩트, 2가지 변형 | 전체 너비, 고정 높이 |
+| **아이콘** | 체크마크만 | SVG 아이콘 + 체크마크 |
+| **설명** | 없음 (label만) | 제목 + 설명 |
+| **Use Case** | 지역, 필터, 태그 | 카테고리, 세부 옵션 |
+
+**When to use SelectionChip**:
+- ✅ 여러 옵션을 가로로 나열 (지역 선택)
+- ✅ 필터 태그 UI
+- ✅ 화면 공간 절약이 필요할 때
+- ✅ 간단한 라벨만 필요할 때
+
+**When to use SelectionListItem**:
+- ✅ 세로 리스트 레이아웃 (연령/세대 선택)
+- ✅ 아이콘과 설명이 필요할 때
+- ✅ 각 옵션에 충분한 설명이 필요할 때
+- ✅ 전체 너비 터치 영역이 필요할 때
 
 ---
 
