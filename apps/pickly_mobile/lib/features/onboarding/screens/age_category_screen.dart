@@ -101,16 +101,19 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
 
               // Content - Figma spec: List starts at top 148px (moved up 8px)
-              Expanded(
+              Flexible(
                 child: categoriesAsync.when(
                   data: (categories) => _buildCategoryList(categories),
                   loading: () => _buildLoadingState(),
                   error: (error, stack) => _buildErrorState(error),
                 ),
               ),
+
+              // Spacing between list and guidance text
+              const SizedBox(height: 36),
 
               // Bottom section - Figma spec: guidance text at top 656px
               Container(
@@ -127,7 +130,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
                 ),
               ),
 
-              const SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xxl),
 
               // Progress bar - Figma spec: top 704px, height 4px, 50% progress
               Padding(
@@ -143,7 +146,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
                 ),
               ),
 
-              const SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xxl),
 
               // Bottom button - Figma spec: top 732px, height 56px, border radius 16px
               Padding(
@@ -185,6 +188,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
     }
 
     return ListView.separated(
+      shrinkWrap: true,
       padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
       itemCount: categories.length,
       separatorBuilder: (context, index) => const SizedBox(height: 8),
