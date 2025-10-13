@@ -537,6 +537,106 @@ pickly_service/
 
 ## 15. 변경 이력
 
+### v6.0 (2025.10.13) - 🌏 Region Selection Feature
+
+**Objective**: Implement multi-selection region filter for personalized policy recommendations
+
+**Feature Overview**:
+- **Screen**: 002_지역선택 (Onboarding Step 2/5)
+- **Selection Mode**: Multi-selection (unlike age category's single-selection)
+- **Data**: 17 Korean regions (특별시, 광역시, 도, 특별자치도)
+- **Component**: SelectionChip (v5.7) in Wrap layout
+- **Progress**: 2/5 (40%)
+
+**Database Schema**:
+
+*regions table*:
+```sql
+- id: UUID (PK)
+- code: TEXT (unique) - 'seoul', 'busan', etc.
+- name: TEXT - '서울', '부산', etc.
+- name_en: TEXT - 'Seoul', 'Busan', etc.
+- sort_order: INTEGER
+- is_active: BOOLEAN
+- created_at, updated_at: TIMESTAMPTZ
+```
+
+*user_regions table* (junction table):
+```sql
+- id: UUID (PK)
+- user_id: UUID (FK → auth.users)
+- region_id: UUID (FK → regions)
+- created_at: TIMESTAMPTZ
+- UNIQUE(user_id, region_id)
+```
+
+**17 Korean Regions**:
+- Special Cities (특별시/광역시): 서울, 부산, 대구, 인천, 광주, 대전, 울산 (7)
+- Special Autonomous City (특별자치시): 세종 (1)
+- Provinces (도): 경기, 강원, 충북, 충남, 전북, 전남, 경북, 경남 (8)
+- Special Autonomous Province (특별자치도): 제주 (1)
+
+**Implementation**:
+- **Model**: `lib/contexts/user/models/region.dart` (Freezed immutable class)
+- **Repository**: `lib/contexts/user/repositories/region_repository.dart`
+- **Provider**: `lib/features/onboarding/providers/region_provider.dart` (Riverpod)
+- **Screen**: `lib/features/onboarding/screens/region_selection_screen.dart`
+- **Component**: SelectionChip (v5.7) in Wrap layout (3 per row)
+
+**Multi-Selection Logic**:
+- State: `Set<String>` for region IDs
+- Toggle behavior: Add if not present, remove if present
+- Validation: Minimum 1 selection required
+- Button text: Dynamic "완료 (3개 선택됨)"
+- Database: Transactional delete + insert for clean updates
+
+**UI/UX**:
+- Wrap layout with 8px spacing (horizontal and vertical)
+- SelectionChip (large variant, 48px min height)
+- Progress indicator: 40% (2 of 5 steps)
+- Complete button enables with 1+ selections
+- Smooth animations (200ms ease-in-out)
+
+**Multi vs Single Selection Comparison**:
+| Feature | Age Category (Single) | Region Selection (Multi) |
+|---------|----------------------|--------------------------|
+| State | `String?` | `Set<String>` |
+| Logic | Radio button | Checkbox |
+| Validation | null check | isEmpty check |
+| Button Text | Static | Dynamic with count |
+| Data Model | Direct FK | Junction table |
+
+**Key Features**:
+1. 17 Korean regions with proper administrative types
+2. Multi-selection with Set-based state management
+3. SelectionChip component integration (v5.7)
+4. Database persistence with RLS policies
+5. Transactional save (delete old + insert new)
+6. Async data loading with loading/error states
+7. WCAG-compliant touch targets
+
+**Benefits**:
+- **Personalization**: Location-based policy filtering
+- **Flexibility**: Multi-selection for diverse user needs
+- **Completeness**: Coverage of all Korean administrative regions
+- **Performance**: O(1) Set-based lookups
+- **Consistency**: Reusable SelectionChip component
+
+**Documentation**:
+- `docs/implementation/v6.0-region-selection.md` (Complete specification)
+- `docs/database/README.md` (NEW - Database schema guide)
+- Database migration and seed data instructions
+- Testing checklist and migration guide
+
+**Onboarding Flow Progress**:
+1. Age Category Screen (1/5) ✅ Single selection
+2. **Region Selection Screen (2/5)** ✅ Multi-selection ← NEW
+3. TBD (3/5) 📅 Planned
+4. TBD (4/5) 📅 Planned
+5. TBD (5/5) 📅 Planned
+
+---
+
 ### v5.7 (2025.10.13) - 🎯 SelectionChip Component
 
 **Objective**: Create reusable chip button component for compact selection interfaces

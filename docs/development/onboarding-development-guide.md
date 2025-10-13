@@ -386,13 +386,13 @@ testWidgets('Should save data on next button', ...);
 
 ## 📊 현재 온보딩 화면 목록
 
-| ID | 화면명 | UI 타입 | Realtime | 백오피스 | 상태 |
-|----|--------|---------|----------|----------|------|
-| 001 | 개인정보 | form | ❌ | ❌ | 📝 설계 완료 |
-| 002 | 지역선택 | map | ❌ | ❌ | 📝 설계 완료 |
-| 003 | 연령/세대 | selection-list | ✅ | ✅ | ✅ 구현 완료 |
-| 004 | 소득구간 | slider | ❌ | ❌ | 📅 대기 중 |
-| 005 | 관심정책 | selection-list | ✅ | ✅ | 📅 대기 중 |
+| ID | 화면명 | UI 타입 | Selection | Component | 상태 |
+|----|--------|---------|-----------|-----------|------|
+| 001 | 연령/세대 | selection-list | Single | SelectionListItem | ✅ 구현 완료 |
+| 002 | 지역선택 | chip-grid | Multi | SelectionChip (v5.7) | ✅ 구현 완료 |
+| 003 | TBD | - | - | - | 📅 대기 중 |
+| 004 | TBD | - | - | - | 📅 대기 중 |
+| 005 | TBD | - | - | - | 📅 대기 중 |
 
 **범례**:
 - ✅ 구현 완료: 코드 작성 및 테스트 완료
@@ -656,6 +656,247 @@ SelectionChip(
 - ✅ 아이콘과 설명이 필요할 때
 - ✅ 각 옵션에 충분한 설명이 필요할 때
 - ✅ 전체 너비 터치 영역이 필요할 때
+
+---
+
+## 🌏 Region Selection Implementation (v6.0)
+
+### Overview
+
+The Region Selection screen (Step 2/5) allows users to select multiple regions they're interested in for personalized policy recommendations.
+
+**Key Characteristics:**
+- **Selection Mode**: Multi-selection (unlike age category's single-selection)
+- **Data**: 17 Korean regions
+- **Component**: SelectionChip (v5.7)
+- **Layout**: Wrap widget (3 chips per row)
+- **Progress**: 2/5 (40%)
+
+### Database Schema
+
+**regions table:**
+```sql
+CREATE TABLE public.regions (
+  id UUID PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,     -- 'seoul', 'busan', etc.
+  name TEXT NOT NULL,             -- '서울', '부산', etc.
+  name_en TEXT,                   -- 'Seoul', 'Busan', etc.
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true
+);
+```
+
+**user_regions table** (many-to-many junction table):
+```sql
+CREATE TABLE public.user_regions (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  region_id UUID REFERENCES regions(id),
+  UNIQUE(user_id, region_id)
+);
+```
+
+### 17 Korean Regions
+
+```
+특별시/광역시 (7): 서울, 부산, 대구, 인천, 광주, 대전, 울산
+특별자치시 (1): 세종
+도 (8): 경기, 강원, 충북, 충남, 전북, 전남, 경북, 경남
+특별자치도 (1): 제주
+```
+
+### Implementation Files
+
+```
+lib/
+├── contexts/user/
+│   ├── models/
+│   │   └── region.dart                      # Freezed model
+│   └── repositories/
+│       └── region_repository.dart           # Supabase data access
+│
+└── features/onboarding/
+    ├── providers/
+    │   └── region_provider.dart             # Riverpod state
+    └── screens/
+        └── region_selection_screen.dart     # UI implementation
+```
+
+### Code Example
+
+**Provider (Riverpod):**
+```dart
+final regionsProvider = FutureProvider<List<Region>>((ref) async {
+  final repository = ref.watch(regionRepositoryProvider);
+  return repository.fetchRegions();
+});
+
+final selectedRegionsProvider = StateNotifierProvider<SelectedRegionsNotifier, Set<String>>(
+  (ref) => SelectedRegionsNotifier(),
+);
+
+class SelectedRegionsNotifier extends StateNotifier<Set<String>> {
+  SelectedRegionsNotifier() : super({});
+
+  void toggle(String regionId) {
+    if (state.contains(regionId)) {
+      state = {...state}..remove(regionId);
+    } else {
+      state = {...state, regionId};
+    }
+  }
+}
+```
+
+**Screen (UI):**
+```dart
+Widget build(BuildContext context, WidgetRef ref) {
+  final regionsAsync = ref.watch(regionsProvider);
+  final selectedRegions = ref.watch(selectedRegionsProvider);
+
+  return Scaffold(
+    body: SafeArea(
+      child: Column(
+        children: [
+          // Title and subtitle
+          Text('지역을 선택해주세요'),
+
+          // Chip grid
+          Expanded(
+            child: regionsAsync.when(
+              data: (regions) => SingleChildScrollView(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: regions.map((region) {
+                    return SelectionChip(
+                      label: region.name,
+                      isSelected: selectedRegions.contains(region.id),
+                      size: ChipSize.large,
+                      onTap: () => ref
+                          .read(selectedRegionsProvider.notifier)
+                          .toggle(region.id),
+                    );
+                  }).toList(),
+                ),
+              ),
+              loading: () => CircularProgressIndicator(),
+              error: (err, _) => Text('Error: $err'),
+            ),
+          ),
+
+          // Progress (2/5) and Complete button
+          LinearProgressIndicator(value: 0.4),
+          PicklyButton.primary(
+            text: '완료 (${selectedRegions.length}개 선택됨)',
+            onPressed: selectedRegions.isNotEmpty
+                ? () => _handleComplete(context, ref)
+                : null,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+```
+
+### Multi-Selection Pattern
+
+**State Management:**
+```dart
+// ✅ Use Set<String> for multi-selection
+final Set<String> selectedRegions = {};
+
+void toggleRegion(String regionId) {
+  if (selectedRegions.contains(regionId)) {
+    selectedRegions.remove(regionId);
+  } else {
+    selectedRegions.add(regionId);
+  }
+}
+
+// Validation
+if (selectedRegions.isEmpty) {
+  // Show error: "최소 1개 이상 선택해주세요"
+}
+```
+
+**Button State:**
+```dart
+// Dynamic text showing selection count
+PicklyButton.primary(
+  text: selectedRegions.isEmpty
+      ? '완료'
+      : '완료 (${selectedRegions.length}개 선택됨)',
+  onPressed: selectedRegions.isNotEmpty ? _handleComplete : null,
+)
+```
+
+### Database Operations
+
+**Save User Regions (Transactional):**
+```dart
+Future<void> saveUserRegions(String userId, List<String> regionIds) async {
+  // Delete old selections
+  await client.from('user_regions')
+      .delete()
+      .eq('user_id', userId);
+
+  // Insert new selections
+  if (regionIds.isNotEmpty) {
+    final records = regionIds.map((regionId) => {
+      'user_id': userId,
+      'region_id': regionId,
+    }).toList();
+
+    await client.from('user_regions').insert(records);
+  }
+}
+```
+
+### Layout Pattern
+
+**Wrap Widget for Responsive Chip Grid:**
+```dart
+Wrap(
+  spacing: 8,           // Horizontal gap between chips
+  runSpacing: 8,        // Vertical gap between rows
+  alignment: WrapAlignment.start,
+  children: regions.map((region) {
+    return SelectionChip(
+      label: region.name,
+      isSelected: selectedRegions.contains(region.id),
+      size: ChipSize.large,
+      onTap: () => toggleRegion(region.id),
+    );
+  }).toList(),
+)
+```
+
+**Benefits of Wrap:**
+- Automatic line breaks (3 chips per row on standard phones)
+- Responsive layout (adapts to different screen sizes)
+- No manual row/column calculations needed
+- Even spacing with `spacing` and `runSpacing`
+
+### Testing Checklist
+
+- [ ] All 17 regions load from database
+- [ ] Multi-selection works (toggle on/off)
+- [ ] Selection state updates correctly
+- [ ] Complete button enables with 1+ selections
+- [ ] Button text shows selection count
+- [ ] Progress bar shows 40% (2/5)
+- [ ] Selections persist to database
+- [ ] RLS policies prevent unauthorized access
+- [ ] Loading state shows spinner
+- [ ] Error state shows message
+
+### Documentation
+
+- **Implementation**: `docs/implementation/v6.0-region-selection.md`
+- **Database**: `docs/database/README.md`
+- **Component**: `docs/implementation/v5.7-chip-component.md`
 
 ---
 
