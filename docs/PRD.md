@@ -537,6 +537,41 @@ pickly_service/
 
 ## 15. 변경 이력
 
+### v5.5 (2025.10.13) - 🎯 Single Selection Policy
+
+**Objective**: Implement single-selection policy for age category filter per business requirements
+
+**Policy Change**:
+- Multi-selection → Single-selection
+- Users can select only ONE age category at a time
+- Aligns with business rule for primary demographic filtering
+
+**Technical Changes**:
+1. State management: `Set<String>` → `String?`
+2. Selection logic: Toggle → Radio button behavior
+3. Validation: `isEmpty` → `null` check
+4. UI: Multiple checkmarks → Single checkmark
+5. SnackBar message: Dynamic count → Fixed "1개 카테고리"
+
+**User Impact**:
+- Selecting new item automatically deselects previous
+- Clearer selection state (one checkmark only)
+- Simpler user decision-making
+- More intuitive for primary demographic filtering
+
+**Performance Benefits**:
+- Lighter state (nullable String vs Set)
+- Faster comparison (equality vs Set lookup)
+- Less memory overhead
+
+**Files Modified**:
+- `apps/pickly_mobile/lib/features/onboarding/screens/age_category_screen.dart`
+
+**Documentation**:
+- `docs/implementation/v5.5-single-selection-policy.md`
+
+---
+
 ### v5.4.3 (2025.10.13) - 🎯 Figma 디자인 완벽 정렬
 
 **Objective**: Achieve pixel-perfect Figma design compliance for Age Category screen

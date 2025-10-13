@@ -7,7 +7,7 @@ import 'package:pickly_mobile/features/onboarding/providers/age_category_provide
 
 /// Age category selection screen (Step 3/5)
 ///
-/// Multiple selection list view with checkmarks
+/// Single selection list view with radio button behavior
 class AgeCategoryScreen extends ConsumerStatefulWidget {
   const AgeCategoryScreen({super.key});
 
@@ -16,20 +16,21 @@ class AgeCategoryScreen extends ConsumerStatefulWidget {
 }
 
 class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
-  final Set<String> _selectedCategoryIds = {};
+  String? _selectedCategoryId;
 
   void _handleCategorySelection(String categoryId) {
     setState(() {
-      if (_selectedCategoryIds.contains(categoryId)) {
-        _selectedCategoryIds.remove(categoryId);
+      // Single selection: directly set or clear if clicking same item
+      if (_selectedCategoryId == categoryId) {
+        _selectedCategoryId = null; // Deselect if clicking same item
       } else {
-        _selectedCategoryIds.add(categoryId);
+        _selectedCategoryId = categoryId; // Select new item
       }
     });
   }
 
   Future<void> _handleNext() async {
-    if (_selectedCategoryIds.isEmpty) return;
+    if (_selectedCategoryId == null) return;
 
     // TODO: Save selection to user preferences/profile
     // For now, just store in memory and navigate to next screen
@@ -38,7 +39,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('선택 완료: ${_selectedCategoryIds.length}개 카테고리'),
+          content: Text('선택 완료: 1개 카테고리'),
           duration: const Duration(seconds: 1),
         ),
       );
@@ -59,7 +60,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
     // Note: No back button in UI (matches Figma design)
     // This method is called only by PopScope for gesture navigation
     setState(() {
-      _selectedCategoryIds.clear();
+      _selectedCategoryId = null;
     });
     // Use go_router instead of pop to avoid navigation stack error
     context.go('/splash');
@@ -155,7 +156,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _selectedCategoryIds.isNotEmpty ? _handleNext : null,
+                    onPressed: _selectedCategoryId != null ? _handleNext : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.primary,
                       disabledBackgroundColor: BrandColors.primary.withValues(alpha: 0.3),
@@ -194,7 +195,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
       separatorBuilder: (context, index) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final category = categories[index];
-        final isSelected = _selectedCategoryIds.contains(category.id);
+        final isSelected = _selectedCategoryId == category.id;
 
         return SelectionListItem(
           iconUrl: category.iconUrl,

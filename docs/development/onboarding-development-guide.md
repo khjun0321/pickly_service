@@ -398,6 +398,105 @@ testWidgets('Should save data on next button', ...);
 
 ---
 
+## 💡 Selection Patterns (Updated v5.5)
+
+### Single vs Multi-Selection
+
+**Policy**: Onboarding filters use **single-selection** pattern.
+
+**Rationale**:
+- Primary demographic filters (age, income) require one definitive answer
+- Simplifies user decision-making
+- Clearer data for personalization
+- Better user experience for filtering
+
+### Implementing Single Selection
+
+**State Management:**
+```dart
+// ❌ Don't use Set for single selection
+final Set<String> _selectedIds = {};
+
+// ✅ Use nullable String
+String? _selectedId;
+```
+
+**Selection Handler:**
+```dart
+void _handleSelection(String id) {
+  setState(() {
+    // Single selection: radio button behavior
+    if (_selectedId == id) {
+      _selectedId = null; // Deselect if clicking same
+    } else {
+      _selectedId = id; // Select new (auto-deselect previous)
+    }
+  });
+}
+```
+
+**Validation:**
+```dart
+// ✅ Simple null check
+if (_selectedId == null) {
+  // No selection
+  return;
+}
+
+// Button enable logic
+onPressed: _selectedId != null ? _handleNext : null,
+```
+
+**UI Check:**
+```dart
+// In itemBuilder
+final isSelected = _selectedId == item.id;
+
+SelectionListItem(
+  isSelected: isSelected,
+  onTap: () => _handleSelection(item.id),
+)
+```
+
+### When to Use Multi-Selection
+
+Multi-selection should only be used for:
+- Non-primary filters (preferences, interests)
+- Optional selections where multiple choices are valid
+- Must be explicitly approved by product team
+
+### Visual Indicators
+
+**Single Selection:**
+- Use checkmark or radio button style
+- Only one item marked at a time
+- Clear visual feedback on selection change
+- Consider adding radio button semantics for accessibility
+
+**Multi Selection:**
+- Use checkboxes
+- Multiple items can have checkmarks
+- Count indicator helpful (e.g., "3개 선택됨")
+
+### Performance Considerations
+
+**Single Selection Benefits:**
+- Lighter state: `String?` (~16 bytes) vs `Set<String>` (~48+ bytes)
+- Faster comparison: Direct equality `==` vs Set lookup `contains()`
+- Less memory allocation: No Set object overhead
+- Simpler code: Null check vs empty check
+
+**Example Measurements:**
+```dart
+// Single selection: O(1) constant time
+final isSelected = _selectedId == category.id;
+
+// Multi selection: O(1) but with overhead
+final isSelected = _selectedIds.contains(category.id);
+```
+
+---
+
 ## 💡 개발 팁
 
 ### 새 화면 추가 시 체크리스트
@@ -406,6 +505,7 @@ testWidgets('Should save data on next button', ...);
 - [ ] 워크플로우 yml에 등록
 - [ ] DB 테이블 필요 시 마이그레이션 추가
 - [ ] `user_profiles` 테이블에 저장 필드 추가 (필요 시)
+- [ ] **선택 패턴 결정**: Single vs Multi (기본값: Single)
 - [ ] Claude Flow 실행
 - [ ] 테스트 확인
 - [ ] 라우팅 연결 확인
