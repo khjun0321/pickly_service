@@ -101,9 +101,9 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
                 ),
               ),
 
-              const SizedBox(height: Spacing.xl),
+              const SizedBox(height: 16),
 
-              // Content - Figma spec: List starts at top 156px
+              // Content - Figma spec: List starts at top 148px (moved up 8px)
               Expanded(
                 child: categoriesAsync.when(
                   data: (categories) => _buildCategoryList(categories),
