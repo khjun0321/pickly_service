@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:pickly_mobile/features/onboarding/screens/splash_screen.dart';
 import 'package:pickly_mobile/features/onboarding/screens/start_screen.dart';
 import 'package:pickly_mobile/features/onboarding/screens/age_category_screen.dart';
+import 'package:pickly_mobile/features/onboarding/screens/region_selection_screen.dart';
 // TODO: Import remaining onboarding screens when implemented
 // import 'package:pickly_mobile/features/onboarding/screens/personal_info_screen.dart';
-// import 'package:pickly_mobile/features/onboarding/screens/region_screen.dart';
 // import 'package:pickly_mobile/features/onboarding/screens/income_screen.dart';
 
 // Main app screens
@@ -86,13 +86,12 @@ final GoRouter appRouter = GoRouter(
     //   builder: (context, state) => const PersonalInfoScreen(),
     // ),
 
-    // TODO: Uncomment when RegionScreen is implemented
-    // 002: Region selection
-    // GoRoute(
-    //   path: Routes.region,
-    //   name: 'region',
-    //   builder: (context, state) => const RegionScreen(),
-    // ),
+    // 002: Region selection (IMPLEMENTED)
+    GoRoute(
+      path: Routes.region,
+      name: 'region',
+      builder: (context, state) => const RegionSelectionScreen(),
+    ),
 
     // 003: Age category selection (IMPLEMENTED)
     GoRoute(
