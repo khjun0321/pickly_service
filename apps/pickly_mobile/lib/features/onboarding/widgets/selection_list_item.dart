@@ -24,6 +24,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
+import 'selection_checkmark.dart';
 
 /// A list item widget for selection screens with icon, title, and description
 ///
@@ -192,25 +193,9 @@ class SelectionListItem extends StatelessWidget {
 
   /// Builds the checkmark indicator
   Widget _buildCheckmark() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isSelected ? BrandColors.primary : Colors.transparent,
-        border: Border.all(
-          color: isSelected ? BrandColors.primary : BorderColors.subtle,
-          width: 2.0,
-        ),
-      ),
-      child: isSelected
-          ? const Icon(
-              Icons.check,
-              size: 16,
-              color: Colors.white,
-            )
-          : null,
+    return SelectionCheckmark(
+      isSelected: isSelected,
+      size: 24,
     );
   }
 }
