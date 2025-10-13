@@ -537,6 +537,38 @@ pickly_service/
 
 ## 15. 변경 이력
 
+### v5.4.3 (2025.10.13) - 🎯 Figma 디자인 완벽 정렬
+
+**Objective**: Achieve pixel-perfect Figma design compliance for Age Category screen
+
+**Changes**:
+1. **Top spacing**: 48px → 72px (correct Figma spec calculation)
+   - Figma shows title at 116px from top
+   - SafeArea: ~44px (automatic)
+   - Manual spacing needed: 72px
+
+2. **Guidance text**: Fixed center alignment using Container wrapper
+   - Wrapped Padding with `Container(width: double.infinity)`
+   - Enables proper `textAlign: TextAlign.center` in Column with crossAxisAlignment.start
+
+3. **Card spacing**: 12px → 8px (match Figma design)
+   - Changed from `Spacing.md` to explicit `8px` value
+   - Tighter, more compact list per design spec
+
+**Impact**: Complete visual alignment with Figma 003 design spec
+
+**Files Modified**:
+- `apps/pickly_mobile/lib/features/onboarding/screens/age_category_screen.dart`
+
+**Documentation**:
+- `docs/implementation/v5.4.3-design-alignment.md`
+- `docs/development/onboarding-development-guide.md` (best practices added)
+
+**Technical Learnings**:
+- Text alignment in flex containers requires Container wrapper
+- SafeArea spacing calculations must account for device-specific heights
+- Design token overrides should be documented with Figma references
+
 ### v5.4.2 (2025.10.13) - 🎨 Figma 디자인 세부 조정
 
 #### 추가 수정사항

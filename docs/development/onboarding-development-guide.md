@@ -473,6 +473,187 @@ SelectionListItem(
 
 ---
 
+## 🎨 UI Layout Best Practices (Learned from v5.4.3)
+
+### Center Alignment in Columns
+When Column has `crossAxisAlignment: CrossAxisAlignment.start`, text won't center even with `textAlign: TextAlign.center`.
+
+**Problem**: Parent container's cross-axis alignment overrides child text alignment.
+
+**Solution**: Wrap with Container to force full width
+
+```dart
+// ❌ Doesn't work
+Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Padding(
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        'Center me',
+        textAlign: TextAlign.center, // Ignored!
+      ),
+    ),
+  ],
+)
+
+// ✅ Works correctly
+Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Container(
+      width: double.infinity, // Forces full width
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        'Center me',
+        textAlign: TextAlign.center, // Now works!
+      ),
+    ),
+  ],
+)
+```
+
+**Why**: The `crossAxisAlignment: CrossAxisAlignment.start` makes all children align to the start of the cross axis. The Text widget only takes up as much width as needed for its content, so `textAlign: TextAlign.center` centers text within that narrow width (no visible effect). By wrapping with `Container(width: double.infinity)`, we force the Text to span the full width, making center alignment visible.
+
+### SafeArea Spacing Calculations
+**Formula**: `Total Distance from Top = SafeArea Height + Manual Spacing`
+
+When translating Figma measurements to Flutter:
+
+1. **Measure in Figma**: Total distance from top edge to element
+2. **Account for SafeArea**: Usually ~44px on iOS, varies on Android
+3. **Calculate manual spacing**: Subtract SafeArea from total
+4. **Apply in code**: Use `SizedBox(height: calculated_value)`
+
+**Example from Age Category screen:**
+```dart
+// Figma spec: Title at 116px from top
+// SafeArea: ~44px (automatic, device-specific)
+// Manual spacing needed: 116px - 44px = 72px
+
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: SafeArea( // Adds ~44px top padding
+      child: Column(
+        children: [
+          const SizedBox(height: 72), // Manual spacing
+          Text('Title'), // Now at ~116px from top
+        ],
+      ),
+    ),
+  );
+}
+```
+
+**Important Notes**:
+- SafeArea height varies by device (notch, status bar)
+- Always test on multiple devices
+- Use MediaQuery.of(context).padding.top for exact SafeArea height
+- Document Figma measurements in code comments
+
+### Design Token Override Strategy
+
+**When to use design tokens:**
+```dart
+// ✅ Standard spacing - use tokens
+const SizedBox(height: Spacing.md)  // 12px
+const EdgeInsets.all(Spacing.lg)    // 16px
+```
+
+**When to override with exact values:**
+```dart
+// ✅ Figma specifies non-standard value - use exact measurement
+const SizedBox(height: 8) // Figma: 8px between cards
+const EdgeInsets.only(top: 72) // Figma: 116px - 44px SafeArea
+```
+
+**Best Practices:**
+1. **Prefer tokens**: Use `Spacing.xs`, `Spacing.sm`, `Spacing.md`, etc. when possible
+2. **Document overrides**: Always add comment explaining Figma spec
+3. **Consistency check**: Ensure similar UI patterns use same values
+4. **Design system feedback**: If overrides are common, propose new token
+
+**Example:**
+```dart
+// ❌ No explanation
+separatorBuilder: (context, index) => const SizedBox(height: 8),
+
+// ✅ Documented override
+separatorBuilder: (context, index) => const SizedBox(height: 8), // Figma spec: 8px between selection cards
+
+// ✅ Even better - with rationale
+// Figma spec: 8px card spacing for compact list appearance
+// Note: Different from Spacing.md (12px) intentionally
+separatorBuilder: (context, index) => const SizedBox(height: 8),
+```
+
+### Flex Container Alignment Gotchas
+
+**Column Alignment:**
+- `crossAxisAlignment` affects horizontal alignment of children
+- `mainAxisAlignment` affects vertical alignment of children
+- Child widgets' alignment properties can be overridden by parent
+
+**Common Issues:**
+
+```dart
+// Issue 1: Center alignment ignored
+Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Center(child: Text('Hello')), // Still appears at start!
+  ],
+)
+
+// Solution: Use crossAxisAlignment at Column level
+Column(
+  crossAxisAlignment: CrossAxisAlignment.center,
+  children: [
+    Text('Hello'), // Now centered
+  ],
+)
+
+// Issue 2: Text alignment doesn't work
+Row(
+  children: [
+    Text('Hello', textAlign: TextAlign.end), // Doesn't align
+  ],
+)
+
+// Solution: Wrap with Expanded or Container
+Row(
+  children: [
+    Expanded(
+      child: Text('Hello', textAlign: TextAlign.end), // Works!
+    ),
+  ],
+)
+```
+
+### Responsive Spacing
+
+Consider responsive spacing for different screen sizes:
+
+```dart
+// ❌ Fixed spacing might look wrong on tablets
+const SizedBox(height: 72)
+
+// ✅ Responsive spacing based on screen size
+SizedBox(height: MediaQuery.of(context).size.height * 0.1)
+
+// ✅ Clamped responsive spacing (best of both)
+SizedBox(
+  height: (MediaQuery.of(context).size.height * 0.1).clamp(48.0, 96.0),
+)
+```
+
+**When to use each approach:**
+- **Fixed**: Phone-only apps with consistent layouts
+- **Responsive**: Apps targeting tablets and phones
+- **Clamped**: Best practice - responsive with sensible min/max
+
+---
+
 ## 🆘 트러블슈팅
 
 ### Claude Flow가 실행 안 됨

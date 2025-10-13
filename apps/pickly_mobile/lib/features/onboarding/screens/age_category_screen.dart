@@ -84,8 +84,8 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
             children: [
               // Header area spacing (for consistency with other onboarding screens)
               // Future screens may have back button here, so reserve the space
-              // Figma shows title at ~116px from top: StatusBar(44px) + Header(48px) + Spacing(24px)
-              const SizedBox(height: 48),
+              // Figma shows title at ~116px from top: StatusBar(44px) + Header(72px)
+              const SizedBox(height: 72),
 
               // Title - Figma spec: top 116px, 18px w700, #3E3E3E (no header per Figma design)
               Padding(
@@ -113,7 +113,8 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
               ),
 
               // Bottom section - Figma spec: guidance text at top 656px
-              Padding(
+              Container(
+                width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                 child: Text(
                   '나에게 맞는 정책과 혜택에 대해 안내해드려요',
@@ -186,7 +187,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
       itemCount: categories.length,
-      separatorBuilder: (context, index) => const SizedBox(height: Spacing.md),
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final category = categories[index];
         final isSelected = _selectedCategoryIds.contains(category.id);
