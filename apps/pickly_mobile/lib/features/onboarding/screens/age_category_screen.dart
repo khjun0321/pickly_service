@@ -82,6 +82,11 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header area spacing (for consistency with other onboarding screens)
+              // Future screens may have back button here, so reserve the space
+              // Figma shows title at ~116px from top: StatusBar(44px) + Header(48px) + Spacing(24px)
+              const SizedBox(height: 48),
+
               // Title - Figma spec: top 116px, 18px w700, #3E3E3E (no header per Figma design)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
