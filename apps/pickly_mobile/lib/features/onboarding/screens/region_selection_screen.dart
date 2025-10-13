@@ -3,12 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/features/onboarding/providers/region_provider.dart';
-import 'package:pickly_mobile/features/onboarding/widgets/widgets.dart';
 
-/// Region selection screen (Step 2/5)
+/// Region selection screen (Step 2/2)
 ///
-/// Multi-selection chip view with Wrap layout (3 columns)
-/// Uses SelectionChip component for compact region selection
+/// Multi-selection grid view with 3 columns layout
+/// Uses SelectionCard component for region selection
 class RegionSelectionScreen extends ConsumerStatefulWidget {
   const RegionSelectionScreen({super.key});
 
@@ -34,25 +33,11 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
     if (_selectedRegionIds.isEmpty) return;
 
     // TODO: Save selections to user preferences/profile
-    // For now, just show confirmation and navigate
+    // For now, just navigate to home
 
-    // Show confirmation message
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('선택 완료: ${_selectedRegionIds.length}개 지역'),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-
-      // Navigate to next onboarding screen or home
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (mounted) {
-        // TODO: Replace with actual next screen route when implemented
-        // For now, go to age category screen as next step
-        context.go('/onboarding/age_category');
-      }
+      // TODO: Replace with actual home route when implemented
+      context.go('/home');
     }
   }
 
@@ -60,8 +45,8 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
     setState(() {
       _selectedRegionIds.clear();
     });
-    // Use go_router to navigate back
-    context.pop();
+    // Navigate back to age category (use go instead of pop since we used go to navigate here)
+    context.go('/onboarding/age-category');
   }
 
   @override
@@ -77,22 +62,20 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
       },
       child: Scaffold(
         backgroundColor: BackgroundColors.app,
-        appBar: AppBar(
-          backgroundColor: BackgroundColors.app,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: TextColors.primary),
-            onPressed: _handleBack,
-          ),
-        ),
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top spacing - Figma spec: Title at ~116px from top
-              const SizedBox(height: 72),
+              // Header (48px) - moved from appBar to align with age_category_screen
+              AppHeader.onboarding(
+                onBack: _handleBack,
+              ),
 
-              // Title - Figma spec: 18px w700, #3E3E3E
+              // Spacing after header (24px)
+              // SafeArea(~44px) + Header(48px) + Spacing(24px) = ~116px (matches age_category_screen)
+              const SizedBox(height: 24),
+
+              // Title - left aligned
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                 child: Text(
@@ -108,30 +91,38 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
 
               const SizedBox(height: 16),
 
-              // Chips section - Wrap with 3 columns layout
+              // Content - Region grid
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: regions.map((region) {
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: Spacing.lg,
+                      crossAxisSpacing: Spacing.lg,
+                      childAspectRatio: 0.95,
+                    ),
+                    itemCount: regions.length,
+                    itemBuilder: (context, index) {
+                      final region = regions[index];
                       final isSelected = _selectedRegionIds.contains(region.id);
                       return SelectionChip(
                         label: region.name,
                         isSelected: isSelected,
-                        size: ChipSize.small, // 14px font for compact layout
+                        size: ChipSize.small,
                         onTap: () => _handleRegionToggle(region.id),
                       );
-                    }).toList(),
+                    },
                   ),
                 ),
               ),
 
-              // Spacing between chips and guidance text
+              // Spacing between list and guidance text
               const SizedBox(height: 36),
 
-              // Guidance text - Figma spec: centered, secondary color
+              // Guidance text
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
@@ -146,25 +137,20 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
                 ),
               ),
 
-              const SizedBox(height: Spacing.xxl),
+              const SizedBox(height: 24),
 
-              // Progress bar - Figma spec: 2/5 steps = 40% progress
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: LinearProgressIndicator(
-                    value: 0.4, // Step 2/5 = 40%
-                    minHeight: 4,
-                    backgroundColor: const Color(0xFFDDDDDD),
-                    valueColor: const AlwaysStoppedAnimation<Color>(BrandColors.primary),
-                  ),
+              // Progress bar - Step 2 of 2
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                child: PicklyProgressBar(
+                  currentStep: 2,
+                  totalSteps: 2,
                 ),
               ),
 
-              const SizedBox(height: Spacing.xxl),
+              const SizedBox(height: 24),
 
-              // Complete button - Text: "완료" instead of "다음"
+              // Bottom button
               Padding(
                 padding: const EdgeInsets.all(Spacing.lg),
                 child: SizedBox(
@@ -176,7 +162,7 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
                       backgroundColor: BrandColors.primary,
                       disabledBackgroundColor: BrandColors.primary.withValues(alpha: 0.3),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16), // Figma spec: 16px
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
                     ),
