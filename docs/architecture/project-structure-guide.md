@@ -470,7 +470,128 @@ mv lib/experimental/example_screen.dart examples/onboarding/
 
 ---
 
+## 🎨 Figma Design Matching Process
+
+### 개발 워크플로우
+
+Figma 디자인을 정확하게 구현하기 위한 프로세스:
+
+#### 1. 디자인 분석 단계
+
+**체크리스트**:
+```markdown
+- [ ] 화면 구조 파악 (헤더, 본문, 푸터)
+- [ ] 각 요소의 위치 (top, left 픽셀값)
+- [ ] 타이포그래피 (fontSize, fontWeight, color)
+- [ ] 여백 및 간격 (padding, margin)
+- [ ] 색상 (브랜드 컬러, 텍스트 컬러)
+- [ ] 버튼 스타일 (크기, 라운드, 상태)
+- [ ] 프로그레스 바 위치 및 스타일
+```
+
+#### 2. 구현 단계
+
+**Figma 스펙 주석 추가**:
+```dart
+// ✅ 권장: Figma 스펙을 주석으로 명시
+// Title - Figma spec: top 116px, 18px w700, #3E3E3E
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+  child: Text(
+    '맞춤 혜택을 위해 내 상황을 알려주세요.',
+    style: PicklyTypography.titleMedium.copyWith(
+      color: TextColors.primary,
+      fontWeight: FontWeight.w700,
+      fontSize: 18,  // Figma: 18px
+      height: 1.33,  // Figma: line-height 24px / 18px
+    ),
+  ),
+),
+```
+
+**Design System 토큰 사용**:
+```dart
+// ✅ 권장: Design System의 색상/여백 상수 사용
+backgroundColor: BackgroundColors.app,      // Figma: #F8F8F8
+color: TextColors.primary,                  // Figma: #3E3E3E
+padding: const EdgeInsets.all(Spacing.lg),  // Figma: 16px
+```
+
+#### 3. 검증 단계
+
+**시뮬레이터 비교**:
+1. 시뮬레이터에서 화면 스크린샷 촬영
+2. Figma 디자인과 나란히 배치하여 비교
+3. 불일치 사항 체크리스트 작성
+4. 즉시 수정
+
+**픽셀 정확도 검증**:
+```dart
+// 개발자 도구로 요소 위치 측정
+// Figma 스펙과 비교 (±2px 오차 허용)
+```
+
+### 일반적인 불일치 패턴
+
+#### 1. 헤더 유무 불일치
+
+**사례** (v5.4.1):
+- **구현**: OnboardingHeader 추가됨
+- **Figma**: 헤더 없음
+- **해결**: OnboardingHeader 제거
+
+**예방**:
+```markdown
+개발 전 확인사항:
+- [ ] Figma에 헤더 (뒤로가기 + 프로그레스) 있는가?
+- [ ] 프로그레스 바 위치는? (상단/하단)
+- [ ] 뒤로가기 버튼 표시 여부?
+```
+
+#### 2. 여백 및 간격 불일치
+
+**문제**:
+- Figma: 32px 여백
+- 구현: Spacing.xl (24px)
+
+**해결**:
+```dart
+// Custom spacing이 필요한 경우 명시적으로 작성
+const SizedBox(height: 32),  // Figma spec: 32px (not standard spacing)
+```
+
+#### 3. 색상 불일치
+
+**문제**:
+- Figma: #3E3E3E
+- 구현: Colors.black
+
+**해결**:
+```dart
+// Design System 토큰이 없는 경우 명시적으로 정의
+const Color(0xFF3E3E3E),  // Figma: #3E3E3E
+```
+
+### Figma to Code Mapping
+
+| Figma 속성 | Flutter 코드 | 비고 |
+|-----------|-------------|------|
+| Font Size: 18px | `fontSize: 18` | 그대로 사용 |
+| Font Weight: 700 | `FontWeight.w700` | Bold |
+| Color: #3E3E3E | `Color(0xFF3E3E3E)` | 또는 `TextColors.primary` |
+| Line Height: 24px | `height: 24/18 = 1.33` | fontSize로 나누기 |
+| Border Radius: 16px | `BorderRadius.circular(16)` | 그대로 사용 |
+| Padding: 16px | `Spacing.lg` | Design System 상수 |
+
+---
+
 ## 🔄 변경 이력
+
+### v5.4.1 (2025.10.13)
+- Figma Design Matching Process 섹션 추가
+- 디자인 검증 워크플로우 문서화
+- 일반적인 불일치 패턴 및 해결법 추가
+- Figma to Code Mapping 가이드 추가
 
 ### v5.3 (2025.10.12)
 - Design System 컴포넌트 범위 확대

@@ -537,6 +537,34 @@ pickly_service/
 
 ## 15. 변경 이력
 
+### v5.4.1 (2025.10.13) - 🎨 Figma 디자인 매칭 (UI 수정)
+
+#### 문제점
+- Age Category Screen에 OnboardingHeader(뒤로가기 + 상단 프로그레스 바)가 있었음
+- Figma 디자인에는 헤더 없이 제목부터 시작
+- 사용자가 Figma 003.01_onboarding.png와 시뮬레이터 화면 비교 후 불일치 발견
+
+#### 해결
+- AgeCategoryScreen에서 OnboardingHeader 제거
+- 제목이 SafeArea 바로 다음에 표시되도록 수정
+- 하단 프로그레스 바와 버튼은 유지 (Figma 스펙 그대로)
+
+#### 수정 파일
+- `lib/features/onboarding/screens/age_category_screen.dart`
+  - OnboardingHeader 위젯 제거 (lines 72-77)
+  - 제목 위치 조정 (SafeArea 직후 표시)
+  - Figma 스펙 주석 추가 (line 85)
+
+#### 검증
+- ✅ Figma 003.01_onboarding.png와 시뮬레이터 화면 일치 확인
+- ✅ Hot reload로 즉시 반영됨
+- ✅ 제목, 리스트, 프로그레스 바, 버튼 레이아웃 정상 작동
+
+#### 영향 범위
+- OnboardingHeader 위젯은 다른 온보딩 화면에서 여전히 사용 가능
+- 이 변경은 AgeCategoryScreen에만 국한됨
+- 디자인 시스템에는 영향 없음
+
 ### v5.4 (2025.10.12) - 📚 아키텍처 문서화 및 구조 표준화
 
 #### 주요 변경사항

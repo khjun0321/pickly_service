@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/contexts/user/models/age_category.dart';
-import 'package:pickly_mobile/features/onboarding/widgets/onboarding_header.dart';
 import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
 
 /// Age category selection screen (Step 3/5)
@@ -57,6 +56,8 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
   }
 
   void _handleBack() {
+    // Note: No back button in UI (matches Figma design)
+    // This method is called only by PopScope for gesture navigation
     setState(() {
       _selectedCategoryIds.clear();
     });
@@ -81,17 +82,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
-              OnboardingHeader(
-                currentStep: 2,
-                totalSteps: 5,
-                showBackButton: true,
-                onBack: _handleBack,
-              ),
-
-              const SizedBox(height: Spacing.lg),
-
-              // Title - Figma spec: top 116px, 18px w700, #3E3E3E
+              // Title - Figma spec: top 116px, 18px w700, #3E3E3E (no header per Figma design)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                 child: Text(
