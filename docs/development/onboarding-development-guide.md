@@ -40,9 +40,18 @@ lib/
 └─ main.dart
 
 packages/pickly_design_system/   # 공통 디자인 시스템
-├─ lib/widgets/
-│  └─ buttons/
-│     └─ next_button.dart   ✅ 공통 위젯 (Design System)
+├─ lib/
+│  ├─ pickly_design_system.dart  ✅ 메인 진입점 (모든 위젯 export)
+│  └─ widgets/
+│     ├─ buttons/
+│     │  └─ pickly_button.dart
+│     ├─ selection/
+│     │  ├─ selection_list_item.dart  (v5.3+)
+│     │  ├─ selection_checkmark.dart  (v5.6+)
+│     │  └─ selection_chip.dart       (v5.7+)
+│     ├─ indicators/
+│     │  └─ progress_bar.dart
+│     └─ app_header.dart
 └─ assets/icons/
    └─ age_categories/       ✅ Figma 아이콘
 
@@ -51,9 +60,13 @@ examples/                   # 예제 및 참조 코드
    └─ age_category_screen_example.dart
 ```
 
+---
+
+## 🧩 컴포넌트 구조 및 사용 규칙
+
 ### Import 규칙
 
-**✅ 올바른 Import**
+**✅ 올바른 Import (권장 방식)**
 ```dart
 // 모델 Import (contexts/user/models 사용 - 단일 진실 공급원)
 import 'package:pickly_mobile/contexts/user/models/age_category.dart';
@@ -64,14 +77,22 @@ import 'package:pickly_mobile/contexts/user/repositories/age_category_repository
 // Provider Import
 import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
 
-// Design System (공통 위젯 - 패키지에서 제공)
-import 'package:pickly_design_system/widgets/buttons/pickly_button.dart';
-import 'package:pickly_design_system/widgets/cards/selection_list_item.dart'; // v5.3+
-import 'package:pickly_design_system/widgets/checkmarks/selection_checkmark.dart'; // v5.6+
-import 'package:pickly_design_system/widgets/chips/selection_chip.dart'; // v5.7+
+// ✅ Design System (단일 진입점 - 모든 공통 위젯)
+import 'package:pickly_design_system/pickly_design_system.dart';
 
 // 온보딩 전용 위젯 (로컬 위젯)
 import 'package:pickly_mobile/features/onboarding/widgets/onboarding_header.dart';
+```
+
+**✅ 개별 Import도 가능 (필요시)**
+```dart
+// Design System 위젯 개별 Import
+import 'package:pickly_design_system/widgets/buttons/pickly_button.dart';
+import 'package:pickly_design_system/widgets/selection/selection_list_item.dart';
+import 'package:pickly_design_system/widgets/selection/selection_checkmark.dart';
+import 'package:pickly_design_system/widgets/selection/selection_chip.dart';
+import 'package:pickly_design_system/widgets/indicators/progress_bar.dart';
+import 'package:pickly_design_system/widgets/app_header.dart';
 ```
 
 **❌ 잘못된 Import**
@@ -84,19 +105,91 @@ import '../models/age_category.dart';
 
 // ❌ 제거된 미사용 컨트롤러
 import '../providers/age_category_controller.dart';
+
+// ❌ 삭제된 구 경로 (v5.3에서 Design System으로 이동됨)
+import 'package:pickly_design_system/src/components/selection/selection_card.dart';
 ```
+
+---
 
 ### 위젯 소스 구분
 
-**Design System (공통 위젯)**:
-- PicklyButton - 모든 화면에서 사용하는 기본 버튼 (Primary/Secondary 변형)
-- SelectionListItem - 선택 리스트 아이템 (v5.3부터 Design System으로 이동)
-- SelectionCheckmark - 선택 체크 표시 (v5.6 추가)
-- SelectionChip - 칩 버튼 컴포넌트 (v5.7 추가)
+#### Design System (공통 위젯)
+
+**항상 `pickly_design_system` 패키지에서 import**
+
+**Selection 컴포넌트:**
+- **SelectionListItem** (v5.3+) - 전체 너비 선택 리스트 아이템
+  - 용도: 세로 리스트 레이아웃 (연령/세대 선택)
+  - 특징: 아이콘 + 제목 + 설명 + 체크마크
+  - 위치: `lib/widgets/selection/selection_list_item.dart`
+
+- **SelectionCheckmark** (v5.6+) - 재사용 가능한 체크마크 컴포넌트
+  - 용도: 선택 상태 표시 (단독 사용 가능)
+  - 특징: 애니메이션, 크기 변형 지원
+  - 위치: `lib/widgets/selection/selection_checkmark.dart`
+
+- **SelectionChip** (v5.7+) - 컴팩트 칩 버튼
+  - 용도: 가로 배치 선택 (지역, 필터, 태그)
+  - 특징: Large/Small 변형, Wrap 레이아웃
+  - 위치: `lib/widgets/selection/selection_chip.dart`
+
+**기타 공통 컴포넌트:**
+- **PicklyButton** - 기본 버튼 (Primary/Secondary 변형)
+- **AppHeader** - 앱바 헤더 (뒤로가기, 메뉴 등)
+- **ProgressBar** - 진행률 표시
 - 기타 공통 UI 컴포넌트
 
-**로컬 온보딩 위젯**:
-- OnboardingHeader - 온보딩 화면 전용 헤더
+#### 로컬 온보딩 위젯
+
+**`lib/features/onboarding/widgets/`에 위치**
+
+- **OnboardingHeader** - 온보딩 화면 전용 헤더
+  - 용도: 온보딩 화면의 타이틀/서브타이틀 표시
+  - 특징: 온보딩 화면에만 사용되는 특수 레이아웃
+
+---
+
+### 컴포넌트 사용 가이드
+
+#### 1. 새 위젯 생성 전 체크리스트
+
+새로운 위젯을 만들기 전 **반드시** 확인:
+
+- [ ] Design System에 유사한 컴포넌트가 있는가?
+- [ ] 기존 컴포넌트를 확장/변형할 수 있는가?
+- [ ] 다른 화면에서도 재사용 가능한가?
+
+**재사용 가능하면** → Design System에 추가
+**온보딩 전용이면** → 로컬 위젯으로 생성
+
+#### 2. 언제 Design System에 추가할까?
+
+**Design System 추가 조건 (다음 중 하나라도 해당):**
+- ✅ 2개 이상의 화면/기능에서 사용
+- ✅ 기본 UI 패턴 (버튼, 카드, 칩, 입력 등)
+- ✅ 앱 전체에서 일관성이 필요한 컴포넌트
+- ✅ 디자인 시스템에 정의된 컴포넌트
+
+**로컬 위젯으로 유지 조건:**
+- ✅ 특정 기능에만 사용 (온보딩 전용 등)
+- ✅ 비즈니스 로직에 강하게 결합
+- ✅ 재사용 가능성 낮음
+
+#### 3. Selection 컴포넌트 선택 가이드
+
+| 컴포넌트 | 레이아웃 | 사용 시기 | 예시 화면 |
+|---------|---------|----------|----------|
+| **SelectionListItem** | 세로 리스트 (ListView) | 아이콘+설명이 필요한 옵션 | 연령/세대 선택 |
+| **SelectionChip** | 가로 그리드 (Wrap) | 간단한 라벨, 다중 선택 | 지역 선택 |
+| **SelectionCheckmark** | 단독 사용 | 커스텀 선택 UI 구현 | 커스텀 카드 |
+
+**선택 기준:**
+- 설명이 필요하면 → SelectionListItem
+- 간단한 라벨만 → SelectionChip
+- 커스텀 레이아웃 → SelectionCheckmark 단독 사용
+
+---
 
 ### 파일 위치 원칙
 
@@ -107,6 +200,90 @@ import '../providers/age_category_controller.dart';
 5. **공통 위젯**: `packages/pickly_design_system/lib/widgets/`
 6. **기능별 위젯**: `lib/features/{feature}/widgets/`
 7. **예제**: `examples/{feature}/`
+
+---
+
+### 실전 예시
+
+#### 연령/세대 선택 화면 (SelectionListItem)
+
+```dart
+import 'package:pickly_design_system/pickly_design_system.dart';
+import 'package:pickly_mobile/contexts/user/models/age_category.dart';
+
+// ListView 기반 세로 레이아웃
+ListView.separated(
+  itemCount: categories.length,
+  separatorBuilder: (context, index) => const SizedBox(height: 8),
+  itemBuilder: (context, index) {
+    final category = categories[index];
+    return SelectionListItem(
+      // SVG 아이콘 (Design System assets)
+      iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/${category.iconComponent}.svg',
+      title: category.name,           // '청년'
+      description: category.description,  // '만 19세 ~ 34세'
+      isSelected: _selectedId == category.id,
+      onTap: () => _handleSelection(category.id),
+    );
+  },
+)
+```
+
+#### 지역 선택 화면 (SelectionChip)
+
+```dart
+import 'package:pickly_design_system/pickly_design_system.dart';
+import 'package:pickly_mobile/contexts/user/models/region.dart';
+
+// Wrap 기반 가로 그리드 레이아웃
+Wrap(
+  spacing: 8,
+  runSpacing: 8,
+  children: regions.map((region) {
+    return SelectionChip(
+      label: region.name,  // '서울', '부산' 등
+      isSelected: _selectedIds.contains(region.id),
+      size: ChipSize.large,
+      onTap: () => _handleSelection(region.id),
+    );
+  }).toList(),
+)
+```
+
+#### 커스텀 선택 UI (SelectionCheckmark)
+
+```dart
+import 'package:pickly_design_system/pickly_design_system.dart';
+
+// 커스텀 카드에 체크마크 추가
+GestureDetector(
+  onTap: () => _handleSelect(item.id),
+  child: Stack(
+    children: [
+      // 커스텀 카드 디자인
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.grey,
+          ),
+        ),
+        child: Text(item.title),
+      ),
+
+      // 우측 상단에 체크마크
+      Positioned(
+        top: 8,
+        right: 8,
+        child: SelectionCheckmark(
+          isSelected: isSelected,
+          size: 20,
+        ),
+      ),
+    ],
+  ),
+)
+```
 
 ## 📋 새 화면 추가 방법
 
@@ -519,35 +696,54 @@ final isSelected = _selectedIds.contains(category.id);
 직접 구현하지 말고 공통 위젯 사용:
 
 ```dart
-// ✅ 좋은 예 (v5.3+)
-OnboardingHeader(currentStep: 3, totalSteps: 5)
+// ✅ 좋은 예 - Design System 컴포넌트 사용
+import 'package:pickly_design_system/pickly_design_system.dart';
+
 PicklyButton.primary(
   text: '다음',
   onPressed: controller.isValid ? () => controller.save() : null,
 )
 
-// ❌ 나쁜 예
+SelectionListItem(
+  title: '옵션',
+  description: '설명',
+  isSelected: true,
+  onTap: () {},
+)
+
+SelectionChip(
+  label: '서울',
+  isSelected: true,
+  onTap: () {},
+)
+
+// ❌ 나쁜 예 - 직접 구현 (Don't Repeat Yourself 위반)
 Container(/* 헤더 직접 구현 */)
 ElevatedButton(/* 버튼 직접 구현 */)
+GestureDetector(/* 선택 카드 직접 구현 */)
 ```
 
-### SelectionListItem 사용 예시
+---
 
-**003 화면 (연령/세대 선택)**에서 사용된 실제 예시:
+## 🎨 Selection 컴포넌트 상세 가이드
 
-**⚠️ v5.3 변경사항**: `SelectionListItem`은 Design System으로 이동되었습니다.
+### SelectionListItem (v5.3+)
+
+**용도:** 세로 리스트 레이아웃, 아이콘과 설명이 포함된 선택 옵션
+
+**실제 사용 화면:** 연령/세대 선택 (Step 1/5)
 
 ```dart
-// v5.3+ Import (Design System)
-import 'package:pickly_design_system/widgets/cards/selection_list_item.dart';
+// Import
+import 'package:pickly_design_system/pickly_design_system.dart';
 
-// 기본 사용법
+// 기본 사용법 (아이콘 + 제목 + 설명)
 SelectionListItem(
   iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/young_man.svg',
   title: '청년',
   description: '만 19세 ~ 34세',
-  isSelected: selectedIds.contains(category.id),
-  onTap: () => controller.toggleSelection(category.id),
+  isSelected: _selectedId == category.id,
+  onTap: () => _handleSelection(category.id),
 )
 
 // 아이콘 없이 사용
@@ -558,6 +754,14 @@ SelectionListItem(
   onTap: onSelect,
 )
 
+// Material Icon 사용
+SelectionListItem(
+  icon: Icons.home,
+  title: '홈',
+  isSelected: true,
+  onTap: () {},
+)
+
 // 비활성화 상태
 SelectionListItem(
   title: '사용 불가',
@@ -566,7 +770,7 @@ SelectionListItem(
 )
 ```
 
-**주요 속성**:
+**주요 속성:**
 - `iconUrl`: SVG 아이콘 경로 (선택사항)
 - `icon`: Material Icon (iconUrl이 없을 때 대체)
 - `title`: 제목 (필수)
@@ -575,42 +779,47 @@ SelectionListItem(
 - `onTap`: 탭 콜백
 - `enabled`: 활성화 여부 (기본값: true)
 
+**레이아웃:**
+- 전체 너비 (width: double.infinity)
+- 고정 높이 (72px)
+- ListView.separated와 함께 사용
+
 ---
 
-### SelectionChip 사용 예시 (v5.7+)
+### SelectionChip (v5.7+)
 
-**지역 선택 화면**에서 사용될 칩 버튼 컴포넌트:
+**용도:** 가로 그리드 레이아웃, 간단한 라벨의 컴팩트 선택 옵션
 
-**⚠️ v5.7 신규 추가**: `SelectionChip`은 컴팩트한 선택 UI를 위한 칩 버튼입니다.
+**실제 사용 화면:** 지역 선택 (Step 2/5)
 
 ```dart
-// v5.7+ Import (Design System)
-import 'package:pickly_design_system/widgets/chips/selection_chip.dart';
+// Import
+import 'package:pickly_design_system/pickly_design_system.dart';
 
-// 기본 사용법 (Large)
+// 기본 사용법 (Large - 기본값)
 SelectionChip(
   label: '서울',
-  isSelected: selectedRegions.contains('seoul'),
-  onTap: () => toggleRegion('seoul'),
+  isSelected: _selectedIds.contains('seoul'),
+  onTap: () => _toggleRegion('seoul'),
 )
 
-// Small 변형 (필터 등 컴팩트 레이아웃)
+// Small 변형 (컴팩트 UI)
 SelectionChip(
   label: '주거',
-  isSelected: activeFilters.contains('housing'),
+  isSelected: _activeFilters.contains('housing'),
   size: ChipSize.small,
-  onTap: () => toggleFilter('housing'),
+  onTap: () => _toggleFilter('housing'),
 )
 
-// Wrap으로 여러 칩 배치
+// Wrap으로 여러 칩 배치 (권장 패턴)
 Wrap(
-  spacing: 8,
-  runSpacing: 8,
+  spacing: 8,        // 가로 간격
+  runSpacing: 8,     // 세로 간격
   children: regions.map((region) {
     return SelectionChip(
       label: region.name,
-      isSelected: selectedRegions.contains(region.id),
-      onTap: () => toggleRegion(region.id),
+      isSelected: _selectedIds.contains(region.id),
+      onTap: () => _toggleRegion(region.id),
     );
   }).toList(),
 )
@@ -624,38 +833,113 @@ SelectionChip(
 )
 ```
 
-**주요 속성**:
+**주요 속성:**
 - `label`: 칩에 표시될 텍스트 (필수)
 - `isSelected`: 선택 상태 (필수)
-- `size`: 칩 크기 (`ChipSize.large` 또는 `ChipSize.small`)
+- `size`: 칩 크기 (ChipSize.large | ChipSize.small)
 - `onTap`: 탭 콜백
 - `enabled`: 활성화 여부 (기본값: true)
 
-**Size Variants**:
-- `ChipSize.large`: 16px 폰트, 48px 최소 높이, 20px 체크마크 (기본값)
-- `ChipSize.small`: 14px 폰트, 36px 최소 높이, 16px 체크마크
+**Size Variants:**
+| Size | 폰트 크기 | 최소 높이 | 체크마크 | 용도 |
+|------|----------|----------|---------|------|
+| **large** | 16px | 48px | 20px | 메인 선택 (지역 선택) |
+| **small** | 14px | 36px | 16px | 필터, 태그 |
 
-**SelectionChip vs SelectionListItem**:
+**레이아웃:**
+- 인라인 너비 (내용에 맞춤)
+- Wrap 위젯과 함께 사용 (자동 줄바꿈)
+- 가로 배치, 반응형
 
-| 특성 | SelectionChip | SelectionListItem |
-|------|---------------|-------------------|
-| **Layout** | 인라인, Wrap 배치 | 전체 너비, ListView 배치 |
-| **크기** | 컴팩트, 2가지 변형 | 전체 너비, 고정 높이 |
-| **아이콘** | 체크마크만 | SVG 아이콘 + 체크마크 |
-| **설명** | 없음 (label만) | 제목 + 설명 |
-| **Use Case** | 지역, 필터, 태그 | 카테고리, 세부 옵션 |
+---
 
-**When to use SelectionChip**:
-- ✅ 여러 옵션을 가로로 나열 (지역 선택)
-- ✅ 필터 태그 UI
-- ✅ 화면 공간 절약이 필요할 때
-- ✅ 간단한 라벨만 필요할 때
+### SelectionCheckmark (v5.6+)
 
-**When to use SelectionListItem**:
-- ✅ 세로 리스트 레이아웃 (연령/세대 선택)
-- ✅ 아이콘과 설명이 필요할 때
-- ✅ 각 옵션에 충분한 설명이 필요할 때
-- ✅ 전체 너비 터치 영역이 필요할 때
+**용도:** 커스텀 선택 UI 구현 시 체크마크만 필요한 경우
+
+```dart
+// Import
+import 'package:pickly_design_system/pickly_design_system.dart';
+
+// 단독 사용
+SelectionCheckmark(
+  isSelected: true,
+  size: 24,
+)
+
+// 커스텀 카드에 추가
+GestureDetector(
+  onTap: () => _handleSelect(item.id),
+  child: Stack(
+    children: [
+      // 커스텀 카드 디자인
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.grey,
+          ),
+        ),
+        child: Text(item.title),
+      ),
+
+      // 우측 상단에 체크마크
+      Positioned(
+        top: 8,
+        right: 8,
+        child: SelectionCheckmark(
+          isSelected: isSelected,
+          size: 20,
+        ),
+      ),
+    ],
+  ),
+)
+```
+
+**주요 속성:**
+- `isSelected`: 선택 상태 (필수)
+- `size`: 체크마크 크기 (기본값: 24)
+
+---
+
+### 컴포넌트 비교표
+
+| 특성 | SelectionListItem | SelectionChip | SelectionCheckmark |
+|------|------------------|---------------|-------------------|
+| **레이아웃** | 전체 너비, 세로 리스트 | 인라인, 가로 그리드 | 단독 사용 |
+| **크기** | 고정 (72px 높이) | 2가지 (Large/Small) | 크기 조절 가능 |
+| **아이콘** | SVG/Material Icon | 체크마크만 | 체크마크만 |
+| **텍스트** | 제목 + 설명 | 라벨만 | 없음 |
+| **Container** | ListView | Wrap | Stack/Custom |
+| **Use Case** | 상세 옵션 선택 | 간단한 다중 선택 | 커스텀 UI |
+| **예시 화면** | 연령/세대 선택 | 지역 선택 | - |
+
+### 선택 기준 플로우차트
+
+```
+선택 컴포넌트가 필요한가?
+  │
+  ├─ 기존 디자인 패턴인가?
+  │   │
+  │   ├─ YES: 아이콘과 설명이 필요한가?
+  │   │   │
+  │   │   ├─ YES → SelectionListItem
+  │   │   │         (연령/세대, 관심사 등)
+  │   │   │
+  │   │   └─ NO: 간단한 라벨만 필요한가?
+  │   │       │
+  │   │       ├─ YES → SelectionChip
+  │   │       │         (지역, 필터, 태그)
+  │   │       │
+  │   │       └─ NO → 커스텀 UI 필요
+  │   │
+  │   └─ NO: 완전히 새로운 디자인인가?
+  │       │
+  │       └─ YES → SelectionCheckmark 단독 사용
+  │                 (기존 컴포넌트에 체크마크만 추가)
+  │
+  └─ 디자인 시스템에 추가 검토 필요
 
 ---
 

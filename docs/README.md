@@ -24,6 +24,11 @@
   - Provider 패턴 설명
   - Widget 재사용 전략
   - Figma assets 통합 방식
+- [Component Structure Guide](./architecture/component-structure-guide.md) 🆕
+  - 컴포넌트 구조 및 배치 규칙
+  - Widget 분류 기준
+  - Import 정책 및 의존성 방향
+  - 파일 중복 방지 원칙
 
 ### API & 스키마
 - [화면 설정 파일 스키마](api/screen-config-schema.md) ⭐
@@ -127,6 +132,7 @@ cat .claude/agents/core/onboarding-coordinator.md
 
 ### 아키텍처
 - [에이전트 아키텍처](./architecture/common-agent-architecture.md)
+- [Component Structure Guide](./architecture/component-structure-guide.md)
 - [Supabase 스키마](./architecture/supabase-schema.md) (작성 예정)
 
 ### API
