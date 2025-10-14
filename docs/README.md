@@ -230,7 +230,7 @@ import 'package:pickly_mobile/core/models/age_category.dart'; // 삭제됨
 
 **규칙**: 동일한 모델은 하나의 위치에만 존재해야 함
 
-## 📊 현재 개발 현황 (2025.10.11)
+## 📊 현재 개발 현황 (2025.10.15)
 
 ### ✅ 완료된 작업
 
@@ -246,17 +246,33 @@ import 'package:pickly_mobile/core/models/age_category.dart'; // 삭제됨
 - 다중 선택 상태 관리
 - Provider 기반 상태 관리
 
+**홈 화면 (Home Screen)** ✅ 🆕:
+- 스크롤 기반 애니메이션 구현
+  - 헤더 페이드아웃 (60px threshold)
+  - Mr. Pick 캐릭터 페이드 & 스케일 애니메이션 (80px threshold)
+  - 검색바 너비 변화 (343px → 240px)
+- iOS 스타일 블러 효과 (BackdropFilter, sigma: 3.0)
+- 수직 그라데이션 배경 (상단 95% → 하단 30% 불투명도)
+- PopularPolicyCard 컴포넌트
+- Benefits 화면 구현 및 네비게이션 통합
+- GNB (Global Navigation Bar) 라우팅 연동
+
 **공통 컴포넌트**:
 - SelectionCard (카드형 선택) ✅
 - SelectionListItem (리스트형 선택) ✅
 - OnboardingHeader (단계 표시) ✅
 - NextButton (다음 버튼) ✅
+- PopularPolicyCard (정책 카드) ✅ 🆕
+- AppHeader (앱 헤더) ✅ 🆕
+- PicklySearchBar (검색바) ✅ 🆕
+- PicklyBottomNavigationBar (하단 네비게이션) ✅ 🆕
 
 **문서화**:
 - 온보딩 개발 가이드 ✅
 - 공통 에이전트 아키텍처 ✅
 - 온보딩 아키텍처 문서 🆕
 - PRD v5.1 업데이트 🆕
+- 홈 화면 구현 문서 🆕
 
 ### 🔄 진행 중
 
