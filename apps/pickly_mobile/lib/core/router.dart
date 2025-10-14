@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_mobile/features/onboarding/screens/splash_screen.dart';
-import 'package:pickly_mobile/features/onboarding/screens/start_screen.dart';
+// TODO: Start screen temporarily excluded - will be re-enabled with login page
+// import 'package:pickly_mobile/features/onboarding/screens/start_screen.dart';
 import 'package:pickly_mobile/features/onboarding/screens/age_category_screen.dart';
 import 'package:pickly_mobile/features/onboarding/screens/region_selection_screen.dart';
 import 'package:pickly_mobile/features/onboarding/providers/onboarding_storage_provider.dart';
@@ -42,6 +43,9 @@ abstract class Routes {
 final appRouterProvider = Provider<GoRouter>((ref) {
   final hasCompletedOnboarding = ref.watch(hasCompletedOnboardingProvider);
 
+  // Debug logging
+  print('🔍 [Router] Creating router with hasCompletedOnboarding: $hasCompletedOnboarding');
+
   return GoRouter(
     initialLocation: Routes.splash,
 
@@ -49,8 +53,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final currentPath = state.uri.path;
 
+      // Debug logging
+      print('🧭 [Router] Redirect check: path=$currentPath, onboardingComplete=$hasCompletedOnboarding');
+
       // Allow splash screen always
       if (currentPath == Routes.splash) {
+        print('   → Allowing splash screen');
         return null;
       }
 
@@ -58,17 +66,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (!hasCompletedOnboarding) {
         // Allow onboarding routes
         if (currentPath.startsWith('/onboarding')) {
+          print('   → Allowing onboarding route');
           return null;
         }
         // Redirect to onboarding start for any other route
+        print('   → Redirecting to age category (onboarding not complete)');
         return Routes.ageCategory;
       }
 
       // If onboarding completed and trying to access onboarding, redirect to home
       if (currentPath.startsWith('/onboarding') && currentPath != Routes.splash) {
+        print('   → Redirecting to home (onboarding already complete)');
         return Routes.home;
       }
 
+      print('   → No redirect');
       return null; // No redirect
     },
 
@@ -81,12 +93,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ),
 
     // ==================== ONBOARDING FLOW ====================
-    // 001: Onboarding start screen (IMPLEMENTED)
-    GoRoute(
-      path: Routes.onboardingStart,
-      name: 'onboarding-start',
-      builder: (context, state) => const StartScreen(),
-    ),
+    // TODO: Start screen temporarily excluded per user request
+    // Will be re-enabled when login page is implemented
+    // 001: Onboarding start screen (TEMPORARILY EXCLUDED)
+    // GoRoute(
+    //   path: Routes.onboardingStart,
+    //   name: 'onboarding-start',
+    //   builder: (context, state) => const StartScreen(),
+    // ),
 
     // TODO: Uncomment when PersonalInfoScreen is implemented
     // 001: Personal Info (name, age, gender)

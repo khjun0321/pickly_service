@@ -21,7 +21,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    // Navigate to age category selection screen
+    // TODO: 로그인 페이지 추가 후 로직 변경 필요
+    // 현재는 개발/테스트를 위해 항상 온보딩으로 이동
+    // Navigate to age category selection screen (Always for development)
     context.go('/onboarding/age-category');
   }
 
