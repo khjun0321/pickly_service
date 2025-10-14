@@ -563,8 +563,22 @@ testWidgets('Should save data on next button', ...);
 
 ## 📊 현재 온보딩 화면 목록
 
+**현재 온보딩 플로우 (v6.1)**:
+```
+Splash (2초) → Age Category → Region Selection → Home
+```
+
+**제외된 화면**:
+- **Start Screen**: 임시 제외 (로그인 페이지 구현 시 재활성화 예정)
+  - 위치: `lib/features/onboarding/screens/start_screen.dart`
+  - 상태: 코드 존재, 라우트 주석 처리됨
+  - 사유: 테스트 및 개발 편의를 위해 Splash에서 직접 온보딩으로 진입
+  - TODO: 로그인 페이지 구현 후 플로우 재설계
+
 | ID | 화면명 | UI 타입 | Selection | Component | 상태 |
 |----|--------|---------|-----------|-----------|------|
+| - | Splash | - | - | - | ✅ 구현 완료 (개발용 수정) |
+| 000 | Start | - | - | - | ⏸️ 임시 제외 (로그인 대기) |
 | 001 | 연령/세대 | selection-list | Single | SelectionListItem | ✅ 구현 완료 |
 | 002 | 지역선택 | chip-grid | Multi | SelectionChip (v5.7) | ✅ 구현 완료 |
 | 003 | TBD | - | - | - | 📅 대기 중 |
@@ -573,6 +587,7 @@ testWidgets('Should save data on next button', ...);
 
 **범례**:
 - ✅ 구현 완료: 코드 작성 및 테스트 완료
+- ⏸️ 임시 제외: 코드 존재하나 플로우에서 제외
 - 🔄 진행 중: 현재 개발 중
 - 📝 설계 완료: JSON 설정 파일 작성 완료
 - 📅 대기 중: 구현 예정

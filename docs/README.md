@@ -274,11 +274,17 @@ import 'package:pickly_mobile/core/models/age_category.dart'; // 삭제됨
 - PRD v5.1 업데이트 🆕
 - 홈 화면 구현 문서 🆕
 
+**온보딩 플로우** ✅:
+- 플로우 구조: Splash → Age Category → Region Selection → Home
+- Start screen 임시 제외 (로그인 페이지 구현 시 재활성화 예정)
+- Splash screen 수정 (테스트용 직접 온보딩 진입)
+- 온보딩 완료 여부 체크 및 라우팅
+- 디버그 로깅 추가 (Router, Storage Provider)
+
 ### 🔄 진행 중
 
 - 001 화면 (개인정보 입력) 구현
-- 002 화면 (지역 선택) 구현
-- 온보딩 플로우 통합 및 네비게이션
+- 로그인 페이지 구현 및 플로우 통합
 
 ### 📅 다음 단계
 
