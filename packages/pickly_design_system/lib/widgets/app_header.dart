@@ -155,13 +155,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             height: 28,
           ),
           const Spacer(),
-          // Hamburger menu button (20x20 icon, 32x32 tap target)
+          // Hamburger menu button (32x32 icon, 32x32 tap target)
           IconButton(
             icon: SvgPicture.asset(
               'assets/icons/ic_hamburger.svg',
               package: 'pickly_design_system',
-              width: 20,
-              height: 20,
+              width: 32,
+              height: 32,
             ),
             iconSize: 32,
             padding: EdgeInsets.zero,
@@ -191,13 +191,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: Row(
         children: [
-          // Back button (20px icon, 32x32 tap target)
+          // Back button (32x32 icon, 32x32 tap target)
           IconButton(
             icon: SvgPicture.asset(
               'assets/icons/ic_back.svg',
               package: 'pickly_design_system',
-              width: 20,
-              height: 20,
+              width: 32,
+              height: 32,
               colorFilter: const ColorFilter.mode(
                 TextColors.primary,
                 BlendMode.srcIn,
@@ -247,13 +247,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: Row(
         children: [
-          // Back button (20px icon, 32x32 tap target)
+          // Back button (32x32 icon, 32x32 tap target)
           IconButton(
             icon: SvgPicture.asset(
               'assets/icons/ic_back.svg',
               package: 'pickly_design_system',
-              width: 20,
-              height: 20,
+              width: 32,
+              height: 32,
               colorFilter: const ColorFilter.mode(
                 TextColors.primary,
                 BlendMode.srcIn,

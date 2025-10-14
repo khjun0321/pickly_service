@@ -12,6 +12,7 @@ import 'package:pickly_mobile/features/onboarding/providers/onboarding_storage_p
 
 // Main app screens
 import 'package:pickly_mobile/features/home/screens/home_screen.dart';
+import 'package:pickly_mobile/features/benefits/screens/benefits_screen.dart';
 // import '../features/policy/screens/policy_detail_screen.dart';
 
 /// Type-safe route paths
@@ -30,6 +31,7 @@ abstract class Routes {
   // Main app
   static const home = '/home';
   static const filter = '/home/filter';
+  static const benefits = '/benefits';
 
   // Policy
   static String policyDetail(String id) => '/policy/$id';
@@ -120,7 +122,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     GoRoute(
       path: Routes.home,
       name: 'home',
-      builder: (context, state) => const HomeScreen(),
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: HomeScreen(),
+      ),
       // routes: [
       //   // Filter screen
       //   GoRoute(
@@ -129,6 +133,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       //     builder: (context, state) => const FilterScreen(),
       //   ),
       // ],
+    ),
+
+    // Benefits screen
+    GoRoute(
+      path: Routes.benefits,
+      name: 'benefits',
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: BenefitsScreen(),
+      ),
     ),
 
     // ==================== POLICY ====================

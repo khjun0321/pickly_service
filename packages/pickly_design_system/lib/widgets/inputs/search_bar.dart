@@ -95,16 +95,12 @@ class _PicklySearchBarState extends State<PicklySearchBar> {
       ),
       child: Row(
         children: [
-          // Search icon
+          // Fire icon (left)
           SvgPicture.asset(
-            'assets/icons/ic_search.svg',
-            width: 20,
-            height: 20,
+            'assets/icons/fire.svg',
+            width: 24,
+            height: 24,
             package: 'pickly_design_system',
-            colorFilter: ColorFilter.mode(
-              widget.enabled ? InputColors.placeholder : InputColors.borderDisabled,
-              BlendMode.srcIn,
-            ),
           ),
           const SizedBox(width: 8),
 
@@ -136,13 +132,13 @@ class _PicklySearchBarState extends State<PicklySearchBar> {
             ),
           ),
 
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
 
-          // Search action icon (right side)
+          // Search icon (right) - always visible
           SvgPicture.asset(
             'assets/icons/ic_search.svg',
-            width: 20,
-            height: 20,
+            width: 24,
+            height: 24,
             package: 'pickly_design_system',
             colorFilter: ColorFilter.mode(
               widget.enabled ? InputColors.placeholder : InputColors.borderDisabled,

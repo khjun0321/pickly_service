@@ -54,9 +54,11 @@ class PicklyBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get bottom safe area padding for iOS home indicator
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Container(
       width: double.infinity,
-      height: 94,
       decoration: ShapeDecoration(
         color: SurfaceColors.base,
         shape: const RoundedRectangleBorder(
@@ -74,42 +76,22 @@ class PicklyBottomNavigationBar extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          // Navigation items
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 16,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(
-                items.length,
-                (index) => _buildNavigationItem(
-                  item: items[index],
-                  isActive: index == currentIndex,
-                  onTap: () => onTap?.call(index),
-                ),
-              ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: 16,
+          bottom: bottomPadding > 0 ? bottomPadding : 16,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(
+            items.length,
+            (index) => _buildNavigationItem(
+              item: items[index],
+              isActive: index == currentIndex,
+              onTap: () => onTap?.call(index),
             ),
           ),
-
-          // iPhone home indicator
-          Positioned(
-            left: 117,
-            bottom: 13,
-            child: Container(
-              width: 138,
-              height: 5,
-              decoration: ShapeDecoration(
-                color: const Color(0xFFE0E0E0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

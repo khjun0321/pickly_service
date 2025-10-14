@@ -13,6 +13,7 @@ export 'widgets/buttons/next_button.dart';
 
 // Widgets - Cards
 export 'widgets/cards/list_card.dart';
+export 'widgets/cards/popular_policy_card.dart';
 
 // Widgets - Indicators
 export 'widgets/indicators/progress_bar.dart';
