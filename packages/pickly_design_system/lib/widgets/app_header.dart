@@ -193,9 +193,15 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         children: [
           // Back button (20px icon, 32x32 tap target)
           IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 20,
+            icon: SvgPicture.asset(
+              'assets/icons/ic_back.svg',
+              package: 'pickly_design_system',
+              width: 20,
+              height: 20,
+              colorFilter: const ColorFilter.mode(
+                TextColors.primary,
+                BlendMode.srcIn,
+              ),
             ),
             iconSize: 32,
             padding: EdgeInsets.zero,
@@ -203,7 +209,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               minWidth: 32,
               minHeight: 32,
             ),
-            color: TextColors.primary, // #3E3E3E
             onPressed: backAction,
           ),
           // Centered title
@@ -244,9 +249,15 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         children: [
           // Back button (20px icon, 32x32 tap target)
           IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 20,
+            icon: SvgPicture.asset(
+              'assets/icons/ic_back.svg',
+              package: 'pickly_design_system',
+              width: 20,
+              height: 20,
+              colorFilter: const ColorFilter.mode(
+                TextColors.primary,
+                BlendMode.srcIn,
+              ),
             ),
             iconSize: 32,
             padding: EdgeInsets.zero,
@@ -254,7 +265,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               minWidth: 32,
               minHeight: 32,
             ),
-            color: TextColors.primary, // #3E3E3E
             onPressed: onBack,
           ),
         ],
