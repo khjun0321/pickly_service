@@ -174,6 +174,17 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
       ),
+      bottomNavigationBar: PicklyBottomNavigationBar(
+        currentIndex: 0, // Home is active
+        items: PicklyNavigationItems.defaults,
+        onTap: (index) {
+          // TODO: Implement navigation logic
+          final labels = ['홈', '혜택', '일정', '에이아이', '마이페이지'];
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${labels[index]} 탭 선택됨')),
+          );
+        },
+      ),
     );
   }
 }
