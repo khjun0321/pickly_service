@@ -249,10 +249,10 @@ import 'package:pickly_mobile/core/models/age_category.dart'; // 삭제됨
 **홈 화면 (Home Screen)** ✅ 🆕:
 - 스크롤 기반 애니메이션 구현
   - 헤더 페이드아웃 (60px threshold)
-  - Mr. Pick 캐릭터 페이드 & 스케일 애니메이션 (80px threshold)
+  - Mr. Pick 캐릭터 페이드 & 스케일 애니메이션 (80px threshold, 48x48 크기, 우측 56px 여백)
   - 검색바 너비 변화 (343px → 240px)
 - iOS 스타일 블러 효과 (BackdropFilter, sigma: 3.0)
-- 수직 그라데이션 배경 (상단 95% → 하단 30% 불투명도)
+- 수직 그라데이션 배경 (상단 95% → 하단 0% 불투명도, 완전 투명 페이드)
 - PopularPolicyCard 컴포넌트
 - Benefits 화면 구현 및 네비게이션 통합
 - GNB (Global Navigation Bar) 라우팅 연동

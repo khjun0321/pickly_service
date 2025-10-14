@@ -145,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       end: Alignment.bottomCenter,
                       colors: [
                         const Color(0xFFF4F4F4).withOpacity(0.95),
-                        const Color(0xFFF4F4F4).withOpacity(0.3),
+                        const Color(0xFFF4F4F4).withOpacity(0),
                       ],
                     ),
                   ),
@@ -180,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                             // 새 캐릭터 (우측 정렬)
                             Padding(
-                              padding: const EdgeInsets.only(right: 40),
+                              padding: const EdgeInsets.only(right: 56),
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: AnimatedOpacity(
@@ -254,8 +254,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return SvgPicture.asset(
       'assets/images/mr_pick.svg',
       package: 'pickly_design_system',
-      width: 60,
-      height: 60,
+      width: 48,
+      height: 48,
     );
   }
 
