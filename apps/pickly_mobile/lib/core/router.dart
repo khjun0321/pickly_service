@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_mobile/features/onboarding/screens/splash_screen.dart';
 import 'package:pickly_mobile/features/onboarding/screens/start_screen.dart';
 import 'package:pickly_mobile/features/onboarding/screens/age_category_screen.dart';
 import 'package:pickly_mobile/features/onboarding/screens/region_selection_screen.dart';
+import 'package:pickly_mobile/features/onboarding/providers/onboarding_storage_provider.dart';
 // TODO: Import remaining onboarding screens when implemented
 // import 'package:pickly_mobile/features/onboarding/screens/personal_info_screen.dart';
 // import 'package:pickly_mobile/features/onboarding/screens/income_screen.dart';
 
 // Main app screens
-// TODO: Import main app screens when implemented
-// import '../features/home/screens/home_screen.dart';
+import 'package:pickly_mobile/features/home/screens/home_screen.dart';
 // import '../features/policy/screens/policy_detail_screen.dart';
 
 /// Type-safe route paths
@@ -35,32 +36,39 @@ abstract class Routes {
   static const search = '/policy/search';
 }
 
-/// Creates and configures the GoRouter for the Pickly Mobile app
-///
-/// Route structure:
-/// - /splash: Initial splash screen (2s auto-redirect)
-/// - /onboarding/*: Onboarding flow (start → personal-info → region → age-category)
-/// - /home: Main policy feed
-/// - /policy/:id: Policy detail pages
-final GoRouter appRouter = GoRouter(
-  initialLocation: Routes.splash,
+/// GoRouter provider that includes onboarding completion check
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final hasCompletedOnboarding = ref.watch(hasCompletedOnboardingProvider);
 
-  // Global redirect logic
-  redirect: (context, state) {
-    // TODO: Implement onboarding completion check
-    // final prefs = await SharedPreferences.getInstance();
-    // final isOnboardingComplete = prefs.getBool('onboarding_complete') ?? false;
-    // final currentPath = state.uri.path;
+  return GoRouter(
+    initialLocation: Routes.splash,
 
-    // Redirect to onboarding if not completed
-    // if (!isOnboardingComplete &&
-    //     !currentPath.startsWith('/onboarding') &&
-    //     currentPath != Routes.splash) {
-    //   return Routes.onboardingStart;
-    // }
+    // Global redirect logic
+    redirect: (context, state) {
+      final currentPath = state.uri.path;
 
-    return null; // No redirect
-  },
+      // Allow splash screen always
+      if (currentPath == Routes.splash) {
+        return null;
+      }
+
+      // If onboarding not completed, redirect to onboarding
+      if (!hasCompletedOnboarding) {
+        // Allow onboarding routes
+        if (currentPath.startsWith('/onboarding')) {
+          return null;
+        }
+        // Redirect to onboarding start for any other route
+        return Routes.ageCategory;
+      }
+
+      // If onboarding completed and trying to access onboarding, redirect to home
+      if (currentPath.startsWith('/onboarding') && currentPath != Routes.splash) {
+        return Routes.home;
+      }
+
+      return null; // No redirect
+    },
 
   routes: [
     // ==================== SPLASH ====================
@@ -109,20 +117,19 @@ final GoRouter appRouter = GoRouter(
     // ),
 
     // ==================== MAIN APP ====================
-    // TODO: Uncomment when HomeScreen is implemented
-    // GoRoute(
-    //   path: Routes.home,
-    //   name: 'home',
-    //   builder: (context, state) => const HomeScreen(),
-    //   routes: [
-    //     // Filter screen
-    //     GoRoute(
-    //       path: 'filter',
-    //       name: 'filter',
-    //       builder: (context, state) => const FilterScreen(),
-    //     ),
-    //   ],
-    // ),
+    GoRoute(
+      path: Routes.home,
+      name: 'home',
+      builder: (context, state) => const HomeScreen(),
+      // routes: [
+      //   // Filter screen
+      //   GoRoute(
+      //     path: 'filter',
+      //     name: 'filter',
+      //     builder: (context, state) => const FilterScreen(),
+      //   ),
+      // ],
+    ),
 
     // ==================== POLICY ====================
     // TODO: Uncomment when PolicyDetailScreen is implemented
@@ -143,34 +150,43 @@ final GoRouter appRouter = GoRouter(
     // ),
   ],
 
-  // ==================== ERROR HANDLING ====================
-  errorBuilder: (context, state) => Scaffold(
-    body: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            color: Colors.red,
-            size: 48,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '페이지를 찾을 수 없습니다',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Path: ${state.uri.path}',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => context.go(Routes.splash),
-            child: const Text('홈으로 돌아가기'),
-          ),
-        ],
+    // ==================== ERROR HANDLING ====================
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              color: Colors.red,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '페이지를 찾을 수 없습니다',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Path: ${state.uri.path}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.go(Routes.splash),
+              child: const Text('홈으로 돌아가기'),
+            ),
+          ],
+        ),
       ),
     ),
-  ),
+  );
+});
+
+/// Legacy appRouter for backward compatibility
+/// Use appRouterProvider instead
+@Deprecated('Use appRouterProvider instead')
+final GoRouter appRouter = GoRouter(
+  initialLocation: Routes.splash,
+  routes: [],
 );

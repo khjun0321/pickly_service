@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/contexts/user/models/age_category.dart';
 import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
+import 'package:pickly_mobile/features/onboarding/providers/onboarding_selection_provider.dart';
 import 'package:pickly_mobile/core/router.dart';
 
 /// Age category selection screen (Step 1/2)
@@ -34,8 +35,10 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
   void _handleNext() {
     if (_selectedCategoryId == null) return;
 
-    // TODO: Save selection to user preferences/profile
-    // For now, just navigate to region selection
+    // Save selection to provider (will be persisted after region selection)
+    ref.read(onboardingSelectionProvider.notifier).setAgeCategoryId(_selectedCategoryId);
+
+    // Navigate to region selection
     if (mounted) {
       context.go(Routes.region);
     }

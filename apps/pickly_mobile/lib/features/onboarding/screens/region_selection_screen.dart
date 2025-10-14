@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/features/onboarding/providers/region_provider.dart';
+import 'package:pickly_mobile/features/onboarding/providers/onboarding_selection_provider.dart';
+import 'package:pickly_mobile/features/onboarding/providers/onboarding_storage_provider.dart';
 
 /// Region selection screen (Step 2/2)
 ///
@@ -34,7 +36,32 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
   Future<void> _handleComplete() async {
     if (_selectedRegionIds.isEmpty) return;
 
-    // TODO: Save selections to user preferences/profile
+    // Get selected age category from provider
+    final onboardingSelection = ref.read(onboardingSelectionProvider);
+    final ageCategoryId = onboardingSelection.ageCategoryId;
+
+    if (ageCategoryId == null) {
+      // This shouldn't happen, but handle gracefully
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('연령대를 먼저 선택해주세요')),
+        );
+        context.go('/onboarding/age-category');
+      }
+      return;
+    }
+
+    // Save to local storage
+    final storage = ref.read(onboardingStorageServiceProvider);
+    await storage.saveOnboardingData(
+      ageCategoryId: ageCategoryId,
+      regionIds: _selectedRegionIds.toList(),
+    );
+
+    // Clear provider state
+    ref.read(onboardingSelectionProvider.notifier).clear();
+
+    // Navigate to home
     if (mounted) {
       context.go('/home');
     }
