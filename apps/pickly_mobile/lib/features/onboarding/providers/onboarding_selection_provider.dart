@@ -1,8 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// State notifier for onboarding selections
-class OnboardingSelectionNotifier extends StateNotifier<OnboardingSelectionState> {
-  OnboardingSelectionNotifier() : super(const OnboardingSelectionState());
+/// Notifier for onboarding selections
+class OnboardingSelectionNotifier extends Notifier<OnboardingSelectionState> {
+  @override
+  OnboardingSelectionState build() {
+    return const OnboardingSelectionState();
+  }
 
   /// Set selected age category ID
   void setAgeCategoryId(String? ageCategoryId) {
@@ -43,6 +46,6 @@ class OnboardingSelectionState {
 
 /// Provider for onboarding selections
 final onboardingSelectionProvider =
-    StateNotifierProvider<OnboardingSelectionNotifier, OnboardingSelectionState>((ref) {
-  return OnboardingSelectionNotifier();
-});
+    NotifierProvider<OnboardingSelectionNotifier, OnboardingSelectionState>(
+  OnboardingSelectionNotifier.new,
+);
