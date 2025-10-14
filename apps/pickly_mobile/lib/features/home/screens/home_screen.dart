@@ -34,6 +34,16 @@ class HomeScreen extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
+            // Search bar
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+              child: PicklySearchBar(
+                placeholder: '검색어를 입력해주세요.',
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
             // Welcome message
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),

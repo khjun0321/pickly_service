@@ -20,6 +20,9 @@ export 'widgets/indicators/progress_bar.dart';
 // Widgets - Headers
 export 'widgets/app_header.dart';
 
+// Widgets - Inputs
+export 'widgets/inputs/search_bar.dart';
+
 // Widgets - Selection
 export 'widgets/selection/selection.dart';
 
