@@ -61,9 +61,13 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
     // Clear provider state
     ref.read(onboardingSelectionProvider.notifier).clear();
 
-    // Navigate to home
+    // Invalidate hasCompletedOnboardingProvider to trigger router refresh
+    ref.invalidate(hasCompletedOnboardingProvider);
+
+    // Use replace instead of go to replace current route
+    // This ensures the router redirect logic processes the updated provider
     if (mounted) {
-      context.go('/home');
+      context.replace('/home');
     }
   }
 
