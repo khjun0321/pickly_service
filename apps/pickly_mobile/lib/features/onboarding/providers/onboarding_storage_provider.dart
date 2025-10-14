@@ -16,7 +16,9 @@ final onboardingStorageServiceProvider = Provider<OnboardingStorageService>((ref
 /// Provider to check if onboarding is completed
 final hasCompletedOnboardingProvider = Provider<bool>((ref) {
   final storage = ref.watch(onboardingStorageServiceProvider);
-  return storage.hasCompletedOnboarding();
+  final value = storage.hasCompletedOnboarding();
+  print('📦 [Storage] hasCompletedOnboarding: $value');
+  return value;
 });
 
 /// Provider to get selected age category ID
