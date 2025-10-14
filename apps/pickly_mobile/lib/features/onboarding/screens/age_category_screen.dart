@@ -68,8 +68,10 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top spacing (first screen - no header)
-              const SizedBox(height: 72),
+              // Invisible header spacer to match region_selection layout
+              const SizedBox(height: 48), // AppHeader height
+
+              const SizedBox(height: 24), // Same spacing as region_selection
 
               // Title - left aligned
               Padding(
@@ -88,7 +90,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
               const SizedBox(height: 16),
 
               // Content - Category list
-              Flexible(
+              Expanded(
                 child: categoriesAsync.when(
                   data: (categories) => _buildCategoryList(categories),
                   loading: () => _buildLoadingState(),
@@ -167,7 +169,6 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
     }
 
     return ListView.separated(
-      shrinkWrap: true,
       padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
       itemCount: categories.length,
       separatorBuilder: (context, index) => const SizedBox(height: 8),

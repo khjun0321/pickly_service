@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pickly_design_system/pickly_design_system.dart';
 
 /// Size variants for SelectionChip
 enum ChipSize {
@@ -17,7 +16,8 @@ enum ChipSize {
 /// - Border radius: 16px
 /// - Default: white background, gray border (#EBEBEB)
 /// - Selected: white background, green border (#27B473)
-/// - Layout: [Label] [20px spacing] [Checkmark]
+/// - Text + Checkmark (spacing: 20px)
+/// - Checkmark: 24x24 circle (gray when unselected, green when selected)
 /// - Text: Pretendard, w700
 ///   - Large: 16px, height 1.50
 ///   - Small: 14px, height 1.43
@@ -67,7 +67,6 @@ class SelectionChip extends StatelessWidget {
       child: Container(
         width: width,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
           color: Colors.white, // surface-base
           shape: RoundedRectangleBorder(
@@ -80,36 +79,46 @@ class SelectionChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        child: Column(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              width: double.infinity,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Label text
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: const Color(0xFF3E3E3E), // text-primary
-                      fontSize: fontSize,
-                      fontFamily: 'Pretendard',
-                      fontWeight: FontWeight.w700,
-                      height: lineHeight,
-                    ),
-                  ),
-
-                  const SizedBox(width: 20), // spacing: 20
-
-                  // Checkmark
-                  SelectionCheckmark(isSelected: isSelected),
-                ],
+            // Label text
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: const Color(0xFF3E3E3E), // text-primary
+                  fontSize: fontSize,
+                  fontFamily: 'Pretendard',
+                  fontWeight: FontWeight.w700,
+                  height: lineHeight,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
+            ),
+
+            const SizedBox(width: 20), // Figma spacing: 20
+
+            // Checkmark circle (24x24)
+            Container(
+              width: 24,
+              height: 24,
+              decoration: ShapeDecoration(
+                color: isSelected
+                    ? const Color(0xFF27B473) // green when selected
+                    : const Color(0xFFDDDDDD), // gray when unselected
+                shape: const OvalBorder(),
+              ),
+              child: isSelected
+                  ? const Icon(
+                      Icons.check,
+                      size: 16,
+                      color: Colors.white,
+                    )
+                  : null, // No icon when unselected
             ),
           ],
         ),

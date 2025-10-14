@@ -7,7 +7,10 @@ import 'package:pickly_mobile/features/onboarding/providers/region_provider.dart
 /// Region selection screen (Step 2/2)
 ///
 /// Multi-selection grid view with 3 columns layout
-/// Uses SelectionCard component for region selection
+/// Uses SelectionChip component for region selection
+///
+/// Layout matches age_category_screen:
+/// - SafeArea(~44px) + Header(48px) + Spacing(24px) = ~116px to title
 class RegionSelectionScreen extends ConsumerStatefulWidget {
   const RegionSelectionScreen({super.key});
 
@@ -20,7 +23,6 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
 
   void _handleRegionToggle(String regionId) {
     setState(() {
-      // Multi-selection: toggle add/remove
       if (_selectedRegionIds.contains(regionId)) {
         _selectedRegionIds.remove(regionId);
       } else {
@@ -33,10 +35,7 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
     if (_selectedRegionIds.isEmpty) return;
 
     // TODO: Save selections to user preferences/profile
-    // For now, just navigate to home
-
     if (mounted) {
-      // TODO: Replace with actual home route when implemented
       context.go('/home');
     }
   }
@@ -45,7 +44,6 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
     setState(() {
       _selectedRegionIds.clear();
     });
-    // Navigate back to age category (use go instead of pop since we used go to navigate here)
     context.go('/onboarding/age-category');
   }
 
@@ -66,16 +64,14 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header (48px) - moved from appBar to align with age_category_screen
+              // Header (48px) - inside SafeArea for consistent spacing
               AppHeader.onboarding(
                 onBack: _handleBack,
               ),
 
-              // Spacing after header (24px)
-              // SafeArea(~44px) + Header(48px) + Spacing(24px) = ~116px (matches age_category_screen)
               const SizedBox(height: 24),
 
-              // Title - left aligned
+              // Title
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                 child: Text(
@@ -92,34 +88,29 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
               const SizedBox(height: 16),
 
               // Content - Region grid
-              Flexible(
-                child: SingleChildScrollView(
+              Expanded(
+                child: GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      mainAxisSpacing: Spacing.lg,
-                      crossAxisSpacing: Spacing.lg,
-                      childAspectRatio: 0.95,
-                    ),
-                    itemCount: regions.length,
-                    itemBuilder: (context, index) {
-                      final region = regions[index];
-                      final isSelected = _selectedRegionIds.contains(region.id);
-                      return SelectionChip(
-                        label: region.name,
-                        isSelected: isSelected,
-                        size: ChipSize.small,
-                        onTap: () => _handleRegionToggle(region.id),
-                      );
-                    },
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 2.0,
                   ),
+                  itemCount: regions.length,
+                  itemBuilder: (context, index) {
+                    final region = regions[index];
+                    final isSelected = _selectedRegionIds.contains(region.id);
+                    return SelectionChip(
+                      label: region.name,
+                      isSelected: isSelected,
+                      size: ChipSize.small,
+                      onTap: () => _handleRegionToggle(region.id),
+                    );
+                  },
                 ),
               ),
 
-              // Spacing between list and guidance text
               const SizedBox(height: 36),
 
               // Guidance text
