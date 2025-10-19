@@ -111,8 +111,14 @@ class _PicklySearchBarState extends State<PicklySearchBar> {
               focusNode: _focusNode,
               enabled: widget.enabled,
               autofocus: widget.autofocus,
+              textInputAction: TextInputAction.search,
               onChanged: widget.onChanged,
-              onSubmitted: widget.onSubmitted,
+              onSubmitted: (value) {
+                // Call user's onSubmitted callback
+                widget.onSubmitted?.call(value);
+                // Close keyboard
+                _focusNode.unfocus();
+              },
               style: PicklyTypography.bodyLarge.copyWith(
                 color: InputColors.text,
                 fontWeight: FontWeight.w600,

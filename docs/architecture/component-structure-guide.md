@@ -489,6 +489,119 @@ apps/pickly_mobile/lib/features/onboarding/widgets/
 
 ---
 
+## 📐 Layout Standards
+
+### Header Height Consistency Rule
+
+**🎯 Golden Rule: All screen headers MUST match the home screen header height**
+
+The home screen (`apps/pickly_mobile/lib/features/home/screens/home_screen.dart`) is the **reference standard** for header positioning and height across all screens.
+
+#### Standard Header Implementation
+
+```dart
+// ✅ CORRECT: Home screen reference (60px container + 56px spacing)
+SizedBox(
+  height: 60,  // Standard header container height
+  child: Align(
+    alignment: Alignment.center,
+    child: AppHeader.home(
+      onMenuTap: () {
+        // Menu action
+      },
+    ),
+  ),
+),
+const SizedBox(height: 56),  // Standard spacing after header
+```
+
+#### Implementation for Other Screens
+
+All screens using `AppHeader` must follow the same pattern:
+
+```dart
+// ✅ CORRECT: Benefits screen matching home screen
+body: SafeArea(
+  child: Column(
+    children: [
+      // Header (60px container to match home screen)
+      SizedBox(
+        height: 60,
+        child: Align(
+          alignment: Alignment.center,
+          child: AppHeader.home(
+            onMenuTap: () {
+              // Menu action
+            },
+          ),
+        ),
+      ),
+
+      // Standard spacing (56px to match home screen)
+      const SizedBox(height: 56),
+
+      // Rest of content...
+    ],
+  ),
+),
+```
+
+#### Why This Rule Exists
+
+1. **Visual Consistency**: Users see the same header position across all screens
+2. **Navigation Comfort**: No jarring jumps when switching between screens
+3. **Design Coherence**: Unified spacing system throughout the app
+4. **Maintenance**: Single source of truth for header metrics
+
+#### Header Measurements
+
+| Element | Height | Purpose |
+|---------|--------|---------|
+| AppHeader widget | 48px | Actual header component size |
+| Container | 60px | Wrapper to create vertical centering space |
+| Spacing below | 56px | Standard gap between header and content |
+| **Total from SafeArea** | **116px** | Combined header + spacing height |
+
+#### Common Mistakes
+
+**❌ WRONG: Direct AppHeader without container**
+```dart
+AppHeader.home(onMenuTap: () {}),  // Wrong - no 60px container
+const SizedBox(height: 24),        // Wrong - different spacing
+```
+
+**❌ WRONG: Different container height**
+```dart
+SizedBox(
+  height: 48,  // Wrong - should be 60px
+  child: AppHeader.home(onMenuTap: () {}),
+),
+```
+
+**✅ CORRECT: Follow home screen pattern**
+```dart
+SizedBox(
+  height: 60,  // Correct - matches home screen
+  child: Align(
+    alignment: Alignment.center,
+    child: AppHeader.home(onMenuTap: () {}),
+  ),
+),
+const SizedBox(height: 56),  // Correct - matches home screen
+```
+
+#### Verification Checklist
+
+Before committing screens with headers:
+
+- [ ] Header wrapped in `SizedBox(height: 60)`
+- [ ] Header centered with `Align(alignment: Alignment.center)`
+- [ ] Spacing below is exactly `56px`
+- [ ] Total header region matches home screen (`116px` from SafeArea)
+- [ ] Tested in simulator to verify visual alignment with home screen
+
+---
+
 ## 🔗 Related Documentation
 
 - [Flutter Widget Best Practices](https://flutter.dev/docs/development/ui/widgets-intro)
@@ -501,6 +614,7 @@ apps/pickly_mobile/lib/features/onboarding/widgets/
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1.0 | 2025-10-15 | Added Layout Standards section with Header Height Consistency Rule |
 | 1.0.0 | 2025-10-14 | Initial comprehensive guide created |
 
 ---

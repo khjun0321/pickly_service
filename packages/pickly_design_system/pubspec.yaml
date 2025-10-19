@@ -20,5 +20,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/placeholders/
+    - assets/images/test/
     - assets/icons/
     - assets/icons/age_categories/

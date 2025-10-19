@@ -137,7 +137,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 48,
                   child: ElevatedButton(
                     onPressed: _selectedCategoryId != null ? _handleNext : null,
                     style: ElevatedButton.styleFrom(

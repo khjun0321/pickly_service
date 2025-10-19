@@ -50,38 +50,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: Routes.splash,
 
     // Global redirect logic
+    // TODO: Re-enable onboarding completion check after development
+    // Currently disabled for development/testing - always allow onboarding flow
     redirect: (context, state) {
       final currentPath = state.uri.path;
 
       // Debug logging
       print('🧭 [Router] Redirect check: path=$currentPath, onboardingComplete=$hasCompletedOnboarding');
+      print('   → Development mode: allowing all routes');
 
-      // Allow splash screen always
-      if (currentPath == Routes.splash) {
-        print('   → Allowing splash screen');
-        return null;
-      }
+      // Allow all routes for development
+      return null;
 
-      // If onboarding not completed, redirect to onboarding
-      if (!hasCompletedOnboarding) {
-        // Allow onboarding routes
-        if (currentPath.startsWith('/onboarding')) {
-          print('   → Allowing onboarding route');
-          return null;
-        }
-        // Redirect to onboarding start for any other route
-        print('   → Redirecting to age category (onboarding not complete)');
-        return Routes.ageCategory;
-      }
+      // // Allow splash screen always
+      // if (currentPath == Routes.splash) {
+      //   print('   → Allowing splash screen');
+      //   return null;
+      // }
 
-      // If onboarding completed and trying to access onboarding, redirect to home
-      if (currentPath.startsWith('/onboarding') && currentPath != Routes.splash) {
-        print('   → Redirecting to home (onboarding already complete)');
-        return Routes.home;
-      }
+      // // If onboarding not completed, redirect to onboarding
+      // if (!hasCompletedOnboarding) {
+      //   // Allow onboarding routes
+      //   if (currentPath.startsWith('/onboarding')) {
+      //     print('   → Allowing onboarding route');
+      //     return null;
+      //   }
+      //   // Redirect to onboarding start for any other route
+      //   print('   → Redirecting to age category (onboarding not complete)');
+      //   return Routes.ageCategory;
+      // }
 
-      print('   → No redirect');
-      return null; // No redirect
+      // // If onboarding completed and trying to access onboarding, redirect to home
+      // if (currentPath.startsWith('/onboarding') && currentPath != Routes.splash) {
+      //   print('   → Redirecting to home (onboarding already complete)');
+      //   return Routes.home;
+      // }
+
+      // print('   → No redirect');
+      // return null; // No redirect
     },
 
   routes: [

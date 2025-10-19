@@ -88,9 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // SafeArea top padding
     final safeAreaTop = MediaQuery.of(context).padding.top;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F4F4),
-      body: Stack(
+    return GestureDetector(
+      onTap: () {
+        // 키보드 외부 터치 시 키보드 내리기
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF4F4F4),
+        body: Stack(
         children: [
           // 메인 스크롤 컨텐츠
           CustomScrollView(
@@ -221,30 +226,31 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: PicklyBottomNavigationBar(
-        currentIndex: 0, // Home is active
-        items: PicklyNavigationItems.defaults,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              // Already on home screen
-              break;
-            case 1:
-              // Navigate to benefits
-              context.go(Routes.benefits);
-              break;
-            case 2:
-              // TODO: Navigate to calendar
-              break;
-            case 3:
-              // TODO: Navigate to AI
-              break;
-            case 4:
-              // TODO: Navigate to my page
-              break;
-          }
-        },
+        ),
+        bottomNavigationBar: PicklyBottomNavigationBar(
+          currentIndex: 0, // Home is active
+          items: PicklyNavigationItems.defaults,
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                // Already on home screen
+                break;
+              case 1:
+                // Navigate to benefits
+                context.go(Routes.benefits);
+                break;
+              case 2:
+                // TODO: Navigate to calendar
+                break;
+              case 3:
+                // TODO: Navigate to AI
+                break;
+              case 4:
+                // TODO: Navigate to my page
+                break;
+            }
+          },
+        ),
       ),
     );
   }
@@ -260,13 +266,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // 정책 카드 (디자인 시스템 컴포넌트 사용)
+  // TODO: 백오피스 개발 후 이미지는 서버에서 관리
+  // Currently using dummy image as placeholder
   Widget _buildPolicyCard() {
     return PopularPolicyCard(
-      imageWidget: Container(
-        color: const Color(0xFFE2E8F0),
-        child: const Center(
-          child: Text('🏠', style: TextStyle(fontSize: 80)),
-        ),
+      imageWidget: Image.asset(
+        'assets/images/placeholders/policy_dummy.png',
+        package: 'pickly_design_system',
+        fit: BoxFit.cover,
+        alignment: Alignment.center,
       ),
       onTap: () {
         // TODO: 정책 상세 화면으로 이동

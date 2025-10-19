@@ -49,7 +49,7 @@ class StartScreen extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: double.infinity,
-                    height: 56,
+                    height: 48,
                     child: ElevatedButton(
                       onPressed: () {
                         context.push(Routes.personalInfo);

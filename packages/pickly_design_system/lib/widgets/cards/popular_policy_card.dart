@@ -9,6 +9,12 @@
 /// - Rounded corners (24px)
 /// - Primary green button at bottom
 ///
+/// Image Management:
+/// - Currently uses placeholder/dummy images
+/// - TODO: Images will be managed through backoffice system
+/// - Backend will provide image URLs for each policy card
+/// - Backoffice can add/remove/update policy cards dynamically
+///
 /// Usage:
 /// ```dart
 /// PopularPolicyCard(
@@ -53,13 +59,10 @@ class PopularPolicyCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Image area (same size as container)
-          Positioned(
-            left: 0,
-            top: 0,
-            child: SizedBox(
-              width: 343,
-              height: 342,
+          // Image area (fills entire card)
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
               child: imageWidget,
             ),
           ),

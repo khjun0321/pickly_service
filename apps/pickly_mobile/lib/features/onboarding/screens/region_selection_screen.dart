@@ -21,20 +21,21 @@ class RegionSelectionScreen extends ConsumerStatefulWidget {
 }
 
 class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
-  final Set<String> _selectedRegionIds = {};
+  String? _selectedRegionId;
 
   void _handleRegionToggle(String regionId) {
     setState(() {
-      if (_selectedRegionIds.contains(regionId)) {
-        _selectedRegionIds.remove(regionId);
+      // Single selection: toggle selection
+      if (_selectedRegionId == regionId) {
+        _selectedRegionId = null; // Deselect if clicking same item
       } else {
-        _selectedRegionIds.add(regionId);
+        _selectedRegionId = regionId; // Select new item
       }
     });
   }
 
   Future<void> _handleComplete() async {
-    if (_selectedRegionIds.isEmpty) return;
+    if (_selectedRegionId == null) return;
 
     // Get selected age category from provider
     final onboardingSelection = ref.read(onboardingSelectionProvider);
@@ -55,7 +56,7 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
     final storage = ref.read(onboardingStorageServiceProvider);
     await storage.saveOnboardingData(
       ageCategoryId: ageCategoryId,
-      regionIds: _selectedRegionIds.toList(),
+      regionIds: [_selectedRegionId!], // Single selection wrapped in list
     );
 
     // Clear provider state
@@ -73,7 +74,7 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
 
   void _handleBack() {
     setState(() {
-      _selectedRegionIds.clear();
+      _selectedRegionId = null;
     });
     context.go('/onboarding/age-category');
   }
@@ -131,7 +132,7 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
                   itemCount: regions.length,
                   itemBuilder: (context, index) {
                     final region = regions[index];
-                    final isSelected = _selectedRegionIds.contains(region.id);
+                    final isSelected = _selectedRegionId == region.id;
                     return SelectionChip(
                       label: region.name,
                       isSelected: isSelected,
@@ -177,9 +178,9 @@ class _RegionSelectionScreenState extends ConsumerState<RegionSelectionScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 48,
                   child: ElevatedButton(
-                    onPressed: _selectedRegionIds.isNotEmpty ? _handleComplete : null,
+                    onPressed: _selectedRegionId != null ? _handleComplete : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.primary,
                       disabledBackgroundColor: BrandColors.primary.withValues(alpha: 0.3),
