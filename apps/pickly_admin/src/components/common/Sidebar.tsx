@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Drawer,
@@ -8,11 +9,16 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Collapse,
 } from '@mui/material'
 import {
   Dashboard as DashboardIcon,
   People as PeopleIcon,
   Category as CategoryIcon,
+  CardGiftcard as CardGiftcardIcon,
+  Announcement as AnnouncementIcon,
+  ExpandLess,
+  ExpandMore,
 } from '@mui/icons-material'
 
 interface SidebarProps {
@@ -27,9 +33,21 @@ const menuItems = [
   { text: '연령 카테고리', icon: <CategoryIcon />, path: '/categories' },
 ]
 
+const benefitMenuItems = [
+  { text: '카테고리 관리', icon: <CategoryIcon />, path: '/benefits/categories' },
+  { text: '공고 관리', icon: <AnnouncementIcon />, path: '/benefits/announcements' },
+]
+
 export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth }: SidebarProps) {
   const navigate = useNavigate()
   const location = useLocation()
+  const [benefitMenuOpen, setBenefitMenuOpen] = useState(
+    location.pathname.startsWith('/benefits')
+  )
+
+  const handleBenefitMenuToggle = () => {
+    setBenefitMenuOpen(!benefitMenuOpen)
+  }
 
   const drawer = (
     <div>
@@ -50,6 +68,34 @@ export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth }: Sid
               </ListItemButton>
             </ListItem>
           ))}
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleBenefitMenuToggle}>
+              <ListItemIcon>
+                <CardGiftcardIcon />
+              </ListItemIcon>
+              <ListItemText primary="혜택 관리" />
+              {benefitMenuOpen ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+          </ListItem>
+          <Collapse in={benefitMenuOpen} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {benefitMenuItems.map((item) => (
+                <ListItem key={item.text} disablePadding>
+                  <ListItemButton
+                    sx={{ pl: 4 }}
+                    selected={location.pathname === item.path}
+                    onClick={() => {
+                      navigate(item.path)
+                      onDrawerToggle()
+                    }}
+                  >
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemText primary={item.text} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </Collapse>
         </List>
       </Box>
     </div>

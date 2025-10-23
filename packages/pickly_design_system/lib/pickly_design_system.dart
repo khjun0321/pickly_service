@@ -15,6 +15,7 @@ export 'widgets/buttons/next_button.dart';
 export 'widgets/cards/list_card.dart';
 export 'widgets/cards/popular_policy_card.dart';
 export 'widgets/cards/benefit_list_item.dart';
+export 'widgets/cards/policy_list_card.dart';
 
 // Widgets - Indicators
 export 'widgets/indicators/progress_bar.dart';
@@ -35,6 +36,7 @@ export 'widgets/selection/selection.dart';
 export 'widgets/tabs/tab_circle.dart';
 export 'widgets/tabs/tab_pill.dart';
 export 'widgets/tabs/tab_circle_with_label.dart';
+export 'widgets/tabs/filter_tab.dart';
 
 // Widgets - Badges
 export 'widgets/badges/indicator_badge.dart';
@@ -45,6 +47,9 @@ export 'widgets/banners/image_banner.dart';
 
 // Widgets - Scrollbars
 export 'widgets/scrollbars/pickly_scrollbar.dart';
+
+// Widgets - Chips
+export 'widgets/chips/status_chip.dart';
 
 // Components - Selection
 export 'src/components/selection/selection_list_item.dart';

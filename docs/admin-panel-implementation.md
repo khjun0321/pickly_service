@@ -464,6 +464,122 @@ const UserList = lazy(() => import('@/pages/users/UserList'))
 
 ---
 
+## Benefit Management System (Mobile App - v7.0)
+
+### Overview
+
+The Benefit Management System is implemented in the **Flutter mobile app** (not admin panel) and allows users to browse and filter government policies and benefits.
+
+**Key Features**:
+- 9 benefit categories (인기, 주거, 교육, 지원, 교통, 복지, 의류, 식품, 문화)
+- 40 mock policies (10 per major category: housing, education, support, transportation)
+- Category-specific filtering (등록순, 모집중, 마감)
+- Policy list cards with status indicators
+- Category banners
+- Filter persistence via storage
+
+**Components Created**:
+- `PolicyListCard` - Horizontal policy card (343×72px)
+- `StatusChip` - Recruitment status indicator (모집중/마감)
+- `FilterTabBar` - Filter tab component
+- Category content widgets (HousingCategoryContent, etc.)
+
+**Data Model**:
+```dart
+class Policy {
+  final String id;
+  final String title;
+  final String organization;
+  final String imageUrl;
+  final String postedDate;
+  final bool isRecruiting;
+  final String categoryId;
+  // Optional fields: description, deadline, targetAudience, etc.
+}
+```
+
+**Files Location** (Mobile App):
+```
+apps/pickly_mobile/lib/features/benefits/
+├── models/policy.dart
+├── providers/mock_policy_data.dart
+├── screens/benefits_screen.dart
+└── widgets/
+    ├── housing_category_content.dart
+    ├── education_category_content.dart
+    ├── support_category_content.dart
+    └── transportation_category_content.dart
+
+packages/pickly_design_system/lib/widgets/
+├── cards/policy_list_card.dart
+├── chips/status_chip.dart
+└── tabs/filter_tab.dart
+```
+
+### Future Admin Panel Integration
+
+**Planned Features** (React Admin Panel):
+- [ ] Policy CRUD management
+  - Create, Read, Update, Delete policies
+  - Upload policy images/thumbnails
+  - Set recruitment status
+  - Manage policy categories
+- [ ] Policy Analytics Dashboard
+  - View count per policy
+  - Click-through rate
+  - Popular policies tracking
+- [ ] Batch Operations
+  - CSV bulk upload
+  - Archive expired policies
+  - Duplicate policy templates
+- [ ] Category Banner Management
+  - Upload banner images
+  - Set banner order and visibility
+  - Schedule banner display periods
+
+**Database Schema** (Future):
+```sql
+CREATE TABLE policies (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  organization TEXT NOT NULL,
+  image_url TEXT NOT NULL,
+  posted_date DATE NOT NULL,
+  is_recruiting BOOLEAN DEFAULT true,
+  category_id TEXT NOT NULL,
+  description TEXT,
+  deadline DATE,
+  target_audience TEXT,
+  external_url TEXT,
+  required_documents TEXT[],
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+**API Functions** (Future):
+```typescript
+// src/api/policies.ts
+export async function getPolicies() { ... }
+export async function createPolicy(policy: Policy) { ... }
+export async function updatePolicy(id: string, policy: Partial<Policy>) { ... }
+export async function deletePolicy(id: string) { ... }
+```
+
+### Documentation References
+
+**Comprehensive Guides**:
+- `/docs/benefit-management-guide.md` - Complete user and developer guide
+- `/docs/code-review-benefits-system.md` - Detailed code review and recommendations
+- `/docs/PRD.md` (v7.0) - Product requirements and feature specifications
+
+**Design System**:
+- `/packages/pickly_design_system/lib/widgets/cards/policy_list_card.dart`
+- `/packages/pickly_design_system/lib/widgets/chips/status_chip.dart`
+- `/packages/pickly_design_system/lib/widgets/tabs/filter_tab.dart`
+
+---
+
 ## 다음 단계
 
 ### 기능 개선
@@ -472,6 +588,9 @@ const UserList = lazy(() => import('@/pages/users/UserList'))
 - [ ] 카테고리 아이콘 업로드 기능
 - [ ] Realtime 구독 (즉시 데이터 동기화)
 - [ ] 관리자 권한 관리 (Role-Based Access Control)
+- [ ] **Policy Management CRUD** (정책 관리 - 생성/수정/삭제)
+- [ ] **Policy Analytics Dashboard** (정책 통계 대시보드)
+- [ ] **Batch Policy Upload** (정책 일괄 업로드 - CSV)
 
 ### 성능 최적화
 - [ ] Code Splitting

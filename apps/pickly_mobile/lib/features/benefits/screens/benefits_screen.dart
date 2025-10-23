@@ -9,6 +9,9 @@ import 'package:pickly_mobile/features/onboarding/providers/region_provider.dart
 import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
 import 'package:pickly_mobile/features/benefits/widgets/popular_category_content.dart';
 import 'package:pickly_mobile/features/benefits/widgets/housing_category_content.dart';
+import 'package:pickly_mobile/features/benefits/widgets/education_category_content.dart';
+import 'package:pickly_mobile/features/benefits/widgets/support_category_content.dart';
+import 'package:pickly_mobile/features/benefits/widgets/transportation_category_content.dart';
 import 'package:pickly_mobile/features/benefits/providers/category_banner_provider.dart';
 
 /// Benefits screen (혜택 화면)
@@ -122,10 +125,10 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
   final List<Map<String, String>> _categories = [
     {'label': '인기', 'icon': 'assets/icons/fire.svg'},
     {'label': '주거', 'icon': 'assets/icons/home.svg'},
-    {'label': '교육', 'icon': 'assets/icons/school.svg'},
+    {'label': '교육', 'icon': 'assets/icons/book.svg'},
     {'label': '지원', 'icon': 'assets/icons/dollar.svg'},
     {'label': '교통', 'icon': 'assets/icons/bus.svg'},
-    {'label': '복지', 'icon': 'assets/icons/happy_apt.svg'},
+    {'label': '복지', 'icon': 'assets/icons/heart.svg'},
     {'label': '의류', 'icon': 'assets/icons/shirts.svg'},
     {'label': '식품', 'icon': 'assets/icons/rice.svg'},
     {'label': '문화', 'icon': 'assets/icons/speaker.svg'},
@@ -465,11 +468,11 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
       case 1: // 주거
         return const HousingCategoryContent();
       case 2: // 교육
-        return _buildComingSoonContent('교육');
+        return const EducationCategoryContent();
       case 3: // 지원
-        return _buildComingSoonContent('지원');
+        return const SupportCategoryContent();
       case 4: // 교통
-        return _buildComingSoonContent('교통');
+        return const TransportationCategoryContent();
       case 5: // 복지
         return _buildComingSoonContent('복지');
       case 6: // 의류

@@ -1,7 +1,7 @@
-# 📄 Pickly PRD (Flutter Mobile + Claude Flow - v5.0)
+# 📄 Pickly PRD (Flutter Mobile + Claude Flow - v7.0)
 
 > **AI 자동화 기반 개발 시스템**
-> 마지막 업데이트: 2025.10.07
+> 마지막 업데이트: 2025.10.20
 
 ---
 
@@ -622,6 +622,208 @@ import 'package:pickly_mobile/features/policy/widgets/policy_card.dart';
 ---
 
 ## 16. 변경 이력
+
+### v7.0 (2025.10.20) - 🎯 Benefits Screen & Policy Management System
+
+**Objective**: Implement comprehensive benefits/policy browsing experience with category filtering and management system
+
+**Feature Overview**:
+- **Screen**: 혜택 화면 (Benefits Screen) - Policy browsing with category tabs
+- **Components**: PolicyListCard, StatusChip, FilterTabBar (Design System)
+- **Data Layer**: Policy model with mock data provider (40 policies)
+- **Categories**: 주거(housing), 교육(education), 지원(support), 교통(transportation)
+- **Filtering**: 등록순 (registration order), 모집중 (recruiting), 마감 (closed)
+
+**Database Schema**:
+
+*Policy Model* (`lib/features/benefits/models/policy.dart`):
+```dart
+class Policy {
+  final String id;              // Unique identifier
+  final String title;            // Policy title
+  final String organization;     // Organization/agency name
+  final String imageUrl;         // Image URL (network or asset)
+  final String postedDate;       // Format: 'YYYY/MM/DD'
+  final bool isRecruiting;       // Recruitment status
+  final String categoryId;       // Category: housing, education, support, transportation
+  final String? description;     // Optional: Detailed description
+  final String? deadline;        // Optional: Application deadline
+  final String? targetAudience;  // Optional: Target audience
+  final String? externalUrl;     // Optional: External link
+  final List<String>? requiredDocuments;  // Optional: Required documents
+
+  // Methods: fromJson(), toJson(), copyWith()
+}
+```
+
+**Mock Data Structure**:
+- 10 policies per category × 4 categories = 40 total policies
+- Realistic Korean policy examples:
+  - Housing: 청라지구 공공분양, 에코델타시티, 청년 전세자금, etc.
+  - Education: K-디지털 트레이닝, 외국어 교육비, 평생교육 바우처, etc.
+  - Support: 청년 저축계좌, 중소기업 취업지원, 경력단절여성 재취업, etc.
+  - Transportation: 통합환승 할인, 자전거 마일리지, 고령자 교통비, etc.
+
+**Design System Components**:
+
+*1. PolicyListCard* (`packages/pickly_design_system/lib/widgets/cards/policy_list_card.dart`):
+- Horizontal card layout (343×72px)
+- 72×72px thumbnail with rounded corners (13.5px)
+- Title with status chip (모집중/마감)
+- Organization name
+- Posted date ("작성일: YYYY/MM/DD")
+- Tap gesture support
+- Image loading with placeholder
+- Overflow handling (2px spacing reduction: 4px+8px → 2px+6px)
+
+*2. StatusChip* (`packages/pickly_design_system/lib/widgets/chips/status_chip.dart`):
+- Recruitment status indicator
+- Two states: 모집중 (recruiting), 마감 (closed)
+- Recruiting: Light blue background (#C6ECFF), blue text (#5090FF)
+- Closed: Gray background (#DDDDDD), white text
+- Rounded corners (9999px for pill shape)
+- 12px font, w600, 6px horizontal padding
+
+*3. FilterTabBar* (`packages/pickly_design_system/lib/widgets/tabs/filter_tab.dart`):
+- Three filter tabs: 등록순, 모집중, 마감
+- Horizontal layout with dynamic tab selection
+- 16px top and bottom spacing
+- Integration with category content widgets
+
+**Implementation**:
+
+*Category Content Widgets*:
+- `lib/features/benefits/widgets/housing_category_content.dart`
+- `lib/features/benefits/widgets/education_category_content.dart`
+- `lib/features/benefits/widgets/support_category_content.dart`
+- `lib/features/benefits/widgets/transportation_category_content.dart`
+
+*Common Pattern*:
+```dart
+class CategoryContent extends StatefulWidget {
+  // Filter state: 0=등록순, 1=모집중, 2=마감
+  int _filterIndex = 0;
+
+  // Build method:
+  // - 16px top spacing
+  // - FilterTabBar with 3 tabs
+  // - 16px bottom spacing
+  // - ListView of PolicyListCard items
+  // - Filter logic in _getFilteredPolicies()
+}
+```
+
+**UI/UX Specifications**:
+- **Layout**: Column with consistent 16px spacing
+- **Filter Tabs**: Top placement with 16px vertical margins
+- **Policy Cards**: 16px spacing between items
+- **List**: Scrollable with NeverScrollableScrollPhysics (nested in parent scroll)
+- **Tap Handling**: debugPrint for now, TODO: navigate to detail page
+
+**Key Features**:
+1. **40 Mock Policies**: Comprehensive test data across 4 categories
+2. **Dynamic Filtering**: Real-time filter by recruitment status
+3. **Consistent Design**: Reusable design system components
+4. **Korean Localization**: All text in Korean
+5. **Image Handling**: Asset and network URL support with fallback
+6. **Overflow Prevention**: Careful spacing management (72px height constraint)
+7. **Touch Targets**: WCAG-compliant 72px card height
+
+**Technical Improvements**:
+
+*Overflow Fix* (PolicyListCard):
+- Problem: RenderFlex overflow by 2px
+- Solution: Reduced internal spacing (4px+8px → 2px+6px)
+- Impact: Eliminated all overflow errors while maintaining design integrity
+
+*Filter Tab Spacing*:
+- Problem: Tabs getting cut off at top of list
+- Solution: Added 16px spacing above and below FilterTabBar
+- Impact: Proper visual separation and no cut-off
+
+*Mock Data Expansion*:
+- Before: 5 policies per category (20 total)
+- After: 10 policies per category (40 total)
+- Reason: More realistic testing scenario, better UX evaluation
+
+**Benefits**:
+- **User Value**: Easy policy browsing with category and status filtering
+- **Developer Value**: Reusable components reduce code duplication
+- **Maintainability**: Clear separation between data, UI, and business logic
+- **Testability**: Mock data provider enables isolated testing
+- **Scalability**: Ready for backend integration (fromJson/toJson implemented)
+
+**Development Standards Established**:
+
+*Component Creation Rule*:
+- 3+ usages → Design System component
+- Feature-specific → Local widget
+- Business logic → Separate from UI
+
+*Package Changes*:
+- Design system modifications require `flutter clean` + rebuild
+- Hot reload only works for app code
+- Full rebuild ensures package changes are reflected
+
+*Spacing Management*:
+- Use explicit pixel values when design is tight
+- Document Figma references for overrides
+- Test on actual devices for overflow issues
+
+*Korean Localization*:
+- All user-facing text in Korean
+- Date format: YYYY/MM/DD
+- Status labels: 모집중, 마감
+- Filter labels: 등록순, 모집중, 마감
+
+**Documentation**:
+- Policy model with comprehensive inline documentation
+- Component usage examples in widget comments
+- Mock data provider with categorized test data
+- Development guidelines for future policy features
+
+**Files Added**:
+```
+apps/pickly_mobile/lib/features/benefits/
+├── models/
+│   └── policy.dart                           # Policy model with JSON support
+├── providers/
+│   └── mock_policy_data.dart                # 40 mock policies (10 per category)
+└── widgets/
+    ├── housing_category_content.dart        # Housing policies with filtering
+    ├── education_category_content.dart      # Education policies with filtering
+    ├── support_category_content.dart        # Support policies with filtering
+    └── transportation_category_content.dart # Transportation policies with filtering
+
+packages/pickly_design_system/lib/widgets/
+├── cards/
+│   ├── policy_list_card.dart               # Horizontal policy card (343×72px)
+│   └── benefit_list_item.dart              # Alternative layout (future)
+├── chips/
+│   └── status_chip.dart                    # Recruitment status indicator
+└── tabs/
+    ├── filter_tab.dart                     # Single filter tab
+    └── filter_tab_bar.dart                 # Filter tab container
+```
+
+**Migration Notes**:
+- Benefits screen now uses PolicyListCard instead of PopularPolicyCard
+- All category screens follow identical filtering pattern
+- Mock data will be replaced with Supabase backend in future versions
+
+**Related Features**:
+- Home Screen (v5.x): Uses same PolicyListCard component
+- Category Banners: Integration with policy filtering
+- Search & Filter: Foundation for advanced filtering
+
+**Next Steps**:
+- Policy detail screen implementation
+- Backend integration with Supabase
+- Bookmark functionality
+- Advanced filtering (region, age, income)
+- Push notifications for new policies
+
+---
 
 ### v6.0 (2025.10.13) - 🌏 Region Selection Feature
 

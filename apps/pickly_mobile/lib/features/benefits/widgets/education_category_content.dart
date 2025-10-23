@@ -3,17 +3,17 @@ import 'package:pickly_design_system/pickly_design_system.dart';
 import '../models/policy.dart';
 import '../providers/mock_policy_data.dart';
 
-/// Housing category content (주거 카테고리 컨텐츠)
+/// Education category content (교육 카테고리 컨텐츠)
 ///
-/// Displays housing-related policies and benefits with filter tabs
-class HousingCategoryContent extends StatefulWidget {
-  const HousingCategoryContent({super.key});
+/// Displays education-related policies and benefits with filter tabs
+class EducationCategoryContent extends StatefulWidget {
+  const EducationCategoryContent({super.key});
 
   @override
-  State<HousingCategoryContent> createState() => _HousingCategoryContentState();
+  State<EducationCategoryContent> createState() => _EducationCategoryContentState();
 }
 
-class _HousingCategoryContentState extends State<HousingCategoryContent> {
+class _EducationCategoryContentState extends State<EducationCategoryContent> {
   int _filterIndex = 0; // 0: 등록순, 1: 모집중, 2: 마감
 
   @override
@@ -74,7 +74,7 @@ class _HousingCategoryContentState extends State<HousingCategoryContent> {
 
   /// Get filtered policies based on selected tab
   List<Policy> _getFilteredPolicies() {
-    final allPolicies = MockPolicyData.getPoliciesByCategory('housing');
+    final allPolicies = MockPolicyData.getPoliciesByCategory('education');
 
     switch (_filterIndex) {
       case 0: // 등록순 (all policies, sorted by posted date)

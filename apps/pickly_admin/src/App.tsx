@@ -12,6 +12,9 @@ import Dashboard from '@/pages/dashboard/Dashboard'
 import UserList from '@/pages/users/UserList'
 import CategoryList from '@/pages/categories/CategoryList'
 import CategoryForm from '@/pages/categories/CategoryForm'
+import BenefitCategoryList from '@/pages/benefits/BenefitCategoryList'
+import BenefitAnnouncementList from '@/pages/benefits/BenefitAnnouncementList'
+import BenefitAnnouncementForm from '@/pages/benefits/BenefitAnnouncementForm'
 
 function App() {
   return (
@@ -34,6 +37,10 @@ function App() {
               <Route path="categories" element={<CategoryList />} />
               <Route path="categories/new" element={<CategoryForm />} />
               <Route path="categories/:id/edit" element={<CategoryForm />} />
+              <Route path="benefits/categories" element={<BenefitCategoryList />} />
+              <Route path="benefits/announcements" element={<BenefitAnnouncementList />} />
+              <Route path="benefits/announcements/new" element={<BenefitAnnouncementForm />} />
+              <Route path="benefits/announcements/:id/edit" element={<BenefitAnnouncementForm />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
