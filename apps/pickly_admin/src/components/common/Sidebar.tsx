@@ -16,7 +16,6 @@ import {
   People as PeopleIcon,
   Category as CategoryIcon,
   CardGiftcard as CardGiftcardIcon,
-  Announcement as AnnouncementIcon,
   ExpandLess,
   ExpandMore,
 } from '@mui/icons-material'
@@ -34,8 +33,13 @@ const menuItems = [
 ]
 
 const benefitMenuItems = [
-  { text: '카테고리 관리', icon: <CategoryIcon />, path: '/benefits/categories' },
-  { text: '공고 관리', icon: <AnnouncementIcon />, path: '/benefits/announcements' },
+  { text: '인기', icon: <CategoryIcon />, path: '/benefits/popular' },
+  { text: '주거', icon: <CategoryIcon />, path: '/benefits/housing' },
+  { text: '교육', icon: <CategoryIcon />, path: '/benefits/education' },
+  { text: '취업', icon: <CategoryIcon />, path: '/benefits/employment' },
+  { text: '복지', icon: <CategoryIcon />, path: '/benefits/welfare' },
+  { text: '건강', icon: <CategoryIcon />, path: '/benefits/health' },
+  { text: '문화', icon: <CategoryIcon />, path: '/benefits/culture' },
 ]
 
 export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth }: SidebarProps) {

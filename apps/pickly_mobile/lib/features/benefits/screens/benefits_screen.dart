@@ -66,8 +66,8 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
       case 'support': return 3;
       case 'transportation': return 4;
       case 'welfare': return 5;
-      case 'clothing': return 6;
-      case 'food': return 7;
+      case 'employment': return 6;
+      case 'health': return 7;
       case 'culture': return 8;
       default: return null;
     }
@@ -111,11 +111,11 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     5: [ // 복지
       {'icon': 'assets/icons/happy_apt.svg', 'title': '복지 혜택'},
     ],
-    6: [ // 의류
-      {'icon': 'assets/icons/shirts.svg', 'title': '의류 지원'},
+    6: [ // 취업
+      {'icon': 'assets/icons/dollar.svg', 'title': '취업 지원'},
     ],
-    7: [ // 식품
-      {'icon': 'assets/icons/rice.svg', 'title': '식품 지원'},
+    7: [ // 건강
+      {'icon': 'assets/icons/health.svg', 'title': '건강 지원'},
     ],
     8: [ // 문화
       {'icon': 'assets/icons/speaker.svg', 'title': '문화 지원'},
@@ -129,8 +129,8 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     {'label': '지원', 'icon': 'assets/icons/dollar.svg'},
     {'label': '교통', 'icon': 'assets/icons/bus.svg'},
     {'label': '복지', 'icon': 'assets/icons/heart.svg'},
-    {'label': '의류', 'icon': 'assets/icons/shirts.svg'},
-    {'label': '식품', 'icon': 'assets/icons/rice.svg'},
+    {'label': '취업', 'icon': 'assets/icons/dollar.svg'},
+    {'label': '건강', 'icon': 'assets/icons/health.svg'},
     {'label': '문화', 'icon': 'assets/icons/speaker.svg'},
   ];
 
@@ -143,8 +143,8 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
       case 3: return 'support';
       case 4: return 'transportation';
       case 5: return 'welfare';
-      case 6: return 'clothing';
-      case 7: return 'food';
+      case 6: return 'employment';
+      case 7: return 'health';
       case 8: return 'culture';
       default: return 'popular';
     }
@@ -475,10 +475,10 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
         return const TransportationCategoryContent();
       case 5: // 복지
         return _buildComingSoonContent('복지');
-      case 6: // 의류
-        return _buildComingSoonContent('의류');
-      case 7: // 식품
-        return _buildComingSoonContent('식품');
+      case 6: // 취업
+        return _buildComingSoonContent('취업');
+      case 7: // 건강
+        return _buildComingSoonContent('건강');
       case 8: // 문화
         return _buildComingSoonContent('문화');
       default:
