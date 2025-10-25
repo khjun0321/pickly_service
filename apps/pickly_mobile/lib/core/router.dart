@@ -14,6 +14,8 @@ import 'package:pickly_mobile/features/onboarding/providers/onboarding_storage_p
 // Main app screens
 import 'package:pickly_mobile/features/home/screens/home_screen.dart';
 import 'package:pickly_mobile/features/benefits/screens/benefits_screen.dart';
+import 'package:pickly_mobile/features/benefit/screens/announcement_detail_screen.dart';
+import 'package:pickly_mobile/features/housing/screens/lh_lease_notice_list_screen.dart';
 // import '../features/policy/screens/policy_detail_screen.dart';
 
 /// Type-safe route paths
@@ -33,6 +35,12 @@ abstract class Routes {
   static const home = '/home';
   static const filter = '/home/filter';
   static const benefits = '/benefits';
+
+  // Announcements
+  static String announcementDetail(String id) => '/announcement/$id';
+
+  // Housing (LH)
+  static const housingLh = '/housing/lh';
 
   // Policy
   static String policyDetail(String id) => '/policy/$id';
@@ -162,6 +170,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       pageBuilder: (context, state) => const NoTransitionPage(
         child: BenefitsScreen(),
       ),
+    ),
+
+    // ==================== ANNOUNCEMENTS ====================
+    GoRoute(
+      path: '/announcement/:id',
+      name: 'announcement-detail',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return AnnouncementDetailScreen(announcementId: id);
+      },
+    ),
+
+    // ==================== HOUSING (LH) ====================
+    GoRoute(
+      path: Routes.housingLh,
+      name: 'housing-lh',
+      builder: (context, state) => const LhLeaseNoticeListScreen(),
     ),
 
     // ==================== POLICY ====================
