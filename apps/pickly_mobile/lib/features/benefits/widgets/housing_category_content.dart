@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
+import 'package:pickly_mobile/core/router.dart';
 import '../models/policy.dart';
 import '../providers/mock_policy_data.dart';
 
 /// Housing category content (주거 카테고리 컨텐츠)
 ///
 /// Displays housing-related policies and benefits with filter tabs
+/// Navigates to announcement detail when policy card is tapped
 class HousingCategoryContent extends StatefulWidget {
   const HousingCategoryContent({super.key});
 
@@ -22,6 +25,84 @@ class _HousingCategoryContentState extends State<HousingCategoryContent> {
 
     return Column(
       children: [
+        // LH 공고 바로가기 버튼
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => context.push(Routes.housingLh),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.home_work,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'LH 주거 공고 보기',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '한국토지주택공사 분양/임대 정보',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white.withOpacity(0.8),
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
         // Filter tabs
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
@@ -60,8 +141,8 @@ class _HousingCategoryContentState extends State<HousingCategoryContent> {
                     ? RecruitmentStatus.recruiting
                     : RecruitmentStatus.closed,
                 onTap: () {
-                  debugPrint('Policy tapped: ${policy.id}');
-                  // TODO: Navigate to policy detail page
+                  // Navigate to announcement detail screen
+                  context.go(Routes.announcementDetail(policy.id));
                 },
               );
             },
