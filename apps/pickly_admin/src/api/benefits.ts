@@ -2,8 +2,8 @@ import { supabase } from '@/lib/supabase'
 import type { BenefitCategory, BenefitCategoryInsert, BenefitCategoryUpdate } from '@/types/database'
 
 /**
- * Fetch all benefit categories
- * @returns Array of benefit categories ordered by sort_order
+ * Fetch all top-level benefit categories (parent categories only)
+ * @returns Array of parent benefit categories ordered by display_order
  */
 export async function fetchBenefitCategories() {
   console.log('📦 Fetching benefit categories...')
@@ -11,7 +11,8 @@ export async function fetchBenefitCategories() {
   const { data, error } = await supabase
     .from('benefit_categories')
     .select('*')
-    .order('sort_order', { ascending: true })
+    .is('parent_id', null)
+    .order('display_order', { ascending: true })
 
   if (error) {
     console.error('❌ Error fetching benefit categories:', error)

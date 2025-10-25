@@ -167,12 +167,30 @@ class SelectionListItem extends StatelessWidget {
 
     // SVG 우선 - Figma에서 emoji 아이콘 사용, colorFilter 제거하여 원본 색상 유지
     if (iconUrl != null) {
-      return SvgPicture.asset(
-        iconUrl!,
-        width: iconSize,
-        height: iconSize,
-        // colorFilter 제거: emoji 아이콘은 원본 색상 사용
-      );
+      // Check if iconUrl is a network URL (http:// or https://)
+      if (iconUrl!.startsWith('http://') || iconUrl!.startsWith('https://')) {
+        // Load from network (Supabase Storage)
+        return SvgPicture.network(
+          iconUrl!,
+          width: iconSize,
+          height: iconSize,
+          placeholderBuilder: (context) => SizedBox(
+            width: iconSize,
+            height: iconSize,
+            child: Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        );
+      } else {
+        // Load from assets
+        return SvgPicture.asset(
+          iconUrl!,
+          width: iconSize,
+          height: iconSize,
+          // colorFilter 제거: emoji 아이콘은 원본 색상 사용
+        );
+      }
     }
 
     // Icon fallback

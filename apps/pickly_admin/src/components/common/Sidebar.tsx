@@ -36,9 +36,11 @@ const benefitMenuItems = [
   { text: '인기', icon: <CategoryIcon />, path: '/benefits/popular' },
   { text: '주거', icon: <CategoryIcon />, path: '/benefits/housing' },
   { text: '교육', icon: <CategoryIcon />, path: '/benefits/education' },
-  { text: '취업', icon: <CategoryIcon />, path: '/benefits/employment' },
-  { text: '복지', icon: <CategoryIcon />, path: '/benefits/welfare' },
   { text: '건강', icon: <CategoryIcon />, path: '/benefits/health' },
+  { text: '교통', icon: <CategoryIcon />, path: '/benefits/transportation' },
+  { text: '복지', icon: <CategoryIcon />, path: '/benefits/welfare' },
+  { text: '취업', icon: <CategoryIcon />, path: '/benefits/employment' },
+  { text: '지원', icon: <CategoryIcon />, path: '/benefits/support' },
   { text: '문화', icon: <CategoryIcon />, path: '/benefits/culture' },
 ]
 

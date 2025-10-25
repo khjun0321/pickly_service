@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -15,13 +15,15 @@ import {
   Switch,
   CircularProgress,
 } from '@mui/material'
+import { Upload as UploadIcon } from '@mui/icons-material'
 import toast from 'react-hot-toast'
+import { supabase } from '@/lib/supabase'
 import { fetchCategoryById, createCategory, updateCategory } from '@/api/categories'
 
 const schema = z.object({
   title: z.string().min(1, '제목을 입력하세요'),
   description: z.string().min(1, '설명을 입력하세요'),
-  icon_component: z.string().min(1, '아이콘 컴포넌트를 입력하세요'),
+  icon_component: z.string().optional().default('default'), // 선택사항으로 변경
   icon_url: z.string().nullable(),
   min_age: z.number().int().min(0, '0 이상의 숫자를 입력하세요').nullable(),
   max_age: z.number().int().min(0, '0 이상의 숫자를 입력하세요').nullable(),
@@ -36,6 +38,9 @@ export default function CategoryForm() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const isEdit = Boolean(id)
+
+  const [iconFile, setIconFile] = useState<File | null>(null)
+  const [iconPreview, setIconPreview] = useState<string | null>(null)
 
   const { data: category, isLoading: categoryLoading } = useQuery({
     queryKey: ['category', id],
@@ -53,7 +58,7 @@ export default function CategoryForm() {
     defaultValues: {
       title: '',
       description: '',
-      icon_component: '',
+      icon_component: 'default', // 기본값 설정
       icon_url: null,
       min_age: null,
       max_age: null,
@@ -65,25 +70,104 @@ export default function CategoryForm() {
   useEffect(() => {
     if (category) {
       reset(category)
+      if (category.icon_url) {
+        setIconPreview(category.icon_url)
+      }
     }
   }, [category, reset])
 
+  const handleIconSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // SVG 파일만 허용
+    if (file.type !== 'image/svg+xml') {
+      toast.error('SVG 파일만 업로드 가능합니다')
+      return
+    }
+
+    if (file.size > 1 * 1024 * 1024) {
+      toast.error('파일 크기는 1MB 이하여야 합니다')
+      return
+    }
+
+    setIconFile(file)
+    setIconPreview(URL.createObjectURL(file))
+  }
+
   const mutation = useMutation({
-    mutationFn: (data: FormData) =>
-      isEdit ? updateCategory(id!, data) : createCategory(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      toast.success(isEdit ? '카테고리가 수정되었습니다' : '카테고리가 등록되었습니다')
-      navigate('/categories')
+    mutationFn: async (data: FormData) => {
+      let iconUrl = data.icon_url
+
+      // Upload icon to Storage if file is selected
+      if (iconFile) {
+        const fileExt = iconFile.name.split('.').pop()
+        const fileName = `age-category-${Date.now()}.${fileExt}`
+        const filePath = `icons/age-categories/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('pickly-storage')
+          .upload(filePath, iconFile, {
+            upsert: true,
+            contentType: iconFile.type,
+          })
+
+        if (uploadError) throw uploadError
+
+        const { data: urlData } = supabase.storage
+          .from('pickly-storage')
+          .getPublicUrl(filePath)
+
+        iconUrl = urlData.publicUrl
+      }
+
+      const updateData = {
+        ...data,
+        icon_url: iconUrl,
+      }
+
+      return isEdit ? updateCategory(id!, updateData) : createCategory(updateData)
     },
-    onError: (error: Error) => {
+    onMutate: async (newData) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['categories'] })
+
+      // Snapshot previous value
+      const previousCategories = queryClient.getQueryData(['categories'])
+
+      // Optimistically update
+      if (isEdit) {
+        queryClient.setQueryData(['categories'], (old: any) => {
+          return old?.map((cat: any) =>
+            cat.id === id ? { ...cat, ...newData } : cat
+          )
+        })
+      }
+
+      return { previousCategories }
+    },
+    onError: (error: Error, newData, context: any) => {
+      // Rollback on error
+      queryClient.setQueryData(['categories'], context.previousCategories)
       const message = error.message || (isEdit ? '수정에 실패했습니다' : '등록에 실패했습니다')
       toast.error(message)
 
-      // 세션 만료 시 로그인 페이지로 리다이렉트
       if (message.includes('세션이 만료')) {
         setTimeout(() => navigate('/login'), 2000)
       }
+    },
+    onSuccess: async () => {
+      toast.success(isEdit ? '카테고리가 수정되었습니다' : '카테고리가 등록되었습니다')
+
+      // Wait a bit for optimistic update to show
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      navigate('/categories')
+    },
+    onSettled: () => {
+      // Refetch in background
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      queryClient.invalidateQueries({ queryKey: ['category', id] })
     },
   })
 
@@ -135,36 +219,55 @@ export default function CategoryForm() {
                 )}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="icon_component"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="아이콘 컴포넌트"
-                    error={!!errors.icon_component}
-                    helperText={errors.icon_component?.message}
-                  />
+            {/* icon_component는 레거시 필드로 숨김 처리 */}
+            <Grid item xs={12}>
+              <Box>
+                <Typography variant="body2" gutterBottom>
+                  아이콘 SVG 업로드 (선택)
+                </Typography>
+                {iconPreview && (
+                  <Paper sx={{ p: 2, mb: 2, display: 'inline-block' }}>
+                    <img
+                      src={iconPreview}
+                      alt="Icon preview"
+                      style={{ width: '64px', height: '64px', objectFit: 'contain' }}
+                    />
+                  </Paper>
                 )}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="icon_url"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    value={field.value || ''}
-                    fullWidth
-                    label="아이콘 URL (선택)"
-                    error={!!errors.icon_url}
-                    helperText={errors.icon_url?.message}
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<UploadIcon />}
+                  >
+                    {iconPreview ? 'SVG 변경' : 'SVG 업로드'}
+                    <input
+                      type="file"
+                      hidden
+                      accept=".svg,image/svg+xml"
+                      onChange={handleIconSelect}
+                    />
+                  </Button>
+                  <Controller
+                    name="icon_url"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        value={field.value || ''}
+                        fullWidth
+                        label="또는 URL 직접 입력"
+                        size="small"
+                        error={!!errors.icon_url}
+                        helperText={errors.icon_url?.message}
+                      />
+                    )}
                   />
-                )}
-              />
+                </Box>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  SVG 파일을 업로드하면 자동으로 Supabase Storage에 저장됩니다. 최대 1MB (SVG만 가능)
+                </Typography>
+              </Box>
             </Grid>
             <Grid item xs={12} md={4}>
               <Controller

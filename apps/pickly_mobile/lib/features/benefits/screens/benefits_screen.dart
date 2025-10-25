@@ -63,11 +63,11 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
       case 'popular': return 0;
       case 'housing': return 1;
       case 'education': return 2;
-      case 'support': return 3;
+      case 'health': return 3;
       case 'transportation': return 4;
       case 'welfare': return 5;
       case 'employment': return 6;
-      case 'health': return 7;
+      case 'support': return 7;
       case 'culture': return 8;
       default: return null;
     }
@@ -101,9 +101,8 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
       {'icon': 'assets/icons/school.svg', 'title': '학자금 지원'},
       {'icon': 'assets/icons/book.svg', 'title': '교육비 지원'},
     ],
-    3: [ // 지원
-      {'icon': 'assets/icons/dollar.svg', 'title': '면접비'},
-      {'icon': 'assets/icons/buy.svg', 'title': '창업지원금'},
+    3: [ // 건강
+      {'icon': 'assets/icons/health.svg', 'title': '건강 지원'},
     ],
     4: [ // 교통
       {'icon': 'assets/icons/bus.svg', 'title': '교통비 지원'},
@@ -114,8 +113,9 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     6: [ // 취업
       {'icon': 'assets/icons/dollar.svg', 'title': '취업 지원'},
     ],
-    7: [ // 건강
-      {'icon': 'assets/icons/health.svg', 'title': '건강 지원'},
+    7: [ // 지원
+      {'icon': 'assets/icons/dollar.svg', 'title': '면접비'},
+      {'icon': 'assets/icons/buy.svg', 'title': '창업지원금'},
     ],
     8: [ // 문화
       {'icon': 'assets/icons/speaker.svg', 'title': '문화 지원'},
@@ -126,11 +126,11 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     {'label': '인기', 'icon': 'assets/icons/fire.svg'},
     {'label': '주거', 'icon': 'assets/icons/home.svg'},
     {'label': '교육', 'icon': 'assets/icons/book.svg'},
-    {'label': '지원', 'icon': 'assets/icons/dollar.svg'},
+    {'label': '건강', 'icon': 'assets/icons/health.svg'},
     {'label': '교통', 'icon': 'assets/icons/bus.svg'},
     {'label': '복지', 'icon': 'assets/icons/heart.svg'},
-    {'label': '취업', 'icon': 'assets/icons/dollar.svg'},
-    {'label': '건강', 'icon': 'assets/icons/health.svg'},
+    {'label': '취업', 'icon': 'assets/icons/shirts.svg'},
+    {'label': '지원', 'icon': 'assets/icons/dollar.svg'},
     {'label': '문화', 'icon': 'assets/icons/speaker.svg'},
   ];
 
@@ -140,11 +140,11 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
       case 0: return 'popular';
       case 1: return 'housing';
       case 2: return 'education';
-      case 3: return 'support';
+      case 3: return 'health';
       case 4: return 'transportation';
       case 5: return 'welfare';
       case 6: return 'employment';
-      case 7: return 'health';
+      case 7: return 'support';
       case 8: return 'culture';
       default: return 'popular';
     }
@@ -469,16 +469,16 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
         return const HousingCategoryContent();
       case 2: // 교육
         return const EducationCategoryContent();
-      case 3: // 지원
-        return const SupportCategoryContent();
+      case 3: // 건강
+        return _buildComingSoonContent('건강');
       case 4: // 교통
         return const TransportationCategoryContent();
       case 5: // 복지
         return _buildComingSoonContent('복지');
       case 6: // 취업
         return _buildComingSoonContent('취업');
-      case 7: // 건강
-        return _buildComingSoonContent('건강');
+      case 7: // 지원
+        return const SupportCategoryContent();
       case 8: // 문화
         return _buildComingSoonContent('문화');
       default:

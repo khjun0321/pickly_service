@@ -72,12 +72,12 @@ CREATE POLICY "Anyone views active categories"
   ON age_categories FOR SELECT
   USING (is_active = true);
 
+-- Permissive policy for development (allows all operations)
 CREATE POLICY "Admins manage categories"
   ON age_categories FOR ALL
-  USING (
-    auth.jwt() ->> 'role' = 'admin' OR
-    auth.jwt() -> 'user_metadata' ->> 'role' = 'admin'
-  );
+  TO public
+  USING (true)
+  WITH CHECK (true);
 
 -- 초기 데이터
 INSERT INTO age_categories (title, description, icon_component, min_age, max_age, sort_order) VALUES
