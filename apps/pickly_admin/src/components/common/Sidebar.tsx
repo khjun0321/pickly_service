@@ -18,7 +18,6 @@ import {
   CardGiftcard as CardGiftcardIcon,
   ExpandLess,
   ExpandMore,
-  FolderSpecial as FolderIcon,
   Tab as TabIcon,
 } from '@mui/icons-material'
 
@@ -32,7 +31,6 @@ const menuItems = [
   { text: '대시보드', icon: <DashboardIcon />, path: '/' },
   { text: '사용자', icon: <PeopleIcon />, path: '/users' },
   { text: '연령 카테고리', icon: <CategoryIcon />, path: '/categories' },
-  { text: '연령대 관리', icon: <FolderIcon />, path: '/age-categories' },
   { text: '공고 유형 관리', icon: <TabIcon />, path: '/announcement-types' },
 ]
 
