@@ -150,8 +150,9 @@ Pickly는 복잡한 정부 정책/혜택 공고문을 **개인 맞춤형으로 �
 ```sql
 -- 연령 카테고리
 age_categories (
-  id, name, display_order, icon_path,
-  age_min, age_max, created_at, updated_at
+  id, title, description, icon_component, icon_url,
+  min_age, max_age, sort_order, is_active,
+  created_at, updated_at
 )
 
 -- 사용자 프로필
