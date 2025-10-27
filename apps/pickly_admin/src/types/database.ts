@@ -104,10 +104,12 @@ export interface Database {
         Row: {
           id: string
           name: string
+          slug: string
           description: string | null
-          icon: string | null
-          color: string | null
-          sort_order: number
+          icon_url: string | null
+          banner_image_url: string | null
+          banner_link_url: string | null
+          display_order: number
           is_active: boolean
           created_at: string
           updated_at: string
@@ -115,10 +117,12 @@ export interface Database {
         Insert: {
           id?: string
           name: string
+          slug: string
           description?: string | null
-          icon?: string | null
-          color?: string | null
-          sort_order?: number
+          icon_url?: string | null
+          banner_image_url?: string | null
+          banner_link_url?: string | null
+          display_order?: number
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -126,10 +130,12 @@ export interface Database {
         Update: {
           id?: string
           name?: string
+          slug?: string
           description?: string | null
-          icon?: string | null
-          color?: string | null
-          sort_order?: number
+          icon_url?: string | null
+          banner_image_url?: string | null
+          banner_link_url?: string | null
+          display_order?: number
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -141,93 +147,63 @@ export interface Database {
           category_id: string
           title: string
           subtitle: string | null
-          description: string | null
-          thumbnail_url: string | null
           organization: string | null
-          application_start_date: string | null
-          application_end_date: string | null
+          application_period_start: string | null
+          application_period_end: string | null
           announcement_date: string | null
-          move_in_date: string | null
-          location: string | null
-          supply_count: number | null
-          min_age: number | null
-          max_age: number | null
-          income_requirement: string | null
-          household_requirement: string | null
-          special_conditions: Json | null
-          external_url: string | null
-          contact_info: Json | null
-          documents_required: string[] | null
-          tags: string[] | null
           status: string
-          view_count: number
-          bookmark_count: number
           is_featured: boolean
-          is_active: boolean
+          views_count: number
+          summary: string | null
+          thumbnail_url: string | null
+          external_url: string | null
+          tags: string[] | null
+          search_vector: string | null
           created_at: string
           updated_at: string
+          published_at: string | null
         }
         Insert: {
           id?: string
           category_id: string
           title: string
           subtitle?: string | null
-          description?: string | null
-          thumbnail_url?: string | null
           organization?: string | null
-          application_start_date?: string | null
-          application_end_date?: string | null
+          application_period_start?: string | null
+          application_period_end?: string | null
           announcement_date?: string | null
-          move_in_date?: string | null
-          location?: string | null
-          supply_count?: number | null
-          min_age?: number | null
-          max_age?: number | null
-          income_requirement?: string | null
-          household_requirement?: string | null
-          special_conditions?: Json | null
-          external_url?: string | null
-          contact_info?: Json | null
-          documents_required?: string[] | null
-          tags?: string[] | null
           status?: string
-          view_count?: number
-          bookmark_count?: number
           is_featured?: boolean
-          is_active?: boolean
+          views_count?: number
+          summary?: string | null
+          thumbnail_url?: string | null
+          external_url?: string | null
+          tags?: string[] | null
+          search_vector?: string | null
           created_at?: string
           updated_at?: string
+          published_at?: string | null
         }
         Update: {
           id?: string
           category_id?: string
           title?: string
           subtitle?: string | null
-          description?: string | null
-          thumbnail_url?: string | null
           organization?: string | null
-          application_start_date?: string | null
-          application_end_date?: string | null
+          application_period_start?: string | null
+          application_period_end?: string | null
           announcement_date?: string | null
-          move_in_date?: string | null
-          location?: string | null
-          supply_count?: number | null
-          min_age?: number | null
-          max_age?: number | null
-          income_requirement?: string | null
-          household_requirement?: string | null
-          special_conditions?: Json | null
-          external_url?: string | null
-          contact_info?: Json | null
-          documents_required?: string[] | null
-          tags?: string[] | null
           status?: string
-          view_count?: number
-          bookmark_count?: number
           is_featured?: boolean
-          is_active?: boolean
+          views_count?: number
+          summary?: string | null
+          thumbnail_url?: string | null
+          external_url?: string | null
+          tags?: string[] | null
+          search_vector?: string | null
           created_at?: string
           updated_at?: string
+          published_at?: string | null
         }
       }
       announcement_unit_types: {
@@ -394,6 +370,47 @@ export interface Database {
           created_at?: string
         }
       }
+      category_banners: {
+        Row: {
+          id: string
+          category_id: string
+          title: string
+          subtitle: string | null
+          image_url: string
+          action_url: string | null
+          background_color: string | null
+          display_order: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          category_id: string
+          title: string
+          subtitle?: string | null
+          image_url: string
+          action_url?: string | null
+          background_color?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          category_id?: string
+          title?: string | null
+          subtitle?: string | null
+          image_url?: string
+          action_url?: string | null
+          background_color?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }
@@ -425,3 +442,7 @@ export type AnnouncementCommentUpdate = Database['public']['Tables']['announceme
 export type AnnouncementAIChat = Database['public']['Tables']['announcement_ai_chats']['Row']
 export type AnnouncementAIChatInsert = Database['public']['Tables']['announcement_ai_chats']['Insert']
 export type AnnouncementAIChatUpdate = Database['public']['Tables']['announcement_ai_chats']['Update']
+
+export type BenefitBanner = Database['public']['Tables']['category_banners']['Row']
+export type BenefitBannerInsert = Database['public']['Tables']['category_banners']['Insert']
+export type BenefitBannerUpdate = Database['public']['Tables']['category_banners']['Update']

@@ -1,0 +1,415 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../models/announcement.dart';
+import '../models/announcement_file.dart';
+import '../models/benefit_category.dart';
+import '../exceptions/announcement_exception.dart';
+
+part 'benefit_repository.g.dart';
+
+/// Benefit Repository Provider
+@riverpod
+BenefitRepository benefitRepository(BenefitRepositoryRef ref) {
+  return BenefitRepository(Supabase.instance.client);
+}
+
+/// Comprehensive Benefit Repository with Realtime Streams
+///
+/// Provides stream-based data access for benefit announcements, categories,
+/// and related resources using Supabase Realtime subscriptions.
+class BenefitRepository {
+  final SupabaseClient _client;
+
+  const BenefitRepository(this._client);
+
+  // ============================================================================
+  // CATEGORIES
+  // ============================================================================
+
+  /// Get all active benefit categories
+  ///
+  /// Returns categories sorted by display_order in ascending order.
+  /// Only returns active categories (is_active = true).
+  Future<List<BenefitCategory>> getCategories() async {
+    try {
+      final response = await _client
+          .from('benefit_categories')
+          .select()
+          .eq('is_active', true)
+          .order('display_order', ascending: true);
+
+      return (response as List)
+          .map((json) => BenefitCategory.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  /// Get single category by ID
+  Future<BenefitCategory> getCategoryById(String categoryId) async {
+    try {
+      final response = await _client
+          .from('benefit_categories')
+          .select()
+          .eq('id', categoryId)
+          .single();
+
+      return BenefitCategory.fromJson(response);
+    } on PostgrestException catch (e) {
+      if (e.code == 'PGRST116') {
+        throw const AnnouncementNotFoundException();
+      }
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  /// Get category by slug (URL-friendly identifier)
+  Future<BenefitCategory?> getCategoryBySlug(String slug) async {
+    try {
+      final response = await _client
+          .from('benefit_categories')
+          .select()
+          .eq('slug', slug)
+          .eq('is_active', true)
+          .maybeSingle();
+
+      if (response == null) return null;
+      return BenefitCategory.fromJson(response);
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  // ============================================================================
+  // ANNOUNCEMENTS - STREAM BASED (REALTIME)
+  // ============================================================================
+
+  /// Watch announcements by category with Realtime updates
+  ///
+  /// Returns a stream of announcements filtered by category.
+  /// Sorted by:
+  /// 1. display_order (ascending) - Admin-controlled featured ordering
+  /// 2. created_at (descending) - Most recent first
+  ///
+  /// Only includes published announcements without deleted_at timestamp.
+  Stream<List<Announcement>> watchAnnouncementsByCategory(String categoryId) {
+    return _client
+        .from('benefit_announcements')
+        .stream(primaryKey: ['id'])
+        .eq('category_id', categoryId)
+        .eq('status', 'published')
+        .order('display_order', ascending: true)
+        .order('created_at', ascending: false)
+        .map((data) => data
+            .map((json) => Announcement.fromJson(json as Map<String, dynamic>))
+            .toList());
+  }
+
+  /// Watch all published announcements (across all categories)
+  ///
+  /// Useful for home feed or general announcement listing.
+  Stream<List<Announcement>> watchAllAnnouncements({
+    int? limit,
+    bool featuredOnly = false,
+  }) {
+    var query = _client
+        .from('benefit_announcements')
+        .stream(primaryKey: ['id'])
+        .eq('status', 'published')
+        .order('published_at', ascending: false);
+
+    if (featuredOnly) {
+      query = query.eq('is_featured', true);
+    }
+
+    return query.map((data) {
+      final announcements = data
+          .map((json) => Announcement.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      if (limit != null && announcements.length > limit) {
+        return announcements.sublist(0, limit);
+      }
+
+      return announcements;
+    });
+  }
+
+  /// Watch featured announcements with Realtime updates
+  ///
+  /// Returns only announcements marked as featured (is_featured = true).
+  Stream<List<Announcement>> watchFeaturedAnnouncements({int limit = 10}) {
+    return _client
+        .from('benefit_announcements')
+        .stream(primaryKey: ['id'])
+        .eq('status', 'published')
+        .eq('is_featured', true)
+        .order('published_at', ascending: false)
+        .limit(limit)
+        .map((data) => data
+            .map((json) => Announcement.fromJson(json as Map<String, dynamic>))
+            .toList());
+  }
+
+  // ============================================================================
+  // ANNOUNCEMENTS - FUTURE BASED (ONE-TIME FETCH)
+  // ============================================================================
+
+  /// Get single announcement by ID
+  ///
+  /// Fetches announcement details including all metadata.
+  /// Increments view count as a side effect.
+  Future<Announcement> getAnnouncement(String id) async {
+    try {
+      final response = await _client
+          .from('benefit_announcements')
+          .select()
+          .eq('id', id)
+          .single();
+
+      // Increment view count asynchronously (fire and forget)
+      incrementViewCount(id);
+
+      return Announcement.fromJson(response);
+    } on PostgrestException catch (e) {
+      if (e.code == 'PGRST116') {
+        throw const AnnouncementNotFoundException();
+      }
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  /// Get announcements by category (one-time fetch)
+  Future<List<Announcement>> getAnnouncementsByCategory(
+    String categoryId, {
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      final response = await _client
+          .from('benefit_announcements')
+          .select()
+          .eq('category_id', categoryId)
+          .eq('status', 'published')
+          .order('display_order', ascending: true)
+          .order('created_at', ascending: false)
+          .range(offset, offset + limit - 1);
+
+      return (response as List)
+          .map((json) => Announcement.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  /// Search announcements with text query
+  ///
+  /// Searches across title, subtitle, and summary fields.
+  Future<List<Announcement>> searchAnnouncements(
+    String query, {
+    String? categoryId,
+    int limit = 50,
+  }) async {
+    try {
+      var queryBuilder = _client
+          .from('benefit_announcements')
+          .select()
+          .eq('status', 'published');
+
+      if (categoryId != null) {
+        queryBuilder = queryBuilder.eq('category_id', categoryId);
+      }
+
+      final response = await queryBuilder
+          .or('title.ilike.%$query%,subtitle.ilike.%$query%,summary.ilike.%$query%')
+          .order('published_at', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((json) => Announcement.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  /// Get popular announcements (by view count)
+  Future<List<Announcement>> getPopularAnnouncements({
+    int limit = 10,
+    String? categoryId,
+  }) async {
+    try {
+      var queryBuilder = _client
+          .from('benefit_announcements')
+          .select()
+          .eq('status', 'published');
+
+      if (categoryId != null) {
+        queryBuilder = queryBuilder.eq('category_id', categoryId);
+      }
+
+      final response = await queryBuilder
+          .order('views_count', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((json) => Announcement.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  // ============================================================================
+  // ANNOUNCEMENT FILES
+  // ============================================================================
+
+  /// Get files associated with an announcement
+  ///
+  /// Note: This assumes files are stored in Supabase Storage with metadata
+  /// tracked separately. Implementation may need adjustment based on actual
+  /// storage structure.
+  ///
+  /// Returns files sorted by display_order.
+  Future<List<AnnouncementFile>> getFiles(String announcementId) async {
+    try {
+      // TODO: Implement based on actual file storage structure
+      // This is a placeholder implementation
+
+      // Option 1: If using a separate announcement_files table
+      // final response = await _client
+      //     .from('announcement_files')
+      //     .select()
+      //     .eq('announcement_id', announcementId)
+      //     .order('display_order', ascending: true);
+
+      // Option 2: If using Supabase Storage directly
+      // Query storage bucket for files related to announcement
+      // final files = await _client.storage
+      //     .from('announcement-files')
+      //     .list(path: announcementId);
+
+      // For now, return empty list until file storage is implemented
+      return [];
+
+      // Example implementation when files table exists:
+      // return (response as List)
+      //     .map((json) => AnnouncementFile.fromJson(json as Map<String, dynamic>))
+      //     .toList();
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  /// Download or get URL for a specific file
+  Future<String> getFileUrl(String fileId) async {
+    try {
+      // TODO: Implement based on actual file storage structure
+      // This could return a signed URL from Supabase Storage
+
+      // Example:
+      // final fileRecord = await _client
+      //     .from('announcement_files')
+      //     .select('file_path')
+      //     .eq('id', fileId)
+      //     .single();
+      //
+      // final signedUrl = await _client.storage
+      //     .from('announcement-files')
+      //     .createSignedUrl(fileRecord['file_path'], 3600);
+      //
+      // return signedUrl;
+
+      throw UnimplementedError('File storage not yet implemented');
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  // ============================================================================
+  // UTILITY METHODS
+  // ============================================================================
+
+  /// Increment view count for an announcement
+  ///
+  /// This is called automatically when fetching announcement details.
+  /// Failures are silently ignored to not impact user experience.
+  Future<void> incrementViewCount(String announcementId) async {
+    try {
+      await _client.rpc('increment_announcement_view_count', params: {
+        'announcement_id': announcementId,
+      });
+    } catch (e) {
+      // Silently ignore view count increment failures
+      // This should not impact user experience
+      // Could log to analytics/monitoring service
+    }
+  }
+
+  /// Get announcement count by category
+  Future<int> getAnnouncementCount(String categoryId) async {
+    try {
+      final response = await _client
+          .from('benefit_announcements')
+          .select('id', const FetchOptions(count: CountOption.exact))
+          .eq('category_id', categoryId)
+          .eq('status', 'published');
+
+      return response.count ?? 0;
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  /// Check if an announcement is currently accepting applications
+  Future<bool> isAcceptingApplications(String announcementId) async {
+    try {
+      final announcement = await getAnnouncement(announcementId);
+      final now = DateTime.now();
+
+      // No dates specified = always accepting
+      if (announcement.applicationPeriodStart == null &&
+          announcement.applicationPeriodEnd == null) {
+        return true;
+      }
+
+      // Check if within application period
+      if (announcement.applicationPeriodStart != null &&
+          now.isBefore(announcement.applicationPeriodStart!)) {
+        return false; // Not started yet
+      }
+
+      if (announcement.applicationPeriodEnd != null &&
+          now.isAfter(announcement.applicationPeriodEnd!)) {
+        return false; // Already ended
+      }
+
+      return true;
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+}

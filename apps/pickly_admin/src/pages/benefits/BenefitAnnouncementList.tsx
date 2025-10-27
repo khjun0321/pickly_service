@@ -14,6 +14,8 @@ import {
   MenuItem,
   Chip,
   Stack,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import type { GridColDef } from '@mui/x-data-grid'
@@ -25,8 +27,14 @@ import {
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import toast from 'react-hot-toast'
-import { fetchBenefitAnnouncements, deleteBenefitAnnouncement } from '@/api/benefits'
+import {
+  fetchAnnouncements as fetchBenefitAnnouncements,
+  deleteAnnouncement as deleteBenefitAnnouncement,
+  fetchLHAnnouncements,
+  fetchLHStyleAnnouncements
+} from '@/api/announcements'
 import type { BenefitAnnouncement } from '@/types/database'
+import { Download as DownloadIcon } from '@mui/icons-material'
 
 type AnnouncementStatus = 'recruiting' | 'closed' | 'draft' | 'upcoming'
 
@@ -55,11 +63,22 @@ export default function BenefitAnnouncementList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState('all')
+  const [viewMode, setViewMode] = useState<'benefit' | 'lh'>('benefit')
 
-  const { data: announcements, isLoading } = useQuery({
+  const { data: benefitAnnouncements, isLoading: isBenefitLoading } = useQuery({
     queryKey: ['benefit-announcements'],
-    queryFn: fetchBenefitAnnouncements,
+    queryFn: () => fetchBenefitAnnouncements(),
+    enabled: viewMode === 'benefit',
   })
+
+  const { data: lhAnnouncements, isLoading: isLHLoading } = useQuery({
+    queryKey: ['lh-announcements'],
+    queryFn: fetchLHStyleAnnouncements,
+    enabled: viewMode === 'lh',
+  })
+
+  const announcements = viewMode === 'benefit' ? benefitAnnouncements : lhAnnouncements
+  const isLoading = viewMode === 'benefit' ? isBenefitLoading : isLHLoading
 
   const deleteMutation = useMutation({
     mutationFn: deleteBenefitAnnouncement,
@@ -69,6 +88,17 @@ export default function BenefitAnnouncementList() {
     },
     onError: (error: Error) => {
       toast.error(`삭제에 실패했습니다: ${error.message}`)
+    },
+  })
+
+  const fetchLHMutation = useMutation({
+    mutationFn: fetchLHAnnouncements,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['benefit-announcements'] })
+      toast.success(data?.message || 'LH 공고를 성공적으로 불러왔습니다')
+    },
+    onError: (error: Error) => {
+      toast.error(`LH 공고 불러오기 실패: ${error.message}`)
     },
   })
 
@@ -186,7 +216,7 @@ export default function BenefitAnnouncementList() {
         <Box>
           <IconButton
             size="small"
-            onClick={() => navigate(`/benefits/${params.row.id}/edit`)}
+            onClick={() => navigate(`/benefits/announcements/${params.row.id}/edit`)}
             title="수정"
           >
             <EditIcon />
@@ -223,17 +253,47 @@ export default function BenefitAnnouncementList() {
         }}
       >
         <Typography variant="h4">혜택 공고</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => navigate('/benefits/new')}
-        >
-          새 공고
-        </Button>
+        <Stack direction="row" spacing={2}>
+          {viewMode === 'benefit' && (
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              onClick={() => fetchLHMutation.mutate()}
+              disabled={fetchLHMutation.isPending}
+            >
+              {fetchLHMutation.isPending ? 'LH 공고 불러오는 중...' : 'LH 공고 불러오기'}
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/benefits/new')}
+          >
+            새 공고
+          </Button>
+        </Stack>
       </Box>
 
       <Paper sx={{ p: 2, mb: 2 }}>
         <Stack direction="row" spacing={2} alignItems="center">
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(_, newMode) => {
+              if (newMode !== null) {
+                setViewMode(newMode)
+              }
+            }}
+            size="small"
+          >
+            <ToggleButton value="benefit">
+              기존 공고
+            </ToggleButton>
+            <ToggleButton value="lh">
+              LH 공고
+            </ToggleButton>
+          </ToggleButtonGroup>
+
           <FormControl sx={{ minWidth: 150 }}>
             <InputLabel id="status-filter-label">상태</InputLabel>
             <Select

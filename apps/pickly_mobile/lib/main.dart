@@ -40,10 +40,10 @@ class PicklyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Pickly',
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false, // Hot reload trigger - updated
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF27B473),
+          seedColor: const Color(0xFF27B473), // Primary green color
         ),
         useMaterial3: true,
       ),

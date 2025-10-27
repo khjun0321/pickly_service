@@ -1,5 +1,30 @@
 # Claude Code Configuration - SPARC Development Environment
 
+## 🚫 절대 금지 사항 (NEVER DO)
+
+### 파일 수정 금지
+- ❌ `apps/pickly_mobile/lib/core/` 절대 수정 금지
+- ❌ `apps/pickly_mobile/lib/contexts/` 기존 파일 수정 금지
+- ❌ `packages/pickly_design_system/` 절대 손대지 마
+- ❌ `backend/supabase/migrations/` 기존 마이그레이션 수정 금지
+
+### 새 파일만 생성
+- ✅ `apps/pickly_admin/` 안에서만 작업
+- ✅ 새 마이그레이션은 새 파일로 생성
+- ✅ 기존 Provider 건드리지 말고 새로 만들기
+
+### 코딩 규칙
+- ❌ 주석 삭제하지 마
+- ❌ 타입 any 사용 금지
+- ❌ console.log 남발 금지
+- ✅ 기존 코드 스타일 따르기
+- ✅ Freezed, Riverpod 2.x 패턴 유지
+
+### 에러 발생 시
+- ❌ 막 고치지 마
+- ✅ 먼저 나한테 물어보기
+- ✅ 에러 로그 전체 보여주기
+
 ## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
 
 **ABSOLUTE RULES**:

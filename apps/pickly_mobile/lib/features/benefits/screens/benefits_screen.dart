@@ -13,6 +13,7 @@ import 'package:pickly_mobile/features/benefits/widgets/education_category_conte
 import 'package:pickly_mobile/features/benefits/widgets/support_category_content.dart';
 import 'package:pickly_mobile/features/benefits/widgets/transportation_category_content.dart';
 import 'package:pickly_mobile/features/benefits/providers/category_banner_provider.dart';
+import 'package:pickly_mobile/features/benefits/providers/category_id_provider.dart';
 
 /// Benefits screen (혜택 화면)
 ///
@@ -466,7 +467,24 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
       case 0: // 인기
         return const PopularCategoryContent();
       case 1: // 주거
-        return const HousingCategoryContent();
+        // Get housing category ID from provider
+        final housingCategoryIdAsync = ref.watch(categoryIdBySlugProvider('housing'));
+        return housingCategoryIdAsync.when(
+          data: (categoryId) {
+            if (categoryId == null) {
+              return const Center(
+                child: Text('카테고리를 찾을 수 없습니다'),
+              );
+            }
+            return HousingCategoryContent(categoryId: categoryId);
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          error: (error, stack) => Center(
+            child: Text('에러: $error'),
+          ),
+        );
       case 2: // 교육
         return const EducationCategoryContent();
       case 3: // 건강

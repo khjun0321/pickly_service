@@ -43,7 +43,7 @@ dependencies:
   photo_view: ^0.15.0
 
   # HTTP client (API integration)
-  dio: ^5.4.0
+  dio: ^5.9.0
 
   # Pickly 디자인 시스템
   pickly_design_system:

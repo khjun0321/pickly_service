@@ -1,14 +1,17 @@
 import 'package:dio/dio.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_config.dart';
 import '../../../core/errors/api_exception.dart';
 import '../models/lh_lease_notice.dart';
+import '../models/lh_announcement.dart';
 
 /// LH 한국토지주택공사 API Repository
 ///
 /// 분양/임대 공고 정보를 조회합니다.
 class LhRepository {
   late final ApiClient _client;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   LhRepository() {
     _client = ApiClient.lh();
@@ -145,5 +148,54 @@ class LhRepository {
       pageNo: response.pageNo,
       numOfRows: response.numOfRows,
     );
+  }
+
+  /// LH API에서 공고 데이터를 가져와 Supabase announcements 테이블에 동기화
+  ///
+  /// [pageNo] 페이지 번호
+  /// [numOfRows] 가져올 공고 수
+  /// Returns 동기화된 공고 수
+  Future<int> syncAll({int pageNo = 1, int numOfRows = 10}) async {
+    try {
+      // LH API에서 데이터 가져오기
+      final response = await getLeaseNotices(
+        pageNo: pageNo,
+        numOfRows: numOfRows,
+      );
+
+      // 각 공고를 LhAnnouncement로 변환하여 Supabase에 저장
+      for (final notice in response.items) {
+        try {
+          // LhLeaseNotice를 LhAnnouncement로 변환
+          final announcement = LhAnnouncement(
+            panId: notice.noticeId ?? '',
+            panNm: notice.noticeTitle ?? '',
+            uppAisTpCdNm: notice.housingSector ?? '',
+            cnpCdNm: notice.region ?? '',
+            hshldCo: notice.totalSupply?.toString() ?? '0',
+            rcritPblancDe: notice.noticeDate ?? '',
+            subscrptRceptBgnde: notice.applyStartDate ?? '',
+            subscrptRceptEndde: notice.applyEndDate ?? '',
+            przwnerPresnatnDe: notice.resultDate ?? '',
+          );
+
+          final data = announcement.toSupabaseFormat();
+
+          // UPSERT: source_id가 같으면 업데이트, 없으면 삽입
+          await _supabase.from('announcements').upsert(
+                data,
+                onConflict: 'source_id',
+              );
+
+          print('✅ 저장 완료: ${announcement.panNm}');
+        } catch (e) {
+          print('❌ 저장 실패: ${notice.noticeTitle} - $e');
+        }
+      }
+
+      return response.items.length;
+    } catch (e) {
+      throw Exception('동기화 실패: $e');
+    }
   }
 }

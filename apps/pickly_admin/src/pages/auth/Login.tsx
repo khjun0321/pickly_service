@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -16,8 +16,15 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { signIn, user, isDevMode } = useAuth()
   const navigate = useNavigate()
+
+  // Auto-redirect if already logged in (including dev mode)
+  useEffect(() => {
+    if (user) {
+      navigate('/')
+    }
+  }, [user, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,6 +58,11 @@ export default function Login() {
           <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
             관리자 로그인
           </Typography>
+          {isDevMode && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              🚨 개발 모드: 로그인 없이 자동 접속됩니다
+            </Alert>
+          )}
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}

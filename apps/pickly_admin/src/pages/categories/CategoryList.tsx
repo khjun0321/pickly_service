@@ -14,16 +14,39 @@ export default function CategoryList() {
   const { data: categories, isLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategories,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   })
 
   const deleteMutation = useMutation({
     mutationFn: deleteCategory,
+    onMutate: async (deletedId) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['categories'] })
+
+      // Snapshot previous value
+      const previousCategories = queryClient.getQueryData(['categories'])
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(['categories'], (old: any) => {
+        return old?.filter((cat: any) => cat.id !== deletedId)
+      })
+
+      // Return context with previous value
+      return { previousCategories }
+    },
+    onError: (error: Error, deletedId, context: any) => {
+      // Rollback on error
+      queryClient.setQueryData(['categories'], context.previousCategories)
+      console.error('❌ Category deletion error:', error)
+      toast.error(`삭제에 실패했습니다: ${error.message}`)
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
       toast.success('카테고리가 삭제되었습니다')
     },
-    onError: () => {
-      toast.error('삭제에 실패했습니다')
+    onSettled: () => {
+      // Refetch in background to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
   })
 

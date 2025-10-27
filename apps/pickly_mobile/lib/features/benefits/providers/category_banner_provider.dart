@@ -8,13 +8,19 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pickly_mobile/features/benefits/models/category_banner.dart';
 import 'package:pickly_mobile/features/benefits/providers/mock_banner_data.dart';
+import 'package:pickly_mobile/features/benefits/repositories/category_banner_repository.dart';
+
+/// Provider for CategoryBannerRepository instance
+final categoryBannerRepositoryProvider = Provider<CategoryBannerRepository>((ref) {
+  return CategoryBannerRepository();
+});
 
 /// AsyncNotifier for managing category banners
 ///
 /// This provider:
 /// - Loads all banners on initialization
 /// - Caches banners in memory
-/// - Falls back to mock data (currently no Supabase integration)
+/// - Falls back to mock data if Supabase fails
 /// - Supports manual refresh
 /// - Handles loading and error states
 class CategoryBannerNotifier extends AsyncNotifier<List<CategoryBanner>> {
@@ -26,24 +32,19 @@ class CategoryBannerNotifier extends AsyncNotifier<List<CategoryBanner>> {
   /// Fetch banners from data source
   ///
   /// Strategy:
-  /// 1. Currently uses mock data for development
-  /// 2. Future: Will integrate with Supabase when backend is ready
-  /// 3. Graceful error handling with fallback to mock data
+  /// 1. Fetch from Supabase database
+  /// 2. Fallback to mock data if error occurs
+  /// 3. Graceful error handling
   Future<List<CategoryBanner>> _fetchBanners() async {
     try {
-      // Simulate network delay for realistic testing
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      // TODO: Replace with Supabase fetch when backend is ready
-      // final repository = ref.read(categoryBannerRepositoryProvider);
-      // final banners = await repository.fetchActiveBanners();
-
-      final banners = MockBannerData.getAllBanners();
-      debugPrint('✅ Loaded ${banners.length} category banners (mock data)');
+      final repository = ref.read(categoryBannerRepositoryProvider);
+      final banners = await repository.fetchActiveBanners();
+      debugPrint('✅ Loaded ${banners.length} category banners from Supabase');
       return banners;
     } catch (e, stackTrace) {
-      debugPrint('❌ Error fetching banners: $e');
+      debugPrint('❌ Error fetching banners from Supabase: $e');
       debugPrint('Stack trace: $stackTrace');
+      debugPrint('⚠️ Falling back to mock data');
       // Fallback to mock data
       return MockBannerData.getAllBanners();
     }
@@ -108,12 +109,23 @@ final bannersByCategoryProvider = Provider.family<List<CategoryBanner>, String>(
 
   return asyncBanners.maybeWhen(
     data: (banners) {
-      return banners
+      final filtered = banners
           .where((banner) => banner.categoryId == categoryId && banner.isActive)
           .toList()
         ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+
+      debugPrint('🎯 [Banner Filter] Category: $categoryId, Found: ${filtered.length} banners');
+      if (filtered.isEmpty) {
+        debugPrint('⚠️ [Banner Filter] No banners for category: $categoryId');
+        debugPrint('   Available categories: ${banners.map((b) => b.categoryId).toSet().join(", ")}');
+      }
+
+      return filtered;
     },
-    orElse: () => [],
+    orElse: () {
+      debugPrint('⚠️ [Banner Filter] No data available for category: $categoryId');
+      return [];
+    },
   );
 });
 

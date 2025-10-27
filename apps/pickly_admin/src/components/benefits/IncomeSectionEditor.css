@@ -1,0 +1,150 @@
+.income-section-editor {
+  background: #f9fdf9;
+  border: 2px solid #4CAF50;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.income-section-editor .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.income-section-editor .section-header h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #2e7d32;
+}
+
+.income-section-editor .toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.income-section-editor .toggle input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.income-section-editor .description-input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-style: italic;
+  color: #666;
+}
+
+.income-section-editor .description-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.income-section-editor .fields-list {
+  margin-bottom: 12px;
+}
+
+.income-section-editor .income-field {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.income-section-editor .field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.income-section-editor .field-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.income-section-editor .field-label-input {
+  flex: 1;
+  font-weight: 600;
+  border: none;
+  border-bottom: 2px solid #4CAF50;
+  padding: 4px;
+  font-size: 14px;
+}
+
+.income-section-editor .field-label-input:focus {
+  outline: none;
+  border-bottom-color: #2e7d32;
+}
+
+.income-section-editor .visibility {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.income-section-editor .btn-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  transition: transform 0.2s;
+}
+
+.income-section-editor .btn-delete:hover {
+  transform: scale(1.2);
+}
+
+.income-section-editor .field-value-input,
+.income-section-editor .field-detail-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.income-section-editor .field-value-input:focus,
+.income-section-editor .field-detail-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.income-section-editor .field-detail-input {
+  background: #f5f5f5;
+  font-size: 12px;
+  color: #666;
+}
+
+.income-section-editor .btn-add-field {
+  width: 100%;
+  padding: 10px;
+  background: #e8f5e9;
+  border: 1px dashed #4CAF50;
+  border-radius: 6px;
+  color: #2e7d32;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.income-section-editor .btn-add-field:hover {
+  background: #4CAF50;
+  color: white;
+  border-style: solid;
+}

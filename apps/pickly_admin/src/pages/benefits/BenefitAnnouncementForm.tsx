@@ -21,13 +21,36 @@ import {
 import { Add as AddIcon, Delete as DeleteIcon, Upload as UploadIcon } from '@mui/icons-material'
 import toast from 'react-hot-toast'
 import {
-  fetchBenefitAnnouncementById,
-  createBenefitAnnouncement,
-  updateBenefitAnnouncement,
-  uploadFile,
-} from '@/api/benefits'
+  fetchAnnouncementById as fetchBenefitAnnouncementById,
+  createAnnouncement as createBenefitAnnouncement,
+  updateAnnouncement as updateBenefitAnnouncement,
+} from '@/api/announcements'
+import { supabase } from '@/lib/supabase'
 import { fetchCategories } from '@/api/categories'
 import type { BenefitAnnouncement } from '@/types/database'
+
+// Upload file helper function
+async function uploadFile(file: File, bucket: string, folder: string): Promise<string> {
+  const fileExt = file.name.split('.').pop()
+  const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+
+  const { error: uploadError, data } = await supabase.storage
+    .from(bucket)
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
+    })
+
+  if (uploadError) {
+    throw uploadError
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from(bucket)
+    .getPublicUrl(fileName)
+
+  return publicUrl
+}
 
 const schema = z.object({
   // Basic Info

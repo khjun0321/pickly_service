@@ -242,3 +242,103 @@ export async function incrementAnnouncementViewCount(id: string) {
     console.log('✅ Incremented view count for announcement:', id)
   }
 }
+
+/**
+ * Fetch LH announcements from external API and save to database
+ * @returns Result of the fetch operation
+ */
+export async function fetchLHAnnouncements() {
+  console.log('🏠 Fetching LH announcements from Edge Function...')
+
+  try {
+    const { data, error } = await supabase.functions.invoke('fetch-lh-announcements', {
+      method: 'POST',
+    })
+
+    if (error) {
+      console.error('❌ Error calling Edge Function:', error)
+      throw new Error(error.message || 'Edge Function 호출에 실패했습니다.')
+    }
+
+    console.log('✅ LH announcements fetched successfully:', data)
+    return data
+  } catch (error) {
+    console.error('❌ Error in fetchLHAnnouncements:', error)
+    throw error
+  }
+}
+
+/**
+ * Fetch LH-style announcements from the new announcements table
+ * @returns Array of LH announcements
+ */
+export async function fetchLHStyleAnnouncements() {
+  console.log('📦 Fetching LH-style announcements from announcements table')
+
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('❌ Error fetching LH announcements:', error)
+    if (error.message.includes('JWT') || error.message.includes('expired')) {
+      throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.')
+    }
+    throw error
+  }
+
+  console.log('✅ Fetched LH announcements:', data?.length)
+  return data
+}
+
+/**
+ * Fetch combined announcements from both tables
+ * @returns Array of all announcements
+ */
+export async function fetchAllAnnouncements() {
+  console.log('📦 Fetching all announcements from both tables')
+
+  try {
+    // Fetch from both tables in parallel
+    const [benefitData, lhData] = await Promise.all([
+      supabase.from('benefit_announcements').select('*').order('created_at', { ascending: false }),
+      supabase.from('announcements').select('*').order('created_at', { ascending: false })
+    ])
+
+    const announcements: any[] = []
+
+    // Add benefit announcements
+    if (benefitData.data) {
+      announcements.push(...benefitData.data.map((a: any) => ({ ...a, source: 'benefit' })))
+    }
+
+    // Add LH announcements
+    if (lhData.data) {
+      announcements.push(...lhData.data.map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        subtitle: a.subtitle,
+        category_id: null,
+        organization: a.source,
+        status: a.status === 'active' ? 'recruiting' : 'draft',
+        application_start_date: null,
+        application_end_date: null,
+        view_count: 0,
+        created_at: a.created_at,
+        source: 'lh'
+      })))
+    }
+
+    // Sort by created_at
+    announcements.sort((a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+
+    console.log('✅ Fetched combined announcements:', announcements.length)
+    return announcements
+  } catch (error) {
+    console.error('❌ Error fetching combined announcements:', error)
+    throw error
+  }
+}
