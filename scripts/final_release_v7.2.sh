@@ -42,7 +42,7 @@ $(date +"%Y-%m-%d")
 REL
 
 git add docs/deployment/RELEASE_NOTES_v7.2.0.md
-git commit -m "docs: add RELEASE_NOTES_v7.2.0"
+git commit -m "docs: add RELEASE_NOTES_v7.2.0" || true
 git push origin feature/refactor-db-schema
 
 # 4️⃣ GitHub PR 생성
@@ -60,6 +60,13 @@ else
 fi
 
 # 5️⃣ 릴리즈 태그 생성
+# 기존 태그가 있으면 삭제
+if git tag -l | grep -q "^v7.2.0$"; then
+  echo "⚠️ 기존 v7.2.0 태그 삭제 후 재생성"
+  git tag -d v7.2.0
+  git push origin :refs/tags/v7.2.0 || true
+fi
+
 git tag -a v7.2.0 -m "Release v7.2.0 - TabBar + Admin Enhancements"
 git push origin v7.2.0
 
