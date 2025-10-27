@@ -72,7 +72,7 @@ final class AnnouncementsByCategoryProvider
 }
 
 String _$announcementsByCategoryHash() =>
-    r'c5c9c2bb22e286622a46faeb3474b737201db7c4';
+    r'fc0ffe729b782929b9bc40ce610276a7b4e1b8a8';
 
 /// 카테고리별 공고 목록 Provider
 
@@ -97,11 +97,13 @@ final class AnnouncementsByCategoryFamily extends $Family
 }
 
 /// 공고 상세 Provider
+/// 캐시 무효화: keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
 
 @ProviderFor(announcementDetail)
 const announcementDetailProvider = AnnouncementDetailFamily._();
 
 /// 공고 상세 Provider
+/// 캐시 무효화: keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
 
 final class AnnouncementDetailProvider
     extends
@@ -112,6 +114,7 @@ final class AnnouncementDetailProvider
         >
     with $FutureModifier<Announcement>, $FutureProvider<Announcement> {
   /// 공고 상세 Provider
+  /// 캐시 무효화: keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
   const AnnouncementDetailProvider._({
     required AnnouncementDetailFamily super.from,
     required String super.argument,
@@ -157,9 +160,10 @@ final class AnnouncementDetailProvider
 }
 
 String _$announcementDetailHash() =>
-    r'99df2895a661059a41e967d357181751dc978749';
+    r'a4fc190d43571dcde0c2a38cdca66edede3770f8';
 
 /// 공고 상세 Provider
+/// 캐시 무효화: keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
 
 final class AnnouncementDetailFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Announcement>, String> {
@@ -173,6 +177,7 @@ final class AnnouncementDetailFamily extends $Family
       );
 
   /// 공고 상세 Provider
+  /// 캐시 무효화: keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
 
   AnnouncementDetailProvider call(String announcementId) =>
       AnnouncementDetailProvider._(argument: announcementId, from: this);
@@ -244,7 +249,7 @@ final class AnnouncementsStreamProvider
 }
 
 String _$announcementsStreamHash() =>
-    r'10fa2c5ed093c2ab2c5bf5cfb5002c42710cc1a0';
+    r'519d80f930a5e561b2f3a683cb1be3590cf26ce1';
 
 /// 공고 실시간 스트림 Provider
 
@@ -335,7 +340,7 @@ final class SearchAnnouncementsProvider
 }
 
 String _$searchAnnouncementsHash() =>
-    r'f0e94364f1d86b625021d4809506e1faa27447ac';
+    r'0d1d4fe4b4e8886b6128cc84c5c7288c702e1930';
 
 /// 공고 검색 Provider
 
@@ -435,7 +440,7 @@ final class PopularAnnouncementsProvider
 }
 
 String _$popularAnnouncementsHash() =>
-    r'75844dc11d85b1a52e5df6aa4d3e0d45c7e9f132';
+    r'6078b0d612485faf03334b7171e0efafd20089a3';
 
 /// 인기 공고 Provider
 
@@ -464,4 +469,188 @@ final class PopularAnnouncementsFamily extends $Family
 
   @override
   String toString() => r'popularAnnouncementsProvider';
+}
+
+/// 공고 탭 목록 Provider (평형별/연령별)
+/// keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
+
+@ProviderFor(announcementTabs)
+const announcementTabsProvider = AnnouncementTabsFamily._();
+
+/// 공고 탭 목록 Provider (평형별/연령별)
+/// keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
+
+final class AnnouncementTabsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<AnnouncementTab>>,
+          List<AnnouncementTab>,
+          FutureOr<List<AnnouncementTab>>
+        >
+    with
+        $FutureModifier<List<AnnouncementTab>>,
+        $FutureProvider<List<AnnouncementTab>> {
+  /// 공고 탭 목록 Provider (평형별/연령별)
+  /// keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
+  const AnnouncementTabsProvider._({
+    required AnnouncementTabsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'announcementTabsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$announcementTabsHash();
+
+  @override
+  String toString() {
+    return r'announcementTabsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<AnnouncementTab>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<AnnouncementTab>> create(Ref ref) {
+    final argument = this.argument as String;
+    return announcementTabs(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AnnouncementTabsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$announcementTabsHash() => r'f732c55369805516529e8a2ed3b804d8308ba101';
+
+/// 공고 탭 목록 Provider (평형별/연령별)
+/// keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
+
+final class AnnouncementTabsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<AnnouncementTab>>, String> {
+  const AnnouncementTabsFamily._()
+    : super(
+        retry: null,
+        name: r'announcementTabsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// 공고 탭 목록 Provider (평형별/연령별)
+  /// keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
+
+  AnnouncementTabsProvider call(String announcementId) =>
+      AnnouncementTabsProvider._(argument: announcementId, from: this);
+
+  @override
+  String toString() => r'announcementTabsProvider';
+}
+
+/// 공고 섹션 목록 Provider (모듈식)
+/// keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
+
+@ProviderFor(announcementSections)
+const announcementSectionsProvider = AnnouncementSectionsFamily._();
+
+/// 공고 섹션 목록 Provider (모듈식)
+/// keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
+
+final class AnnouncementSectionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<AnnouncementSection>>,
+          List<AnnouncementSection>,
+          FutureOr<List<AnnouncementSection>>
+        >
+    with
+        $FutureModifier<List<AnnouncementSection>>,
+        $FutureProvider<List<AnnouncementSection>> {
+  /// 공고 섹션 목록 Provider (모듈식)
+  /// keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
+  const AnnouncementSectionsProvider._({
+    required AnnouncementSectionsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'announcementSectionsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$announcementSectionsHash();
+
+  @override
+  String toString() {
+    return r'announcementSectionsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<AnnouncementSection>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<AnnouncementSection>> create(Ref ref) {
+    final argument = this.argument as String;
+    return announcementSections(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AnnouncementSectionsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$announcementSectionsHash() =>
+    r'119823dcdf103056810fbf4a87d3ec0fba488f3e';
+
+/// 공고 섹션 목록 Provider (모듈식)
+/// keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
+
+final class AnnouncementSectionsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<FutureOr<List<AnnouncementSection>>, String> {
+  const AnnouncementSectionsFamily._()
+    : super(
+        retry: null,
+        name: r'announcementSectionsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// 공고 섹션 목록 Provider (모듈식)
+  /// keepAlive = false로 설정하여 화면 진입 시마다 새로 fetch
+
+  AnnouncementSectionsProvider call(String announcementId) =>
+      AnnouncementSectionsProvider._(argument: announcementId, from: this);
+
+  @override
+  String toString() => r'announcementSectionsProvider';
 }

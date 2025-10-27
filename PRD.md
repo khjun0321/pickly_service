@@ -69,15 +69,20 @@ Pickly는 복잡한 정부 정책/혜택 공고문을 **개인 맞춤형으로 �
 - 서브 필터 (바텀시트): 전체공고, 행복주택, 국민임대 등
 - 공고 리스트 카드 (썸네일 + 제목 + 기관 + 상태)
 
-**공고 상세**
-- 모듈식 섹션 구성 (백오피스에서 자유롭게 조합)
-  - 기본 정보
-  - 일정
-  - 신청 자격
-  - 단지 정보 (평형별 탭)
-  - 위치
-  - 첨부 파일 (평면도, PDF)
+**공고 상세** ✅ (v7.2 구현 완료)
+- 모듈식 섹션 구성 (announcement_sections)
+  - basic_info: 기본 정보
+  - schedule: 일정
+  - eligibility: 신청 자격
+  - housing_info: 단지 정보
+  - location: 위치
+  - attachments: 첨부 파일
+- TabBar UI (announcement_tabs 기반)
+  - 평형별 정보 (16A 청년, 신혼부부 등)
+  - 평면도 이미지 표시
+  - 공급 호수, 소득 조건 표시
 - 외부 공고문 링크
+- 캐시 무효화 (상세 화면 진입 시)
 
 **검색 & 필터**
 - 키워드 검색
@@ -97,30 +102,34 @@ Pickly는 복잡한 정부 정책/혜택 공고문을 **개인 맞춤형으로 �
 
 **MVP (Phase 1 - 2개월)**
 
-**연령 카테고리 관리**
-- 카테고리 추가/수정/삭제
-- 아이콘 SVG 업로드
-- 이름, 나이 범위 설정
+**연령 카테고리 관리** ✅ (v7.2 구현 완료)
+- 카테고리 CRUD (Create, Read, Update, Delete)
+- SVG 아이콘 업로드 (Supabase Storage)
+- 이름, 표시 순서, 나이 범위 설정
+- TypeScript 타입 안전성 보장
 
 **혜택 카테고리 관리**
 - 카테고리 CRUD (주거, 교육, 건강...)
 - 서브 카테고리 관리 (행복주택, 국민임대...)
 
-**공고 관리**
+**공고 관리** ✅ (v7.2 구현 완료)
 - 기본 정보 입력
-  - 제목, 기관명, 카테고리
+  - 제목, 부제목, 기관명, 카테고리/서브카테고리
   - 썸네일 업로드 (선택, 없으면 기본 이미지)
   - 외부 링크
-  - 상태 (모집중/마감)
-  - 노출 설정 (인기 탭, 홈 화면)
-- 섹션 빌더 (드래그 앤 드롭)
-  - 섹션 타입 선택 (일정, 자격, 단지정보...)
-  - 순서 변경
-  - 내용 입력
-- 탭 관리 (평형별)
-  - 탭 추가 (16A 청년, 신혼부부...)
-  - 평면도 이미지 업로드
-  - 공급 호수, 소득 조건 입력
+  - 상태 (recruiting/closed/draft)
+  - 노출 설정 (is_featured, is_home_visible, display_priority)
+- 섹션 관리 (announcement_sections)
+  - 섹션 타입 선택 (basic_info, schedule, eligibility, housing_info, location, attachments)
+  - JSONB 기반 유연한 콘텐츠 구조
+  - display_order로 순서 제어
+  - is_visible 토글
+- 탭 관리 (announcement_tabs)
+  - 탭 추가/수정/삭제 (16A 청년, 신혼부부 등)
+  - 평면도 이미지 업로드 (floor_plan_image_url)
+  - 공급 호수 (supply_count), 소득 조건 (income_conditions JSONB)
+  - age_category_id 연동
+  - display_order로 탭 순서 제어
 
 **배너 관리**
 - 카테고리별 배너 등록
@@ -320,6 +329,37 @@ category_banners (
 ---
 
 ## 7. 버전 히스토리
+
+### v7.2 (2025.10.27) - 공고 상세 및 관리자 기능 통합 🎯
+- **공고 상세 시스템 구현**:
+  - Announcement Tabs (평형별 정보) 지원
+  - Section 기반 커스텀 콘텐츠 렌더링
+  - TabBar UI 구현 (announcement_tabs 연동)
+  - 캐시 무효화 전략 적용
+- **관리자 인터페이스 개선**:
+  - 연령 카테고리 관리 (CRUD + SVG 업로드)
+  - Announcement Types 관리
+  - Storage 업로드 절차 문서화
+  - TypeScript 타입 안전성 강화
+- **문서화**:
+  - [공고 상세 명세](docs/prd/announcement-detail-spec.md)
+  - [관리자 기능 가이드](docs/prd/admin-features.md)
+  - [DB 스키마 v2](docs/database/schema-v2.md)
+  - [테스팅 가이드 업데이트](docs/development/testing-guide.md)
+- **Phase 2 연기**: Phase 2 기능들을 phase2_disabled/로 이동
+
+### v7.1 (2025.10.27) - 백오피스 TypeScript 에러 대청소 🎉
+- **98개 → 12개 에러 해결** (88% 감소, 2.5시간 소요)
+- **문서화 완료**: 백오피스 개발 가이드 + 트러블슈팅 가이드
+- **핵심 수정**:
+  - DB 스키마 불일치 해결 (icon→icon_url, sort_order→display_order, background_color 제거)
+  - 미사용 코드 정리 (TS6133 에러)
+  - Null 처리 개선 (?? 연산자 일관성)
+  - 중복 파일 제거 (BannerManager.tsx)
+- **파일 변경**: +228 / -756 (코드 -528 lines)
+- 관련 문서:
+  - [백오피스 개발 가이드](docs/prd/admin-development-guide.md)
+  - [TypeScript 에러 트러블슈팅](docs/troubleshooting/admin-typescript-errors.md)
 
 ### v7.0 (2025.10.27) - DB 스키마 재구성 ⭐
 - **에이전트 제약 추가** (금지/허용 명확화)

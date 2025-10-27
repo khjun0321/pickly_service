@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/announcement.dart';
+import '../models/announcement_tab.dart';
+import '../models/announcement_section.dart';
 import '../exceptions/announcement_exception.dart';
 
 /// 공고 데이터 Repository
@@ -130,6 +132,45 @@ class AnnouncementRepository {
     } catch (e) {
       // 조회수 증가 실패는 무시 (사용자 경험에 영향 없음)
       print('Failed to increment view count: $e');
+    }
+  }
+
+  /// 공고 탭 목록 조회 (평형별/연령별)
+  Future<List<AnnouncementTab>> getAnnouncementTabs(String announcementId) async {
+    try {
+      final response = await _client
+          .from('announcement_tabs')
+          .select()
+          .eq('announcement_id', announcementId)
+          .order('display_order', ascending: true);
+
+      return (response as List)
+          .map((json) => AnnouncementTab.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  /// 공고 섹션 목록 조회 (모듈식)
+  Future<List<AnnouncementSection>> getAnnouncementSections(String announcementId) async {
+    try {
+      final response = await _client
+          .from('announcement_sections')
+          .select()
+          .eq('announcement_id', announcementId)
+          .eq('is_visible', true)
+          .order('display_order', ascending: true);
+
+      return (response as List)
+          .map((json) => AnnouncementSection.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
     }
   }
 }

@@ -1,0 +1,49 @@
+name: pickly-onboarding-universal
+coordinator: pickly-onboarding-coordinator
+parallel: true
+memory: true
+
+screens:
+  - id: "001"
+    config: ".claude/screens/001-personal-info.json"
+  - id: "002"
+    config: ".claude/screens/002-region-select.json"
+  - id: "003"
+    config: ".claude/screens/003-age-category.json"
+  - id: "004"
+    config: ".claude/screens/004-income-level.json"
+  - id: "005"
+    config: ".claude/screens/005-interests.json"
+
+phase_database:
+  - agent: onboarding-database-manager
+    goal: "통합 스키마 생성"
+
+phase_common:
+  - agent: onboarding-screen-builder
+    goal: "공통 위젯 생성"
+  - agent: onboarding-state-manager
+    goal: "공통 Repository"
+
+phase_screens:
+  parallel: true
+  for_each: screens
+  tasks:
+    - agent: onboarding-screen-builder
+      goal: "화면 생성 (${screen.id})"
+    - agent: onboarding-state-manager
+      goal: "상태 관리 (${screen.id})"
+    - agent: onboarding-admin-builder
+      goal: "백오피스 (manageable인 경우)"
+
+phase_testing:
+  - agent: onboarding-integration-tester
+    goal: "전체 플로우 테스트"
+
+validation:
+  code_quality:
+    - flutter analyze: 0 errors
+  performance:
+    - 화면 전환 < 300ms
+  testing:
+    - 커버리지 > 80%

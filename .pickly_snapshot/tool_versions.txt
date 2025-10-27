@@ -1,0 +1,19 @@
+flutter --version:
+Flutter 3.35.4 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision d693b4b9db (6 weeks ago) • 2025-09-16 14:27:41 +0000
+Engine • hash feee8ee8fb8b975dd9990f86d3bda11e6e75faf3 (revision c298091351) (1 months ago) • 2025-09-15 14:04:24.000Z
+Tools • Dart 3.9.2 • DevTools 2.48.0
+
+dart --version:
+Dart SDK version: 3.9.2 (stable) (Wed Aug 27 03:49:40 2025 -0700) on "macos_arm64"
+
+melos --version:
+Resolving dependencies...
+Downloading packages...
+  melos 7.1.1 (7.3.0 available)
+  mustache_template 2.0.1 (2.0.2 available)
+Got dependencies!
+2 packages have newer versions incompatible with dependency constraints.
+Try `dart pub outdated` for more information.
+7.1.1
+There is a new version of melos available (7.3.0).

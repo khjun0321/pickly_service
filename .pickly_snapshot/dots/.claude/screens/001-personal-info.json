@@ -1,0 +1,56 @@
+{
+  "id": "001",
+  "name": "personal-info",
+  "title": "기본 정보를 입력해주세요",
+  "subtitle": "정확한 정책 추천을 위해 필요합니다",
+  "step": 1,
+  "totalSteps": 5,
+  
+  "dataSource": {
+    "table": "user_profiles",
+    "type": "form",
+    "saveFields": ["name", "age", "gender"]
+  },
+  
+  "ui": {
+    "type": "form",
+    "fields": [
+      {
+        "name": "name",
+        "type": "text",
+        "label": "이름",
+        "required": true
+      },
+      {
+        "name": "age",
+        "type": "number",
+        "label": "나이",
+        "required": true,
+        "min": 1,
+        "max": 120
+      },
+      {
+        "name": "gender",
+        "type": "radio",
+        "label": "성별",
+        "required": true,
+        "options": [
+          { "value": "male", "label": "남성" },
+          { "value": "female", "label": "여성" }
+        ]
+      }
+    ]
+  },
+  
+  "validation": {
+    "allFieldsRequired": true
+  },
+  
+  "navigation": {
+    "next": "/onboarding/002-region"
+  },
+  
+  "admin": {
+    "manageable": false
+  }
+}

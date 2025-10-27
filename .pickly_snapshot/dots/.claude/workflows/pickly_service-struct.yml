@@ -1,0 +1,13 @@
+id: pickly_service-struct
+name: "Pickly 구조 생성"
+description: "screen_registry.yaml 기반으로 화면 구조 생성"
+steps:
+  - type: coder
+    name: "Generate structure"
+    goal: |
+      docs/prd/screen_registry.yaml을 읽고 아래를 생성:
+      - apps/pickly_mobile/lib/features/{feature}/presentation/{name}_page.dart
+      - apps/pickly_mobile/lib/features/{feature}/controller/{name}_controller.dart
+      - apps/pickly_mobile/lib/features/{feature}/widgets/placeholder.dart
+      - apps/pickly_mobile/lib/router.dart에 각 route 등록
+      대상: id=0,100,110,120,200 모든 화면.

@@ -1,0 +1,28 @@
+name: pickly_service_repo
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+
+dev_dependencies:
+  melos: ^7.1.1
+
+melos:
+  name: pickly_service
+  repository: https://github.com/khjun0321/pickly_service
+
+  packages:
+    - apps/**
+    - packages/**
+
+  scripts:
+    bootstrap: |
+      dart --version
+      flutter --version
+      melos list
+      melos exec -- "flutter pub get"
+
+    analyze:
+      run: melos exec -- "flutter analyze"
+
+    test:
+      run: melos exec --dir-exists="test" -- "flutter test"

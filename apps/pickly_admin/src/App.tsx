@@ -17,6 +17,8 @@ import BenefitAnnouncementList from '@/pages/benefits/BenefitAnnouncementList'
 import BenefitAnnouncementForm from '@/pages/benefits/BenefitAnnouncementForm'
 import BenefitCategoryPage from '@/pages/benefits/BenefitCategoryPage'
 import AnnouncementEditCompletePage from '@/pages/benefits/AnnouncementEditCompletePage'
+import AgeCategoriesPage from '@/pages/age-categories/AgeCategoriesPage'
+import AnnouncementTypesPage from '@/pages/announcement-types/AnnouncementTypesPage'
 
 function App() {
   return (
@@ -39,6 +41,8 @@ function App() {
               <Route path="categories" element={<CategoryList />} />
               <Route path="categories/new" element={<CategoryForm />} />
               <Route path="categories/:id/edit" element={<CategoryForm />} />
+              <Route path="age-categories" element={<AgeCategoriesPage />} />
+              <Route path="announcement-types" element={<AnnouncementTypesPage />} />
               <Route path="benefits/:categorySlug" element={<BenefitCategoryPage />} />
               <Route path="benefits/categories" element={<BenefitCategoryList />} />
               <Route path="benefits/announcements" element={<BenefitAnnouncementList />} />

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 
@@ -23,8 +22,6 @@ class AnnouncementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('yyyy.MM.dd');
-
     return Container(
       decoration: BoxDecoration(
         color: SurfaceColors.base,
@@ -81,16 +78,7 @@ class AnnouncementCard extends StatelessWidget {
                     child: _StatusBadge(status: announcement.status),
                   ),
 
-                  // D-day 배지 (우상단)
-                  if (announcement.applicationPeriodEnd != null &&
-                      !announcement.hasDeadlinePassed)
-                    Positioned(
-                      top: Spacing.md,
-                      right: Spacing.md,
-                      child: _DDayBadge(
-                        deadline: announcement.applicationPeriodEnd!,
-                      ),
-                    ),
+                  // D-day 배지 제거 (applicationPeriodEnd 필드 제거됨)
                 ],
               ),
 
@@ -101,10 +89,9 @@ class AnnouncementCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 기관명
-                  if (announcement.agency != null ||
-                      announcement.organization != null) ...[
+                  if (announcement.organization != null) ...[
                     Text(
-                      announcement.agency ?? announcement.organization!,
+                      announcement.organization!,
                       style: PicklyTypography.captionMidium.copyWith(
                         color: TextColors.secondary,
                       ),
@@ -138,39 +125,11 @@ class AnnouncementCard extends StatelessWidget {
                     ),
                   ],
 
-                  // 요약
-                  if (announcement.summary != null) ...[
-                    const SizedBox(height: Spacing.sm),
-                    Text(
-                      announcement.summary!,
-                      style: PicklyTypography.bodySmall.copyWith(
-                        color: TextColors.tertiary,
-                        height: 1.4,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-
                   const SizedBox(height: Spacing.md),
 
-                  // 하단 정보: 마감일
+                  // 하단 정보: 조회수
                   Row(
                     children: [
-                      if (announcement.applicationPeriodEnd != null) ...[
-                        Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: TextColors.tertiary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '마감: ${dateFormat.format(announcement.applicationPeriodEnd!)}',
-                          style: PicklyTypography.captionSmall.copyWith(
-                            color: TextColors.tertiary,
-                          ),
-                        ),
-                      ],
                       const Spacer(),
                       // 조회수
                       Icon(
@@ -199,7 +158,7 @@ class AnnouncementCard extends StatelessWidget {
 
 /// 상태 배지 위젯
 class _StatusBadge extends StatelessWidget {
-  final AnnouncementStatus status;
+  final String status;
 
   const _StatusBadge({required this.status});
 
@@ -207,23 +166,28 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     Color backgroundColor;
     Color textColor;
+    String label;
 
     switch (status) {
-      case AnnouncementStatus.recruiting:
+      case 'recruiting':
         backgroundColor = const Color(0xFFC6ECFF);
         textColor = const Color(0xFF5090FF);
+        label = '모집중';
         break;
-      case AnnouncementStatus.closed:
+      case 'closed':
         backgroundColor = const Color(0xFFE0E0E0);
         textColor = const Color(0xFF757575);
+        label = '마감';
         break;
-      case AnnouncementStatus.upcoming:
+      case 'upcoming':
         backgroundColor = const Color(0xFFE3F2FD);
         textColor = const Color(0xFF2196F3);
+        label = '예정';
         break;
       default:
         backgroundColor = const Color(0xFFE0E0E0);
         textColor = const Color(0xFF757575);
+        label = '알 수 없음';
     }
 
     return Container(
@@ -236,51 +200,10 @@ class _StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(9999),
       ),
       child: Text(
-        status.label,
+        label,
         style: PicklyTypography.captionSmall.copyWith(
           color: textColor,
           fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-/// D-day 배지 위젯
-class _DDayBadge extends StatelessWidget {
-  final DateTime deadline;
-
-  const _DDayBadge({required this.deadline});
-
-  @override
-  Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final difference = deadline.difference(now).inDays;
-
-    // D-day 텍스트 생성
-    String dDayText;
-    if (difference == 0) {
-      dDayText = 'D-Day';
-    } else if (difference > 0) {
-      dDayText = 'D-$difference';
-    } else {
-      return const SizedBox.shrink(); // 마감된 경우 표시 안함
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 4,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2E2E2E),
-        borderRadius: BorderRadius.circular(9999),
-      ),
-      child: Text(
-        dDayText,
-        style: PicklyTypography.captionSmall.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
         ),
       ),
     );

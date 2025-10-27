@@ -2,37 +2,76 @@ name: pickly_service
 repository: https://github.com/khjun0321/pickly_service
 
 packages:
-  - apps/**
-  - packages/**
+  - apps/*
+  - packages/*
 
 command:
   bootstrap:
+    runPubGetInParallel: true
+    runPubGetOffline: false
     usePubspecOverrides: true
+
+  version:
+    branch: main
+    message: "chore(release): publish packages"
 
 scripts:
   analyze:
-    run: flutter analyze
+    description: Run static analysis on all packages
+    run: flutter analyze --fatal-infos --fatal-warnings
     exec:
-      concurrency: 1
+      concurrency: 4
+      failFast: true
 
   test:
-    run: flutter test
+    description: Run tests on all packages
+    run: flutter test --no-pub --reporter=expanded
     exec:
-      concurrency: 1
+      concurrency: 4
+      failFast: true
+    packageFilters:
+      dirExists: test
 
   build:android:
+    description: Build Android app bundle
     run: flutter build appbundle
     exec:
       concurrency: 1
     packageFilters:
       dirExists: android
 
+  build:ios:
+    description: Build iOS app
+    run: flutter build ios --no-codesign
+    exec:
+      concurrency: 1
+    packageFilters:
+      dirExists: ios
+
   format:
+    description: Format all Dart code
     run: dart format .
+    exec:
+      concurrency: 4
+
+  format:check:
+    description: Check code formatting
+    run: dart format --set-exit-if-changed .
+    exec:
+      concurrency: 4
+
+  check:
+    description: Run analyze and test
+    run: melos run analyze --no-select && melos run test --no-select
+
+  clean:
+    description: Clean all packages
+    run: flutter clean
     exec:
       concurrency: 1
 
-  check:
-    run: |
-      melos analyze && melos test
-    description: Run analyze and test
+  get:
+    description: Run pub get on all packages
+    run: flutter pub get
+    exec:
+      concurrency: 4

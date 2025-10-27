@@ -13,6 +13,19 @@
   - UI 타입별 설정
   - SelectionListItem 사용 예시 🆕
   - Figma 워크플로우 🆕
+- [백오피스 개발 가이드](prd/admin-development-guide.md) 🆕
+  - TypeScript 타입 안전성 원칙
+  - DB 스키마 동기화
+  - 자주 발생하는 에러 해결
+  - Git 커밋 가이드
+  - 성공 사례: 98개→12개 에러 해결
+
+### 트러블슈팅
+- [백오피스 TypeScript 에러 트러블슈팅](troubleshooting/admin-typescript-errors.md) 🆕
+  - 빠른 진단 체크리스트
+  - TOP 5 에러 타입별 해결법
+  - 파일별 트러블슈팅
+  - 대규모 에러 해결 전략
 
 ### 아키텍처
 - [공통 에이전트 아키텍처](architecture/common-agent-architecture.md) ⭐
@@ -51,6 +64,12 @@
 ---
 
 ## 📰 Recent Updates
+
+### 2025.10.27 - 백오피스 TypeScript 에러 대청소 🎉
+- **98개 → 12개 에러 해결** (88% 감소, 2.5시간 소요)
+- 주요 수정: DB 스키마 불일치 70%, 미사용 코드 15%, Null 처리 15%
+- 백오피스 개발 가이드 + 트러블슈팅 문서 추가
+- 상세 내용: [백오피스 개발 가이드](prd/admin-development-guide.md)
 
 ### 2025.10.27 - DB 스키마 v2.0 리팩토링 ⭐
 - **8개 테이블로 단순화** (Phase 1 MVP)

@@ -1,0 +1,2 @@
+origin	https://github.com/khjun0321/pickly_service.git (fetch)
+origin	https://github.com/khjun0321/pickly_service.git (push)

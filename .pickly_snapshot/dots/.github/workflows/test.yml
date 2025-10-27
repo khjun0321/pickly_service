@@ -1,0 +1,62 @@
+name: TDD Gate (Flutter + Boundaries)
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+concurrency:
+  group: tdd-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # 0) 소스 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 1) Flutter 설치 (stable 채널)
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Show versions
+        run: |
+          flutter --version
+          dart --version
+
+      # 2) 루트에서 melos 받기 (melos 7.x는 루트 pubspec.yaml에 존재해야 함)
+      - name: Install root dependencies (melos)
+        run: flutter pub get
+        working-directory: .
+
+      # 3) 워크스페이스 부트스트랩 (apps/**, packages/** 전체 의존성 설치)
+      - name: Melos bootstrap
+        run: |
+          dart pub global activate melos
+          melos bootstrap -v
+
+      # 4) 아키텍처 경계 검사 (contexts ↔ features 금지)
+      - name: Enforce boundaries
+        run: ./scripts/enforce-boundaries.sh
+        shell: bash
+
+      # 5) 정적 분석 (모든 패키지)
+      - name: Analyze
+        run: melos exec -- "flutter analyze"
+
+      # 6) 테스트 (test 폴더가 있는 패키지만 실행)
+        # apps/pickly_mobile/test/smoke_test.dart 덕분에 최소 1건은 보장
+      - name: Test
+        run: melos exec --dir-exists="test" -- "flutter test --no-pub --reporter=expanded"

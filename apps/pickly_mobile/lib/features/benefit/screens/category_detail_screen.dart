@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 
-import '../../../contexts/benefit/models/announcement.dart';
-import '../../../contexts/benefit/models/benefit_category.dart';
 import '../../../core/router.dart';
 import '../../benefits/providers/category_banner_provider.dart';
 import '../providers/announcement_provider.dart';
@@ -79,11 +77,19 @@ class CategoryDetailScreen extends ConsumerWidget {
                         );
                       }
 
-                      // display_order 기준 정렬 (오름차순)
+                      // display_priority와 createdAt 기준 정렬
                       final sortedAnnouncements = [...announcements]
                         ..sort((a, b) {
-                          // display_order가 없는 경우 createdAt으로 정렬
-                          return a.createdAt.compareTo(b.createdAt);
+                          // display_priority로 먼저 정렬 (내림차순)
+                          final priorityCompare =
+                              b.displayPriority.compareTo(a.displayPriority);
+                          if (priorityCompare != 0) return priorityCompare;
+
+                          // 우선순위가 같으면 createdAt으로 정렬 (최신순)
+                          if (a.createdAt == null && b.createdAt == null) return 0;
+                          if (a.createdAt == null) return 1;
+                          if (b.createdAt == null) return -1;
+                          return b.createdAt!.compareTo(a.createdAt!);
                         });
 
                       return SliverPadding(

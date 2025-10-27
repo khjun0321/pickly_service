@@ -1,0 +1,167 @@
+name: pickly_service-admin-complete
+version: 1.0.0
+description: React + TypeScript + Supabase 백오피스 자동 생성 워크플로우
+coordinator: pickly_service-mesh-coordinator
+
+# 전역 설정
+globals:
+  project_root: apps/pickly_admin
+  tech_stack:
+    frontend: React 18 + TypeScript 5 + Vite 5
+    ui: MUI 5
+    backend: Supabase
+    state: TanStack Query v5
+    forms: React Hook Form + Zod
+
+# 실행 모드
+execution:
+  mode: sequential
+
+# Phase 정의
+phases:
+  # ========================================
+  # Phase 1: 프로젝트 초기화
+  # ========================================
+  - name: init
+    description: React 프로젝트 생성 및 기본 설정
+    tasks:
+      - id: init-1
+        name: Vite 프로젝트 생성
+        agent: pickly_service-admin-builder
+        priority: critical
+
+      - id: init-2
+        name: 폴더 구조 생성
+        agent: pickly_service-struct-architect
+        priority: critical
+
+      - id: init-3
+        name: 패키지 설치
+        agent: pickly_service-admin-builder
+        priority: critical
+
+      - id: init-4
+        name: 환경 변수 설정
+        agent: pickly_service-admin-builder
+        priority: critical
+
+  # ========================================
+  # Phase 2: Supabase 연동
+  # ========================================
+  - name: database
+    description: Supabase 클라이언트 및 API 설정
+    depends_on: [init]
+    tasks:
+      - id: db-1
+        name: Supabase 클라이언트
+        agent: pickly_service-admin-builder
+        priority: critical
+
+      - id: db-2
+        name: 데이터베이스 타입
+        agent: pickly_service-admin-builder
+        priority: critical
+
+      - id: db-3
+        name: API 함수
+        agent: pickly_service-admin-builder
+        priority: critical
+
+  # ========================================
+  # Phase 3: 테마 & 레이아웃
+  # ========================================
+  - name: layout
+    description: MUI 테마 및 레이아웃 컴포넌트
+    depends_on: [database]
+    tasks:
+      - id: layout-1
+        name: MUI 테마
+        agent: pickly_service-admin-builder
+        priority: high
+
+      - id: layout-2
+        name: 레이아웃 컴포넌트
+        agent: pickly_service-admin-builder
+        priority: high
+
+  # ========================================
+  # Phase 4: 인증
+  # ========================================
+  - name: auth
+    description: 로그인 및 인증 기능
+    depends_on: [layout]
+    tasks:
+      - id: auth-1
+        name: useAuth 훅
+        agent: pickly_service-admin-builder
+        priority: critical
+
+      - id: auth-2
+        name: 로그인 페이지
+        agent: pickly_service-admin-builder
+        priority: critical
+
+      - id: auth-3
+        name: PrivateRoute
+        agent: pickly_service-admin-builder
+        priority: high
+
+  # ========================================
+  # Phase 5: 정책 CRUD
+  # ========================================
+  - name: policies
+    description: 정책 목록 및 등록/수정 기능
+    depends_on: [auth]
+    tasks:
+      - id: policy-1
+        name: 대시보드
+        agent: pickly_service-admin-builder
+        priority: medium
+
+      - id: policy-2
+        name: 정책 목록
+        agent: pickly_service-admin-builder
+        priority: critical
+
+      - id: policy-3
+        name: 정책 폼
+        agent: pickly_service-admin-builder
+        priority: critical
+
+  # ========================================
+  # Phase 6: 라우팅 통합
+  # ========================================
+  - name: routing
+    description: App.tsx 라우팅 설정
+    depends_on: [policies]
+    tasks:
+      - id: routing-1
+        name: App.tsx
+        agent: pickly_service-admin-builder
+        priority: critical
+
+# ========================================
+# 검증 조건
+# ========================================
+completion_criteria:
+  required:
+    - npm_run_dev_works: true
+    - login_works: true
+    - policy_crud_works: true
+    - supabase_connected: true
+
+# ========================================
+# 출력 요약
+# ========================================
+output:
+  summary:
+    - "✅ React + TypeScript 프로젝트"
+    - "✅ Supabase 연동"
+    - "✅ MUI 테마"
+    - "✅ 로그인 기능"
+    - "✅ 정책 CRUD"
+    - "✅ 대시보드"
+
+  urls:
+    - "로컬: http://localhost:5173"
+    - "Supabase: http://127.0.0.1:54321"

@@ -1,21 +1,50 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'announcement.g.dart';
+
 /// 혜택 공고 모델 (PRD v7.0 기준)
 /// 기본 정보만 포함, 상세 정보는 announcement_sections로 이동
+@JsonSerializable(fieldRename: FieldRename.snake)
 class Announcement {
   final String id;
   final String title;
   final String? subtitle;
   final String? organization;
+
+  @JsonKey(name: 'category_id')
   final String? categoryId;
+
+  @JsonKey(name: 'subcategory_id')
   final String? subcategoryId;
+
+  @JsonKey(name: 'thumbnail_url')
   final String? thumbnailUrl;
+
+  @JsonKey(name: 'external_url')
   final String? externalUrl;
+
+  @JsonKey(defaultValue: 'draft')
   final String status;
+
+  @JsonKey(name: 'is_featured', defaultValue: false)
   final bool isFeatured;
+
+  @JsonKey(name: 'is_home_visible', defaultValue: false)
   final bool isHomeVisible;
+
+  @JsonKey(name: 'display_priority', defaultValue: 0)
   final int displayPriority;
+
+  @JsonKey(name: 'views_count', defaultValue: 0)
   final int viewsCount;
+
+  @JsonKey(defaultValue: [])
   final List<String> tags;
+
+  @JsonKey(name: 'created_at')
   final DateTime? createdAt;
+
+  @JsonKey(name: 'updated_at')
   final DateTime? updatedAt;
 
   const Announcement({
@@ -37,57 +66,10 @@ class Announcement {
     this.updatedAt,
   });
 
-  factory Announcement.fromJson(Map<String, dynamic> json) {
-    return Announcement(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      subtitle: json['subtitle'] as String?,
-      organization: json['organization'] as String?,
-      categoryId: json['categoryId'] as String? ?? json['category_id'] as String?,
-      subcategoryId: json['subcategoryId'] as String? ?? json['subcategory_id'] as String?,
-      thumbnailUrl: json['thumbnailUrl'] as String? ?? json['thumbnail_url'] as String?,
-      externalUrl: json['externalUrl'] as String? ?? json['external_url'] as String?,
-      status: json['status'] as String? ?? 'draft',
-      isFeatured: json['isFeatured'] as bool? ?? json['is_featured'] as bool? ?? false,
-      isHomeVisible: json['isHomeVisible'] as bool? ?? json['is_home_visible'] as bool? ?? false,
-      displayPriority: json['displayPriority'] as int? ?? json['display_priority'] as int? ?? 0,
-      viewsCount: json['viewsCount'] as int? ?? json['views_count'] as int? ?? 0,
-      tags: json['tags'] != null
-          ? List<String>.from(json['tags'] as List)
-          : const [],
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'] as String)
-          : json['created_at'] != null
-              ? DateTime.parse(json['created_at'] as String)
-              : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'] as String)
-          : json['updated_at'] != null
-              ? DateTime.parse(json['updated_at'] as String)
-              : null,
-    );
-  }
+  factory Announcement.fromJson(Map<String, dynamic> json) =>
+      _$AnnouncementFromJson(json);
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'subtitle': subtitle,
-      'organization': organization,
-      'categoryId': categoryId,
-      'subcategoryId': subcategoryId,
-      'thumbnailUrl': thumbnailUrl,
-      'externalUrl': externalUrl,
-      'status': status,
-      'isFeatured': isFeatured,
-      'isHomeVisible': isHomeVisible,
-      'displayPriority': displayPriority,
-      'viewsCount': viewsCount,
-      'tags': tags,
-      'createdAt': createdAt?.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toJson() => _$AnnouncementToJson(this);
 
   /// 공고 상태 표시용
   String get statusDisplay {
@@ -117,6 +99,10 @@ class Announcement {
 
   /// formattedAnnouncementDate alias (backward compatibility)
   String get formattedAnnouncementDate => formattedDate;
+
+  /// 썸네일 또는 기본 이미지
+  String get thumbnailOrDefault =>
+      thumbnailUrl ?? 'https://via.placeholder.com/400x200?text=No+Image';
 
   Announcement copyWith({
     String? id,

@@ -1,0 +1,50 @@
+67ecb98 refactor(mobile): convert Announcement model to regular Dart class per PRD v7.0
+347e78f fix(admin): resolve all TypeScript build errors (98 → 0)
+ce9542d fix: resolve 30 TypeScript errors - 42→12 (71% reduction)
+580530a docs: 리팩토링 완료 문서 추가
+5233590 refactor: DB 스키마 v2.0 + 코드 동기화
+1e5501a refactor(flutter): 테이블명 변경 및 모델 필드 추가
+8687a35 refactor(db): DB 스키마 v2.0 - 올바른 구조로 교체
+222c936 docs: PRD 파일 중복 정리
+3e329ee docs: PRD v7.0 + 에이전트 제약 추가 (2025.10.27)
+f5c81ee backup: 현재 작업 상태 저장 - DB/백오피스 포함
+0da74fa feat(ui): add LH announcement navigation from home and benefits
+bf8d3f7 feat(api): integrate LH housing announcement API
+6e90254 feat(infra): add API integration automation infrastructure
+aab31c1 feat(benefits): sync categories across app and admin with complete SVG support
+f908609 feat(benefits): synchronize category names between admin and mobile app
+dce7602 feat(benefits): add complete benefit announcement backoffice system
+0499f54 chore(admin): add agent definitions and workflow for admin panel development
+f333755 feat(admin): implement complete React admin panel for Pickly service
+bfccdac feat(benefits): add region and age category selection bottom sheets
+0b484cc docs: update onboarding flow documentation
+9832e35 debug(onboarding): add storage provider logging for onboarding state tracking
+57d02a9 refactor(onboarding): exclude start screen and configure splash for direct onboarding flow
+57582b2 chore: update region selection screen
+76331d0 refine(home): adjust gradient and Mr. Pick character styling
+6e30584 docs: update README with home screen implementation details
+cc62870 feat(home): implement scroll animations with blur effect and gradient background
+514ff3d feat(design-system): add bottom navigation bar (GNB) component
+9195d00 feat(design-system): add reusable SearchBar component
+41d37e0 fix(onboarding): use Notifier instead of StateNotifier for Riverpod 3.0
+138031a feat(onboarding): implement local storage and home screen
+db81a0a refactor(design-system): use SVG icons for AppHeader navigation
+ecaa5e6 fix(onboarding): align bottom elements position between screens
+877f2e4 chore: update router and progress bar, add example directory (v6.1)
+b49dc8f docs: update documentation for component restructuring (v6.1)
+3478725 refactor(onboarding): update age category screen imports (v6.1)
+fc11d8b refactor(design-system): move selection widgets to Design System (v6.1)
+24c35a5 feat(design-system): add AppHeader component with three variants (v6.1)
+62754d9 refactor(onboarding): move AppHeader inside SafeArea for title alignment (v6.1)
+2c0f3a9 feat(onboarding): implement region selection screen with multi-selection (v6.0)
+d1bcf86 feat(onboarding): create reusable SelectionChip component (v5.7)
+76b0483 refactor(onboarding): extract checkmark into reusable component (v5.6)
+0c34218 feat(onboarding): implement single-selection policy for age category (v5.5)
+d62456b fix(onboarding): improve age category screen spacing and layout (v5.4.5)
+e580e95 fix(onboarding): reduce spacing between title and card list (v5.4.4)
+2dbcc79 fix(onboarding): align age category screen with Figma design (v5.4.3)
+58d963a refactor(v5.4.2): Figma 디자인 세부 조정 - 레이아웃 개선
+47135fa fix(v5.4.1): Figma 디자인 매칭 - OnboardingHeader 제거
+352fc02 feat(v5.4): 구조 개선 및 온보딩 화면 완성 - Claude Flow 통합
+269252e refactor(v5.4): complete component cleanup and organization
+d95fcbe refactor(v5.2): 프로젝트 구조 정리 및 라우팅 개선
