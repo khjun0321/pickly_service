@@ -51,5 +51,8 @@ export 'widgets/scrollbars/pickly_scrollbar.dart';
 // Widgets - Chips
 export 'widgets/chips/status_chip.dart';
 
+// Widgets - Images
+export 'widgets/images/category_icon.dart';
+
 // Components - Selection
 export 'src/components/selection/selection_list_item.dart';

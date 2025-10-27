@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/core/router.dart';
-import 'package:pickly_mobile/contexts/benefit/models/benefit_announcement.dart';
+import 'package:pickly_mobile/contexts/benefit/models/announcement.dart';
 import '../providers/benefit_announcement_provider.dart';
 
 /// Housing category content (주거 카테고리 컨텐츠)
@@ -82,7 +82,7 @@ class _HousingCategoryContentState extends ConsumerState<HousingCategoryContent>
                   return PolicyListCard(
                     imageUrl: announcement.thumbnailUrl ?? '',
                     title: announcement.title,
-                    organization: announcement.organization,
+                    organization: announcement.organization ?? '',
                     postedDate: announcement.formattedAnnouncementDate,
                     status: announcement.isRecruiting
                         ? RecruitmentStatus.recruiting
@@ -140,7 +140,7 @@ class _HousingCategoryContentState extends ConsumerState<HousingCategoryContent>
   }
 
   /// Get filtered announcements based on selected tab
-  List<BenefitAnnouncement> _getFilteredAnnouncements(List<BenefitAnnouncement> announcements) {
+  List<Announcement> _getFilteredAnnouncements(List<Announcement> announcements) {
     switch (_filterIndex) {
       case 0: // 등록순 (all announcements, sorted by announcement date)
         return announcements;

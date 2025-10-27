@@ -1,16 +1,8 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/announcement.dart';
 import '../exceptions/announcement_exception.dart';
-
-part 'announcement_repository.g.dart';
-
-/// 공고 Repository Provider
-@riverpod
-AnnouncementRepository announcementRepository(AnnouncementRepositoryRef ref) {
-  return AnnouncementRepository(Supabase.instance.client);
-}
 
 /// 공고 데이터 Repository
 class AnnouncementRepository {
@@ -141,3 +133,8 @@ class AnnouncementRepository {
     }
   }
 }
+
+/// 공고 Repository Provider
+final announcementRepositoryProvider = Provider<AnnouncementRepository>((ref) {
+  return AnnouncementRepository(Supabase.instance.client);
+});

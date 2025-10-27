@@ -1,155 +1,158 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+/// 혜택 공고 모델 (PRD v7.0 기준)
+/// 기본 정보만 포함, 상세 정보는 announcement_sections로 이동
+class Announcement {
+  final String id;
+  final String title;
+  final String? subtitle;
+  final String? organization;
+  final String? categoryId;
+  final String? subcategoryId;
+  final String? thumbnailUrl;
+  final String? externalUrl;
+  final String status;
+  final bool isFeatured;
+  final bool isHomeVisible;
+  final int displayPriority;
+  final int viewsCount;
+  final List<String> tags;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-part 'announcement.freezed.dart';
-part 'announcement.g.dart';
+  const Announcement({
+    required this.id,
+    required this.title,
+    this.subtitle,
+    this.organization,
+    this.categoryId,
+    this.subcategoryId,
+    this.thumbnailUrl,
+    this.externalUrl,
+    this.status = 'draft',
+    this.isFeatured = false,
+    this.isHomeVisible = false,
+    this.displayPriority = 0,
+    this.viewsCount = 0,
+    this.tags = const [],
+    this.createdAt,
+    this.updatedAt,
+  });
 
-/// 혜택 공고 모델
-/// LH 공공임대, 복지 혜택 등의 공고 정보를 담는 모델
-@freezed
-class Announcement with _$Announcement {
-  const factory Announcement({
-    required String id,
-    required String categoryId,
-    required String title,
+  factory Announcement.fromJson(Map<String, dynamic> json) {
+    return Announcement(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      subtitle: json['subtitle'] as String?,
+      organization: json['organization'] as String?,
+      categoryId: json['categoryId'] as String? ?? json['category_id'] as String?,
+      subcategoryId: json['subcategoryId'] as String? ?? json['subcategory_id'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String? ?? json['thumbnail_url'] as String?,
+      externalUrl: json['externalUrl'] as String? ?? json['external_url'] as String?,
+      status: json['status'] as String? ?? 'draft',
+      isFeatured: json['isFeatured'] as bool? ?? json['is_featured'] as bool? ?? false,
+      isHomeVisible: json['isHomeVisible'] as bool? ?? json['is_home_visible'] as bool? ?? false,
+      displayPriority: json['displayPriority'] as int? ?? json['display_priority'] as int? ?? 0,
+      viewsCount: json['viewsCount'] as int? ?? json['views_count'] as int? ?? 0,
+      tags: json['tags'] != null
+          ? List<String>.from(json['tags'] as List)
+          : const [],
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : json['created_at'] != null
+              ? DateTime.parse(json['created_at'] as String)
+              : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'] as String)
+              : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'subtitle': subtitle,
+      'organization': organization,
+      'categoryId': categoryId,
+      'subcategoryId': subcategoryId,
+      'thumbnailUrl': thumbnailUrl,
+      'externalUrl': externalUrl,
+      'status': status,
+      'isFeatured': isFeatured,
+      'isHomeVisible': isHomeVisible,
+      'displayPriority': displayPriority,
+      'viewsCount': viewsCount,
+      'tags': tags,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
+  }
+
+  /// 공고 상태 표시용
+  String get statusDisplay {
+    switch (status) {
+      case 'recruiting':
+        return '모집중';
+      case 'closed':
+        return '마감';
+      case 'draft':
+        return '임시저장';
+      default:
+        return '알 수 없음';
+    }
+  }
+
+  /// 모집 중 여부
+  bool get isRecruiting => status == 'recruiting';
+
+  /// 마감 여부
+  bool get isClosed => status == 'closed';
+
+  /// 날짜 포맷 (YYYY.MM.DD)
+  String get formattedDate {
+    if (createdAt == null) return '날짜 미정';
+    return '${createdAt!.year}.${createdAt!.month.toString().padLeft(2, '0')}.${createdAt!.day.toString().padLeft(2, '0')}';
+  }
+
+  /// formattedAnnouncementDate alias (backward compatibility)
+  String get formattedAnnouncementDate => formattedDate;
+
+  Announcement copyWith({
+    String? id,
+    String? title,
     String? subtitle,
     String? organization,
-    DateTime? applicationPeriodStart,
-    DateTime? applicationPeriodEnd,
-    DateTime? announcementDate,
-    @Default(AnnouncementStatus.draft) AnnouncementStatus status,
-    @Default(false) bool isFeatured,
-    @Default(false) bool isHomeVisible,
-    @Default(0) int displayPriority,
-    @Default(0) int viewsCount,
-    String? summary,
+    String? categoryId,
+    String? subcategoryId,
     String? thumbnailUrl,
     String? externalUrl,
-    String? externalId,
-    @Default([]) List<String> tags,
-    DateTime? publishedAt,
-    required DateTime createdAt,
-    required DateTime updatedAt,
-    @Default({}) Map<String, dynamic> customData,
-    String? description,
-    String? content,
-    String? agency,
-    String? contactInfo,
-    DateTime? deadline,
-    @Default(0) int displayOrder,
-    @Default(0) int bookmarkCount,
-    @Default([]) List<String> targetGroups,
-  }) = _Announcement;
-
-  factory Announcement.fromJson(Map<String, dynamic> json) =>
-      _$AnnouncementFromJson(json);
-
-  const Announcement._();
-
-  bool get isPublished => status == AnnouncementStatus.recruiting ||
-                          status == AnnouncementStatus.upcoming ||
-                          status == AnnouncementStatus.closed;
-  bool get isDraft => status == AnnouncementStatus.draft;
-  bool get isRecruiting => status == AnnouncementStatus.recruiting;
-  bool get isClosed => status == AnnouncementStatus.closed;
-
-  bool get isApplicationPeriod {
-    final now = DateTime.now();
-    if (applicationPeriodStart != null && applicationPeriodEnd != null) {
-      return now.isAfter(applicationPeriodStart!) && now.isBefore(applicationPeriodEnd!);
-    }
-    return false;
-  }
-
-  bool get hasDeadlinePassed {
-    if (deadline != null) {
-      return DateTime.now().isAfter(deadline!);
-    }
-    if (applicationPeriodEnd != null) {
-      return DateTime.now().isAfter(applicationPeriodEnd!);
-    }
-    return false;
-  }
-
-  T? getCustomField<T>(String key) => customData[key] as T?;
-
-  int? get unitCount => getCustomField<int>('unit_count');
-  String? get location => getCustomField<String>('location');
-  String? get housingType => getCustomField<String>('housing_type');
-  String? get supplyType => getCustomField<String>('supply_type');
-  double? get supplyPrice => getCustomField<num>('supply_price')?.toDouble();
-  String? get eligibilityIncome => getCustomField<String>('eligibility_income');
-  String? get eligibilityAsset => getCustomField<String>('eligibility_asset');
-  int? get minAge => getCustomField<int>('min_age');
-  int? get maxAge => getCustomField<int>('max_age');
-  List<String>? get eligibleRegions =>
-      getCustomField<List<dynamic>>('eligible_regions')?.cast<String>();
-  String? get applicationMethod => getCustomField<String>('application_method');
-  String? get applicationUrl => getCustomField<String>('application_url');
-  String? get requiredDocuments => getCustomField<String>('required_documents');
-  String? get selectionProcess => getCustomField<String>('selection_process');
-  DateTime? get moveInDate {
-    final dateStr = getCustomField<String>('move_in_date');
-    return dateStr != null ? DateTime.tryParse(dateStr) : null;
-  }
-}
-
-/// 공고 상태
-enum AnnouncementStatus {
-  /// 임시저장
-  @JsonValue('draft')
-  draft,
-
-  /// 모집중
-  @JsonValue('recruiting')
-  recruiting,
-
-  /// 예정
-  @JsonValue('upcoming')
-  upcoming,
-
-  /// 마감
-  @JsonValue('closed')
-  closed;
-
-  /// 상태 표시용 라벨
-  String get label {
-    switch (this) {
-      case AnnouncementStatus.draft:
-        return '임시저장';
-      case AnnouncementStatus.recruiting:
-        return '모집중';
-      case AnnouncementStatus.upcoming:
-        return '예정';
-      case AnnouncementStatus.closed:
-        return '마감';
-    }
-  }
-
-  /// 상태별 색상 (Material Design Color)
-  String get colorHex {
-    switch (this) {
-      case AnnouncementStatus.draft:
-        return '#757575'; // Grey
-      case AnnouncementStatus.recruiting:
-        return '#4CAF50'; // Green
-      case AnnouncementStatus.upcoming:
-        return '#2196F3'; // Blue
-      case AnnouncementStatus.closed:
-        return '#F44336'; // Red
-    }
-  }
-
-  /// 상태별 아이콘 이모지
-  String get emoji {
-    switch (this) {
-      case AnnouncementStatus.draft:
-        return '⚫';
-      case AnnouncementStatus.recruiting:
-        return '🟢';
-      case AnnouncementStatus.upcoming:
-        return '🔵';
-      case AnnouncementStatus.closed:
-        return '🔴';
-    }
+    String? status,
+    bool? isFeatured,
+    bool? isHomeVisible,
+    int? displayPriority,
+    int? viewsCount,
+    List<String>? tags,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Announcement(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      subtitle: subtitle ?? this.subtitle,
+      organization: organization ?? this.organization,
+      categoryId: categoryId ?? this.categoryId,
+      subcategoryId: subcategoryId ?? this.subcategoryId,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      externalUrl: externalUrl ?? this.externalUrl,
+      status: status ?? this.status,
+      isFeatured: isFeatured ?? this.isFeatured,
+      isHomeVisible: isHomeVisible ?? this.isHomeVisible,
+      displayPriority: displayPriority ?? this.displayPriority,
+      viewsCount: viewsCount ?? this.viewsCount,
+      tags: tags ?? this.tags,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }
