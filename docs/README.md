@@ -41,7 +41,35 @@
   - 제품 요구사항 정의
   - 기능 목록
   - 로드맵
-  - v5.1 업데이트 (2025.10.11) 🆕
+  - v7.0 업데이트 (2025.10.27) 🔥
+- [DB 리팩토링 v2.0 완료 보고서](REFACTORING_SUMMARY.md) 🆕
+  - 작업 요약
+  - 완료된 변경사항
+  - 알려진 이슈
+  - 다음 단계
+
+---
+
+## 📰 Recent Updates
+
+### 2025.10.27 - DB 스키마 v2.0 리팩토링 ⭐
+- **8개 테이블로 단순화** (Phase 1 MVP)
+- **모듈식 공고 시스템** (announcement_sections, announcement_tabs)
+- **에이전트 제약 추가** (PRD v7.0)
+- **코드 동기화**: Flutter Repository + 백오피스 API/타입
+- 상세 내용: [REFACTORING_SUMMARY.md](REFACTORING_SUMMARY.md)
+- 관련 이슈: [백오피스 필드 불일치 해결](ISSUE_ADMIN_FIELD_MISMATCH.md)
+
+### 2025.10.15 - 홈 화면 및 네비게이션 구현
+- 스크롤 기반 애니메이션 (헤더 페이드아웃, Mr. Pick 캐릭터 애니메이션)
+- iOS 스타일 블러 효과 및 그라데이션 배경
+- PopularPolicyCard 컴포넌트 추가
+- PicklyBottomNavigationBar 구현
+
+### 2025.10.11 - PRD v5.1 업데이트
+- 온보딩 아키텍처 문서화
+- 공통 컴포넌트 정리
+- Component Structure Guide 추가
 
 ---
 
