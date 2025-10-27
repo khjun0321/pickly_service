@@ -1,0 +1,153 @@
+# Pickly v5.4 Hybrid Workflow
+# Structure cleanup + Screen development + Documentation
+
+name: v5.4-hybrid-workflow
+version: 1.0.0
+description: "구조 정리 + 화면 개발 + 문서화 통합 워크플로우"
+
+# Swarm configuration
+swarm:
+  topology: mesh
+  max_agents: 6
+  strategy: adaptive
+  coordination: auto
+
+# Agent groups by priority
+groups:
+  structure:
+    priority: critical
+    agents:
+      - asset-centralizer
+      - import-path-fixer
+
+  development:
+    priority: high
+    depends_on: [structure]
+    agents:
+      - start-screen-builder
+      - age-category-builder
+
+  docs:
+    priority: medium
+    depends_on: [structure]
+    agents:
+      - doc-writer
+      - test-writer
+
+# Tasks definition
+tasks:
+  # === Critical: Structure Cleanup ===
+  - id: centralize-assets
+    name: "에셋 중앙화"
+    agent: asset-centralizer
+    group: structure
+    description: "모든 에셋을 design system 패키지로 이동"
+    inputs:
+      source_dirs:
+        - "apps/pickly_mobile/assets"
+        - "apps/pickly_mobile/lib/features/onboarding/assets"
+      target_dir: "packages/pickly_design_system/assets"
+      update_pubspec: true
+    outputs:
+      - "packages/pickly_design_system/assets/**"
+      - "packages/pickly_design_system/pubspec.yaml"
+
+  - id: fix-imports
+    name: "Import 경로 표준화"
+    agent: import-path-fixer
+    group: structure
+    depends_on: [centralize-assets]
+    description: "상대 경로 → 절대 경로 변환"
+    inputs:
+      scan_dirs:
+        - "apps/pickly_mobile/lib"
+      pattern: "import\\s+['\"]\\.\\./"
+      replace_with: "package:pickly_mobile/"
+    outputs:
+      - "apps/pickly_mobile/lib/**/*.dart"
+
+  # === High: Screen Development ===
+  - id: start-screen
+    name: "Start Screen 개발"
+    agent: start-screen-builder
+    group: development
+    description: "온보딩 시작 화면 구현"
+    inputs:
+      figma_spec: "v5.4-start-screen.figma"
+      route_path: "/onboarding/start"
+      design_system: "packages/pickly_design_system"
+    outputs:
+      - "apps/pickly_mobile/lib/features/onboarding/screens/start_screen.dart"
+      - "apps/pickly_mobile/test/features/onboarding/screens/start_screen_test.dart"
+
+  - id: age-category-screen
+    name: "Age Category Screen 개선"
+    agent: age-category-builder
+    group: development
+    description: "연령대 선택 화면 완성"
+    inputs:
+      existing_file: "apps/pickly_mobile/lib/features/onboarding/screens/age_category_screen.dart"
+      provider_file: "apps/pickly_mobile/lib/features/onboarding/providers/age_category_provider.dart"
+      repository_file: "apps/pickly_mobile/lib/contexts/user/repositories/age_category_repository.dart"
+    outputs:
+      - "apps/pickly_mobile/lib/features/onboarding/screens/age_category_screen.dart"
+      - "apps/pickly_mobile/test/features/onboarding/screens/age_category_screen_test.dart"
+
+  # === Medium: Documentation ===
+  - id: docs
+    name: "아키텍처 문서 작성"
+    agent: doc-writer
+    group: docs
+    description: "프로젝트 구조 및 컨벤션 문서화"
+    inputs:
+      project_root: "."
+      existing_docs:
+        - "docs/PRD.md"
+        - "docs/architecture/project-structure-guide.md"
+    outputs:
+      - "docs/architecture/project-structure.md"
+      - "docs/architecture/import-conventions.md"
+
+  - id: tests
+    name: "위젯 테스트 작성"
+    agent: test-writer
+    group: docs
+    depends_on: [start-screen, age-category-screen]
+    description: "새로 만든 화면의 테스트 작성"
+    inputs:
+      test_coverage_target: 80
+      screens:
+        - "apps/pickly_mobile/lib/features/onboarding/screens/start_screen.dart"
+        - "apps/pickly_mobile/lib/features/onboarding/screens/age_category_screen.dart"
+    outputs:
+      - "apps/pickly_mobile/test/features/onboarding/screens/start_screen_test.dart"
+      - "apps/pickly_mobile/test/features/onboarding/screens/age_category_screen_test.dart"
+
+# Verification steps
+verification:
+  - command: "flutter pub get"
+    description: "의존성 설치"
+  - command: "flutter analyze"
+    description: "정적 분석"
+  - command: "flutter test"
+    description: "테스트 실행"
+  - command: "flutter run"
+    description: "앱 실행 확인"
+
+# Memory and coordination
+memory:
+  persist: true
+  shared_context:
+    - design_system_components
+    - import_paths
+    - screen_specifications
+  export_path: ".claude/memory/v5.4-session.json"
+
+# Hooks integration
+hooks:
+  pre_task:
+    - "npx claude-flow@alpha hooks pre-task"
+  post_task:
+    - "npx claude-flow@alpha hooks post-task"
+  session_end:
+    - "npx claude-flow@alpha hooks session-end --export-metrics true"

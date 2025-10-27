@@ -1,0 +1,218 @@
+.housing-type-editor {
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.housing-type-editor .editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.housing-type-editor .editor-header h3 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.housing-type-editor .btn-add-type {
+  padding: 10px 20px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.housing-type-editor .btn-add-type:hover {
+  background: #1976D2;
+}
+
+.housing-type-editor .housing-type-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.housing-type-editor .type-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.housing-type-editor .type-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.housing-type-editor .tab-label-input {
+  font-size: 20px;
+  font-weight: 700;
+  border: none;
+  border-bottom: 2px solid #2196F3;
+  padding: 4px 0;
+  color: #1976D2;
+}
+
+.housing-type-editor .tab-label-input:focus {
+  outline: none;
+  border-bottom-color: #0D47A1;
+}
+
+.housing-type-editor .area-label-input {
+  font-size: 14px;
+  color: #666;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  padding: 4px 0;
+}
+
+.housing-type-editor .area-label-input:focus {
+  outline: none;
+  border-bottom-color: #2196F3;
+}
+
+.housing-type-editor .btn-delete-type {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef5350;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.housing-type-editor .btn-delete-type:hover {
+  background: #c62828;
+  color: white;
+}
+
+.housing-type-editor .type-fields {
+  margin-bottom: 20px;
+}
+
+.housing-type-editor .type-fields label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.housing-type-editor .type-fields select {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.housing-type-editor .sections-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.housing-type-editor .generic-section-editor {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.housing-type-editor .generic-section-editor .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.housing-type-editor .generic-section-editor h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.housing-type-editor .toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.housing-type-editor .fields-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.housing-type-editor .field-item {
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.housing-type-editor .field-label {
+  font-weight: 600;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  padding: 4px;
+  font-size: 14px;
+}
+
+.housing-type-editor .field-label:focus {
+  outline: none;
+  border-bottom-color: #2196F3;
+}
+
+.housing-type-editor .field-value {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.housing-type-editor .field-value:focus {
+  outline: none;
+  border-color: #2196F3;
+}
+
+.housing-type-editor .visibility {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.housing-type-editor .empty-state {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+}
+
+.housing-type-editor .empty-state p {
+  color: #999;
+  font-size: 16px;
+  margin-bottom: 16px;
+}

@@ -163,6 +163,7 @@ class PicklyTypography {
   static const double size14 = 14.0;
   static const double size15 = 15.0;
   static const double size16 = 16.0;
+  static const double size17 = 17.0;
   static const double size18 = 18.0;
   static const double size22 = 22.0;
 
@@ -189,6 +190,13 @@ class PicklyTypography {
     fontSize: size18,
     fontWeight: bold,
     height: lineHeight24 / size18,
+  );
+
+  static const TextStyle titleSmall = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: size17,
+    fontWeight: bold,
+    height: lineHeight24 / size17,
   );
 
   static const TextStyle bodyMedium = TextStyle(
@@ -224,6 +232,13 @@ class PicklyTypography {
     fontSize: size12,
     fontWeight: semibold,
     height: lineHeight18 / size12,
+  );
+
+  static const TextStyle captionMidium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: size14,
+    fontWeight: semibold,
+    height: lineHeight20 / size14,
   );
 
   static const TextStyle buttonLarge = TextStyle(
