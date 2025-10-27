@@ -22,7 +22,7 @@ export const FileUploaderExample: React.FC = () => {
     // Use the files in your form submission
     console.log('Submitting with files:', files);
     // Example: Save file references to database
-    // await saveBenefitAnnouncement({ files });
+    // await saveAnnouncement({ files });
   };
 
   return (
@@ -98,7 +98,7 @@ export const FileUploaderExample: React.FC = () => {
 };
 
 /**
- * Integration with BenefitAnnouncementForm:
+ * Integration with AnnouncementForm:
  *
  * import { FileUploader, AnnouncementFile } from '@/components/shared';
  *
@@ -114,7 +114,7 @@ export const FileUploaderExample: React.FC = () => {
  *
  * // On form submit, save file references to database:
  * const handleSubmit = async (formData) => {
- *   await supabase.from('benefit_announcements').insert({
+ *   await supabase.from('announcements').insert({
  *     ...formData,
  *     files: announcementFiles, // or save to separate announcement_files table
  *   });

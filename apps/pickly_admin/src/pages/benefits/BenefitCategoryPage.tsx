@@ -15,7 +15,7 @@ import toast from 'react-hot-toast'
 import { Download as DownloadIcon } from '@mui/icons-material'
 import { supabase } from '@/lib/supabase'
 import {
-  deleteAnnouncement as deleteBenefitAnnouncement,
+  deleteAnnouncement as deleteAnnouncement,
   fetchLHAnnouncements
 } from '@/api/announcements'
 import MultiBannerManager from '@/components/benefits/MultiBannerManager'
@@ -116,7 +116,7 @@ export default function BenefitCategoryPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: deleteBenefitAnnouncement,
+    mutationFn: deleteAnnouncement,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['benefit-announcements'] })
       toast.success('공고가 삭제되었습니다')

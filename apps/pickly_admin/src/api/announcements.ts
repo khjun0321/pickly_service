@@ -1,8 +1,8 @@
 import { supabase } from '@/lib/supabase'
 import type {
-  BenefitAnnouncement,
-  BenefitAnnouncementInsert,
-  BenefitAnnouncementUpdate
+  Announcement,
+  AnnouncementInsert,
+  AnnouncementUpdate
 } from '@/types/database'
 
 export interface AnnouncementFilters {
@@ -22,7 +22,7 @@ export async function fetchAnnouncements(filters?: AnnouncementFilters) {
   console.log('📦 Fetching announcements with filters:', filters)
 
   let query = supabase
-    .from('benefit_announcements')
+    .from('announcements')
     .select('*')
 
   // Apply filters
@@ -55,7 +55,7 @@ export async function fetchAnnouncements(filters?: AnnouncementFilters) {
   }
 
   console.log('✅ Fetched announcements:', data?.length)
-  return data as BenefitAnnouncement[]
+  return data as Announcement[]
 }
 
 /**
@@ -67,7 +67,7 @@ export async function fetchAnnouncementById(id: string) {
   console.log('📦 Fetching announcement by ID:', id)
 
   const { data, error } = await supabase
-    .from('benefit_announcements')
+    .from('announcements')
     .select(`
       *,
       benefit_categories (
@@ -121,11 +121,11 @@ export async function fetchAnnouncementById(id: string) {
  * @param announcement - Announcement data to create
  * @returns Created announcement
  */
-export async function createAnnouncement(announcement: BenefitAnnouncementInsert) {
+export async function createAnnouncement(announcement: AnnouncementInsert) {
   console.log('🔨 Creating announcement:', announcement.title)
 
   const { data, error } = await supabase
-    .from('benefit_announcements')
+    .from('announcements')
     // @ts-expect-error - Supabase type inference issue
     .insert(announcement)
     .select()
@@ -140,7 +140,7 @@ export async function createAnnouncement(announcement: BenefitAnnouncementInsert
   }
 
   console.log('✅ Created announcement:', data?.id)
-  return data as BenefitAnnouncement
+  return data as Announcement
 }
 
 /**
@@ -149,11 +149,11 @@ export async function createAnnouncement(announcement: BenefitAnnouncementInsert
  * @param announcement - Partial announcement data to update
  * @returns Updated announcement
  */
-export async function updateAnnouncement(id: string, announcement: BenefitAnnouncementUpdate) {
+export async function updateAnnouncement(id: string, announcement: AnnouncementUpdate) {
   console.log('🔄 Updating announcement:', id, announcement)
 
   const { data, error } = await supabase
-    .from('benefit_announcements')
+    .from('announcements')
     // @ts-expect-error - Supabase type inference issue
     .update(announcement)
     .eq('id', id)
@@ -171,7 +171,7 @@ export async function updateAnnouncement(id: string, announcement: BenefitAnnoun
   }
 
   console.log('✅ Updated announcement:', data?.id)
-  return data as BenefitAnnouncement
+  return data as Announcement
 }
 
 /**
@@ -182,7 +182,7 @@ export async function deleteAnnouncement(id: string) {
   console.log('🗑️ Deleting announcement:', id)
 
   const { error } = await supabase
-    .from('benefit_announcements')
+    .from('announcements')
     .delete()
     .eq('id', id)
 
@@ -206,7 +206,7 @@ export async function fetchAnnouncementsByCategory(categoryId: string) {
   console.log('📦 Fetching announcements for category:', categoryId)
 
   const { data, error } = await supabase
-    .from('benefit_announcements')
+    .from('announcements')
     .select('*')
     .eq('category_id', categoryId)
     .eq('is_active', true)
@@ -221,7 +221,7 @@ export async function fetchAnnouncementsByCategory(categoryId: string) {
   }
 
   console.log('✅ Fetched announcements for category:', data?.length)
-  return data as BenefitAnnouncement[]
+  return data as Announcement[]
 }
 
 /**
@@ -302,7 +302,7 @@ export async function fetchAllAnnouncements() {
   try {
     // Fetch from both tables in parallel
     const [benefitData, lhData] = await Promise.all([
-      supabase.from('benefit_announcements').select('*').order('created_at', { ascending: false }),
+      supabase.from('announcements').select('*').order('created_at', { ascending: false }),
       supabase.from('announcements').select('*').order('created_at', { ascending: false })
     ])
 

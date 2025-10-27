@@ -6,415 +6,574 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      user_profiles: {
-        Row: {
-          id: string
-          user_id: string | null
-          name: string | null
-          age: number | null
-          gender: string | null
-          region_sido: string | null
-          region_sigungu: string | null
-          selected_categories: string[] | null
-          income_level: string | null
-          interest_policies: string[] | null
-          onboarding_completed: boolean
-          onboarding_step: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id?: string | null
-          name?: string | null
-          age?: number | null
-          gender?: string | null
-          region_sido?: string | null
-          region_sigungu?: string | null
-          selected_categories?: string[] | null
-          income_level?: string | null
-          interest_policies?: string[] | null
-          onboarding_completed?: boolean
-          onboarding_step?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string | null
-          name?: string | null
-          age?: number | null
-          gender?: string | null
-          region_sido?: string | null
-          region_sigungu?: string | null
-          selected_categories?: string[] | null
-          income_level?: string | null
-          interest_policies?: string[] | null
-          onboarding_completed?: boolean
-          onboarding_step?: number
-          created_at?: string
-          updated_at?: string
-        }
-      }
       age_categories: {
         Row: {
-          id: string
-          title: string
+          created_at: string | null
           description: string
           icon_component: string
           icon_url: string | null
-          min_age: number | null
+          id: string
+          is_active: boolean | null
           max_age: number | null
-          sort_order: number
-          is_active: boolean
-          created_at: string
-          updated_at: string
+          min_age: number | null
+          sort_order: number | null
+          title: string
+          updated_at: string | null
         }
         Insert: {
-          id?: string
-          title: string
+          created_at?: string | null
           description: string
           icon_component: string
           icon_url?: string | null
-          min_age?: number | null
+          id?: string
+          is_active?: boolean | null
           max_age?: number | null
-          sort_order?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
+          min_age?: number | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string | null
         }
         Update: {
-          id?: string
-          title?: string
+          created_at?: string | null
           description?: string
           icon_component?: string
           icon_url?: string | null
-          min_age?: number | null
+          id?: string
+          is_active?: boolean | null
           max_age?: number | null
-          sort_order?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      benefit_categories: {
-        Row: {
-          id: string
-          name: string
-          slug: string
-          description: string | null
-          icon_url: string | null
-          banner_image_url: string | null
-          banner_link_url: string | null
-          display_order: number
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          slug: string
-          description?: string | null
-          icon_url?: string | null
-          banner_image_url?: string | null
-          banner_link_url?: string | null
-          display_order?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          slug?: string
-          description?: string | null
-          icon_url?: string | null
-          banner_image_url?: string | null
-          banner_link_url?: string | null
-          display_order?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      benefit_announcements: {
-        Row: {
-          id: string
-          category_id: string
-          title: string
-          subtitle: string | null
-          organization: string | null
-          application_period_start: string | null
-          application_period_end: string | null
-          announcement_date: string | null
-          status: string
-          is_featured: boolean
-          views_count: number
-          summary: string | null
-          thumbnail_url: string | null
-          external_url: string | null
-          tags: string[] | null
-          search_vector: string | null
-          created_at: string
-          updated_at: string
-          published_at: string | null
-        }
-        Insert: {
-          id?: string
-          category_id: string
-          title: string
-          subtitle?: string | null
-          organization?: string | null
-          application_period_start?: string | null
-          application_period_end?: string | null
-          announcement_date?: string | null
-          status?: string
-          is_featured?: boolean
-          views_count?: number
-          summary?: string | null
-          thumbnail_url?: string | null
-          external_url?: string | null
-          tags?: string[] | null
-          search_vector?: string | null
-          created_at?: string
-          updated_at?: string
-          published_at?: string | null
-        }
-        Update: {
-          id?: string
-          category_id?: string
+          min_age?: number | null
+          sort_order?: number | null
           title?: string
-          subtitle?: string | null
-          organization?: string | null
-          application_period_start?: string | null
-          application_period_end?: string | null
-          announcement_date?: string | null
-          status?: string
-          is_featured?: boolean
-          views_count?: number
-          summary?: string | null
-          thumbnail_url?: string | null
-          external_url?: string | null
-          tags?: string[] | null
-          search_vector?: string | null
-          created_at?: string
-          updated_at?: string
-          published_at?: string | null
+          updated_at?: string | null
         }
-      }
-      announcement_unit_types: {
-        Row: {
-          id: string
-          announcement_id: string
-          unit_type: string
-          supply_area: number | null
-          exclusive_area: number | null
-          supply_count: number | null
-          monthly_rent: number | null
-          deposit: number | null
-          maintenance_fee: number | null
-          floor_info: string | null
-          direction: string | null
-          room_structure: string | null
-          additional_info: Json | null
-          sort_order: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          announcement_id: string
-          unit_type: string
-          supply_area?: number | null
-          exclusive_area?: number | null
-          supply_count?: number | null
-          monthly_rent?: number | null
-          deposit?: number | null
-          maintenance_fee?: number | null
-          floor_info?: string | null
-          direction?: string | null
-          room_structure?: string | null
-          additional_info?: Json | null
-          sort_order?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          announcement_id?: string
-          unit_type?: string
-          supply_area?: number | null
-          exclusive_area?: number | null
-          supply_count?: number | null
-          monthly_rent?: number | null
-          deposit?: number | null
-          maintenance_fee?: number | null
-          floor_info?: string | null
-          direction?: string | null
-          room_structure?: string | null
-          additional_info?: Json | null
-          sort_order?: number
-          created_at?: string
-          updated_at?: string
-        }
+        Relationships: []
       }
       announcement_sections: {
         Row: {
+          announcement_id: string | null
+          content: Json
+          created_at: string | null
+          display_order: number
           id: string
-          announcement_id: string
+          is_visible: boolean | null
           section_type: string
-          title: string
-          content: string
-          sort_order: number
-          metadata: Json | null
-          created_at: string
-          updated_at: string
+          title: string | null
+          updated_at: string | null
         }
         Insert: {
+          announcement_id?: string | null
+          content: Json
+          created_at?: string | null
+          display_order?: number
           id?: string
-          announcement_id: string
+          is_visible?: boolean | null
           section_type: string
-          title: string
-          content: string
-          sort_order?: number
-          metadata?: Json | null
-          created_at?: string
-          updated_at?: string
+          title?: string | null
+          updated_at?: string | null
         }
         Update: {
+          announcement_id?: string | null
+          content?: Json
+          created_at?: string | null
+          display_order?: number
           id?: string
-          announcement_id?: string
+          is_visible?: boolean | null
           section_type?: string
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_sections_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcement_tabs: {
+        Row: {
+          additional_info: Json | null
+          age_category_id: string | null
+          announcement_id: string | null
+          created_at: string | null
+          display_order: number
+          floor_plan_image_url: string | null
+          id: string
+          income_conditions: Json | null
+          supply_count: number | null
+          tab_name: string
+          unit_type: string | null
+        }
+        Insert: {
+          additional_info?: Json | null
+          age_category_id?: string | null
+          announcement_id?: string | null
+          created_at?: string | null
+          display_order?: number
+          floor_plan_image_url?: string | null
+          id?: string
+          income_conditions?: Json | null
+          supply_count?: number | null
+          tab_name: string
+          unit_type?: string | null
+        }
+        Update: {
+          additional_info?: Json | null
+          age_category_id?: string | null
+          announcement_id?: string | null
+          created_at?: string | null
+          display_order?: number
+          floor_plan_image_url?: string | null
+          id?: string
+          income_conditions?: Json | null
+          supply_count?: number | null
+          tab_name?: string
+          unit_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_tabs_age_category_id_fkey"
+            columns: ["age_category_id"]
+            isOneToOne: false
+            referencedRelation: "age_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_tabs_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          display_priority: number | null
+          external_url: string | null
+          id: string
+          is_featured: boolean | null
+          is_home_visible: boolean | null
+          organization: string
+          search_vector: unknown | null
+          status: string
+          subcategory_id: string | null
+          subtitle: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          views_count: number | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          display_priority?: number | null
+          external_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_home_visible?: boolean | null
+          organization: string
+          search_vector?: unknown | null
+          status?: string
+          subcategory_id?: string | null
+          subtitle?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          display_priority?: number | null
+          external_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_home_visible?: boolean | null
+          organization?: string
+          search_vector?: unknown | null
+          status?: string
+          subcategory_id?: string | null
+          subtitle?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
           title?: string
-          content?: string
-          sort_order?: number
-          metadata?: Json | null
-          created_at?: string
-          updated_at?: string
+          updated_at?: string | null
+          views_count?: number | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      announcement_comments: {
+      benefit_categories: {
         Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number
+          icon_url: string | null
           id: string
-          announcement_id: string
-          user_id: string
-          parent_comment_id: string | null
-          content: string
-          is_anonymous: boolean
-          likes_count: number
-          is_deleted: boolean
-          created_at: string
-          updated_at: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          icon_url?: string | null
           id?: string
-          announcement_id: string
-          user_id: string
-          parent_comment_id?: string | null
-          content: string
-          is_anonymous?: boolean
-          likes_count?: number
-          is_deleted?: boolean
-          created_at?: string
-          updated_at?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          icon_url?: string | null
           id?: string
-          announcement_id?: string
-          user_id?: string
-          parent_comment_id?: string | null
-          content?: string
-          is_anonymous?: boolean
-          likes_count?: number
-          is_deleted?: boolean
-          created_at?: string
-          updated_at?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
         }
+        Relationships: []
       }
-      announcement_ai_chats: {
+      benefit_subcategories: {
         Row: {
+          category_id: string | null
+          created_at: string | null
+          display_order: number
           id: string
-          announcement_id: string
-          user_id: string
-          session_id: string
-          message: string
-          response: string
-          message_type: string
-          metadata: Json | null
-          created_at: string
+          is_active: boolean | null
+          name: string
+          slug: string
         }
         Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          display_order?: number
           id?: string
-          announcement_id: string
-          user_id: string
-          session_id: string
-          message: string
-          response: string
-          message_type?: string
-          metadata?: Json | null
-          created_at?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
         }
         Update: {
+          category_id?: string | null
+          created_at?: string | null
+          display_order?: number
           id?: string
-          announcement_id?: string
-          user_id?: string
-          session_id?: string
-          message?: string
-          response?: string
-          message_type?: string
-          metadata?: Json | null
-          created_at?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "benefit_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       category_banners: {
         Row: {
-          id: string
-          category_id: string
-          title: string
-          subtitle: string | null
-          image_url: string
-          action_url: string | null
-          background_color: string | null
+          category_id: string | null
+          created_at: string | null
           display_order: number
-          is_active: boolean
-          created_at: string
-          updated_at: string
+          end_date: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          link_url: string | null
+          start_date: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string | null
         }
         Insert: {
-          id?: string
-          category_id: string
-          title: string
-          subtitle?: string | null
-          image_url: string
-          action_url?: string | null
-          background_color?: string | null
+          category_id?: string | null
+          created_at?: string | null
           display_order?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
+          end_date?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          link_url?: string | null
+          start_date?: string | null
+          subtitle?: string | null
+          title: string
+          updated_at?: string | null
         }
         Update: {
-          id?: string
-          category_id?: string
-          title?: string | null
-          subtitle?: string | null
-          image_url?: string
-          action_url?: string | null
-          background_color?: string | null
+          category_id?: string | null
+          created_at?: string | null
           display_order?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
+          end_date?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          link_url?: string | null
+          start_date?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "category_banners_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
+      user_profiles: {
+        Row: {
+          age: number | null
+          created_at: string | null
+          gender: string | null
+          id: string
+          income_level: string | null
+          interest_policies: string[] | null
+          name: string | null
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
+          region_sido: string | null
+          region_sigungu: string | null
+          selected_categories: string[] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string | null
+          gender?: string | null
+          id?: string
+          income_level?: string | null
+          interest_policies?: string[] | null
+          name?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
+          region_sido?: string | null
+          region_sigungu?: string | null
+          selected_categories?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          age?: number | null
+          created_at?: string | null
+          gender?: string | null
+          id?: string
+          income_level?: string | null
+          interest_policies?: string[] | null
+          name?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
+          region_sido?: string | null
+          region_sigungu?: string | null
+          selected_categories?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }
 
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {},
+  },
+} as const
+
+
+// Type exports for convenience
 export type UserProfile = Database['public']['Tables']['user_profiles']['Row']
 export type AgeCategory = Database['public']['Tables']['age_categories']['Row']
 
@@ -423,25 +582,17 @@ export type BenefitCategory = Database['public']['Tables']['benefit_categories']
 export type BenefitCategoryInsert = Database['public']['Tables']['benefit_categories']['Insert']
 export type BenefitCategoryUpdate = Database['public']['Tables']['benefit_categories']['Update']
 
-export type BenefitAnnouncement = Database['public']['Tables']['benefit_announcements']['Row']
-export type BenefitAnnouncementInsert = Database['public']['Tables']['benefit_announcements']['Insert']
-export type BenefitAnnouncementUpdate = Database['public']['Tables']['benefit_announcements']['Update']
-
-export type AnnouncementUnitType = Database['public']['Tables']['announcement_unit_types']['Row']
-export type AnnouncementUnitTypeInsert = Database['public']['Tables']['announcement_unit_types']['Insert']
-export type AnnouncementUnitTypeUpdate = Database['public']['Tables']['announcement_unit_types']['Update']
+export type Announcement = Database['public']['Tables']['announcements']['Row']
+export type AnnouncementInsert = Database['public']['Tables']['announcements']['Insert']
+export type AnnouncementUpdate = Database['public']['Tables']['announcements']['Update']
 
 export type AnnouncementSection = Database['public']['Tables']['announcement_sections']['Row']
 export type AnnouncementSectionInsert = Database['public']['Tables']['announcement_sections']['Insert']
 export type AnnouncementSectionUpdate = Database['public']['Tables']['announcement_sections']['Update']
 
-export type AnnouncementComment = Database['public']['Tables']['announcement_comments']['Row']
-export type AnnouncementCommentInsert = Database['public']['Tables']['announcement_comments']['Insert']
-export type AnnouncementCommentUpdate = Database['public']['Tables']['announcement_comments']['Update']
-
-export type AnnouncementAIChat = Database['public']['Tables']['announcement_ai_chats']['Row']
-export type AnnouncementAIChatInsert = Database['public']['Tables']['announcement_ai_chats']['Insert']
-export type AnnouncementAIChatUpdate = Database['public']['Tables']['announcement_ai_chats']['Update']
+export type AnnouncementTab = Database['public']['Tables']['announcement_tabs']['Row']
+export type AnnouncementTabInsert = Database['public']['Tables']['announcement_tabs']['Insert']
+export type AnnouncementTabUpdate = Database['public']['Tables']['announcement_tabs']['Update']
 
 export type BenefitBanner = Database['public']['Tables']['category_banners']['Row']
 export type BenefitBannerInsert = Database['public']['Tables']['category_banners']['Insert']

@@ -35,7 +35,7 @@ export function InlineEditCell({
       const updateData: Record<string, string> = { [field]: newValue }
 
       const { data, error } = await supabase
-        .from('benefit_announcements')
+        .from('announcements')
         .update(updateData)
         .eq('id', announcementId)
         .select()

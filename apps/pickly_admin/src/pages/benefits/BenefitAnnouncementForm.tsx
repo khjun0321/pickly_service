@@ -21,13 +21,13 @@ import {
 import { Add as AddIcon, Delete as DeleteIcon, Upload as UploadIcon } from '@mui/icons-material'
 import toast from 'react-hot-toast'
 import {
-  fetchAnnouncementById as fetchBenefitAnnouncementById,
-  createAnnouncement as createBenefitAnnouncement,
-  updateAnnouncement as updateBenefitAnnouncement,
+  fetchAnnouncementById as fetchAnnouncementById,
+  createAnnouncement as createAnnouncement,
+  updateAnnouncement as updateAnnouncement,
 } from '@/api/announcements'
 import { supabase } from '@/lib/supabase'
 import { fetchCategories } from '@/api/categories'
-import type { BenefitAnnouncement } from '@/types/database'
+import type { Announcement } from '@/types/database'
 
 // Upload file helper function
 async function uploadFile(file: File, bucket: string, folder: string): Promise<string> {
@@ -116,7 +116,7 @@ function TabPanel(props: TabPanelProps) {
   )
 }
 
-export default function BenefitAnnouncementForm() {
+export default function AnnouncementForm() {
   const { id } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -126,7 +126,7 @@ export default function BenefitAnnouncementForm() {
 
   const { data: announcement, isLoading: announcementLoading } = useQuery({
     queryKey: ['benefit-announcement', id],
-    queryFn: () => fetchBenefitAnnouncementById(id!),
+    queryFn: () => fetchAnnouncementById(id!),
     enabled: isEdit,
   })
 
@@ -215,10 +215,10 @@ export default function BenefitAnnouncementForm() {
 
   const mutation = useMutation({
     mutationFn: (data: FormData) => {
-      const payload = data as unknown as Omit<BenefitAnnouncement, 'id' | 'created_at' | 'updated_at' | 'view_count' | 'bookmark_count'>
+      const payload = data as unknown as Omit<Announcement, 'id' | 'created_at' | 'updated_at' | 'view_count' | 'bookmark_count'>
       return isEdit
-        ? updateBenefitAnnouncement(id!, payload)
-        : createBenefitAnnouncement(payload)
+        ? updateAnnouncement(id!, payload)
+        : createAnnouncement(payload)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['benefit-announcements'] })

@@ -17,10 +17,10 @@ import { CSS } from '@dnd-kit/utilities'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { InlineEditCell } from './InlineEditCell'
-import type { BenefitAnnouncement } from '@/types/database'
+import type { Announcement } from '@/types/database'
 
 interface SortableRowProps {
-  announcement: BenefitAnnouncement
+  announcement: Announcement
   index: number
   dynamicColumns: Array<{ key: string; label: string; type?: string }>
   onEdit?: (id: string) => void

@@ -2,9 +2,9 @@
  * INTEGRATION EXAMPLE
  *
  * This file shows how to integrate the AnnouncementTable component
- * into the BenefitAnnouncementList page.
+ * into the AnnouncementList page.
  *
- * Replace the existing DataGrid in BenefitAnnouncementList.tsx with this code.
+ * Replace the existing DataGrid in AnnouncementList.tsx with this code.
  */
 
 import { useState, useMemo } from 'react'
@@ -32,8 +32,8 @@ import {
 } from '@mui/icons-material'
 import toast from 'react-hot-toast'
 import {
-  fetchAnnouncements as fetchBenefitAnnouncements,
-  deleteAnnouncement as deleteBenefitAnnouncement,
+  fetchAnnouncements as fetchAnnouncements,
+  deleteAnnouncement as deleteAnnouncement,
   fetchLHAnnouncements
 } from '@/api/announcements'
 import { AnnouncementTable } from '@/components/benefits'
@@ -46,7 +46,7 @@ const STATUS_OPTIONS = [
   { value: 'upcoming', label: '예정' },
 ]
 
-export default function BenefitAnnouncementList() {
+export default function AnnouncementList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState('all')
@@ -54,11 +54,11 @@ export default function BenefitAnnouncementList() {
 
   const { data: announcements, isLoading } = useQuery({
     queryKey: ['benefit-announcements'],
-    queryFn: fetchBenefitAnnouncements,
+    queryFn: fetchAnnouncements,
   })
 
   const deleteMutation = useMutation({
-    mutationFn: deleteBenefitAnnouncement,
+    mutationFn: deleteAnnouncement,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['benefit-announcements'] })
       toast.success('공고가 삭제되었습니다')

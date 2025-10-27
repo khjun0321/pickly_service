@@ -28,12 +28,12 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import toast from 'react-hot-toast'
 import {
-  fetchAnnouncements as fetchBenefitAnnouncements,
-  deleteAnnouncement as deleteBenefitAnnouncement,
+  fetchAnnouncements as fetchAnnouncements,
+  deleteAnnouncement as deleteAnnouncement,
   fetchLHAnnouncements,
   fetchLHStyleAnnouncements
 } from '@/api/announcements'
-import type { BenefitAnnouncement } from '@/types/database'
+import type { Announcement } from '@/types/database'
 import { Download as DownloadIcon } from '@mui/icons-material'
 
 type AnnouncementStatus = 'recruiting' | 'closed' | 'draft' | 'upcoming'
@@ -59,7 +59,7 @@ const STATUS_OPTIONS = [
   { value: 'upcoming', label: '예정' },
 ]
 
-export default function BenefitAnnouncementList() {
+export default function AnnouncementList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState('all')
@@ -67,7 +67,7 @@ export default function BenefitAnnouncementList() {
 
   const { data: benefitAnnouncements, isLoading: isBenefitLoading } = useQuery({
     queryKey: ['benefit-announcements'],
-    queryFn: () => fetchBenefitAnnouncements(),
+    queryFn: () => fetchAnnouncements(),
     enabled: viewMode === 'benefit',
   })
 
@@ -81,7 +81,7 @@ export default function BenefitAnnouncementList() {
   const isLoading = viewMode === 'benefit' ? isBenefitLoading : isLHLoading
 
   const deleteMutation = useMutation({
-    mutationFn: deleteBenefitAnnouncement,
+    mutationFn: deleteAnnouncement,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['benefit-announcements'] })
       toast.success('공고가 삭제되었습니다')

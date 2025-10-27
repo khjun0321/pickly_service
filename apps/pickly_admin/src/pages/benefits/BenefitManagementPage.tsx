@@ -13,7 +13,7 @@ import {
 import { Add as AddIcon } from '@mui/icons-material'
 import toast from 'react-hot-toast'
 import { fetchBenefitCategories } from '@/api/benefits'
-import { deleteAnnouncement as deleteBenefitAnnouncement } from '@/api/announcements'
+import { deleteAnnouncement as deleteAnnouncement } from '@/api/announcements'
 import BenefitBannerManager from '@/components/benefits/BenefitBannerManager'
 import { AnnouncementTable } from '@/components/benefits/AnnouncementTable'
 
@@ -50,7 +50,7 @@ export default function BenefitManagementPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: deleteBenefitAnnouncement,
+    mutationFn: deleteAnnouncement,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['benefit-announcements'] })
       toast.success('공고가 삭제되었습니다')

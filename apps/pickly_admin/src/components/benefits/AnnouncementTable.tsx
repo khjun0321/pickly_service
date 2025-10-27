@@ -32,7 +32,7 @@ import toast from 'react-hot-toast'
 import { SortableRow } from './SortableRow'
 import { useDynamicColumns } from './DynamicColumns'
 import { supabase } from '@/lib/supabase'
-import type { BenefitAnnouncement } from '@/types/database'
+import type { Announcement } from '@/types/database'
 
 interface AnnouncementTableProps {
   categoryId?: string
@@ -56,7 +56,7 @@ export function AnnouncementTable({
     queryKey: ['benefit-announcements', categoryId],
     queryFn: async () => {
       let query = supabase
-        .from('benefit_announcements')
+        .from('announcements')
         .select('*')
         .order('display_order', { ascending: true, nullsFirst: false })
 
@@ -66,11 +66,11 @@ export function AnnouncementTable({
 
       const { data, error } = await query
       if (error) throw error
-      return data as BenefitAnnouncement[]
+      return data as Announcement[]
     },
   })
 
-  const [items, setItems] = useState<BenefitAnnouncement[]>([])
+  const [items, setItems] = useState<Announcement[]>([])
 
   useEffect(() => {
     if (JSON.stringify(items) !== JSON.stringify(announcements)) {
