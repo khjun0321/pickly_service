@@ -91,9 +91,9 @@ export function AnnouncementTable({
 
   const { mutate: updateDisplayOrders } = useMutation({
     mutationFn: async (orders: UpdateOrdersPayload[]) => {
-      const { data, error } = await supabase.rpc('update_display_orders', {
+      const { data, error } = await (supabase.rpc as any)('update_display_orders', {
         orders,
-      } as any)
+      })
 
       if (error) throw error
       return data

@@ -229,7 +229,7 @@ export async function fetchAnnouncementsByCategory(categoryId: string) {
 export async function incrementAnnouncementViewCount(id: string) {
   console.log('👁️ Incrementing view count for announcement:', id)
 
-  const { error } = await supabase.rpc('increment_announcement_view_count', {
+  const { error } = await (supabase.rpc as any)('increment_announcement_view_count', {
     announcement_id: id
   })
 

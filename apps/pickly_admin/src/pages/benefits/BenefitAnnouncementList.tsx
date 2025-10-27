@@ -176,18 +176,18 @@ export default function AnnouncementList() {
       field: 'application_start_date',
       headerName: '신청 시작일',
       width: 140,
-      valueFormatter: (value) => {
-        if (!value) return '-'
-        return format(new Date(value), 'yyyy-MM-dd', { locale: ko })
+      valueFormatter: (params) => {
+        if (!params.value) return '-'
+        return format(new Date(params.value), 'yyyy-MM-dd', { locale: ko })
       },
     },
     {
       field: 'application_end_date',
       headerName: '신청 마감일',
       width: 140,
-      valueFormatter: (value) => {
-        if (!value) return '-'
-        return format(new Date(value), 'yyyy-MM-dd', { locale: ko })
+      valueFormatter: (params) => {
+        if (!params.value) return '-'
+        return format(new Date(params.value), 'yyyy-MM-dd', { locale: ko })
       },
     },
     {
@@ -202,9 +202,9 @@ export default function AnnouncementList() {
       field: 'created_at',
       headerName: '등록일',
       width: 140,
-      valueFormatter: (value) => {
-        if (!value) return '-'
-        return format(new Date(value), 'yyyy-MM-dd HH:mm', { locale: ko })
+      valueFormatter: (params) => {
+        if (!params.value) return '-'
+        return format(new Date(params.value), 'yyyy-MM-dd HH:mm', { locale: ko })
       },
     },
     {

@@ -14,8 +14,8 @@ import { Add as AddIcon } from '@mui/icons-material'
 import toast from 'react-hot-toast'
 import { fetchBenefitCategories } from '@/api/benefits'
 import { deleteAnnouncement as deleteAnnouncement } from '@/api/announcements'
-import BenefitBannerManager from '@/components/benefits/BenefitBannerManager'
 import { AnnouncementTable } from '@/components/benefits/AnnouncementTable'
+import BenefitBannerManager from '@/components/benefits/BenefitBannerManager'
 
 interface TabPanelProps {
   children?: React.ReactNode

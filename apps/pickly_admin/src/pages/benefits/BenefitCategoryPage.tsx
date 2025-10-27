@@ -18,8 +18,8 @@ import {
   deleteAnnouncement as deleteAnnouncement,
   fetchLHAnnouncements
 } from '@/api/announcements'
-import MultiBannerManager from '@/components/benefits/MultiBannerManager'
 import { AnnouncementTable } from '@/components/benefits/AnnouncementTable'
+import MultiBannerManager from '@/components/benefits/MultiBannerManager'
 import type { BenefitCategory } from '@/types/database'
 
 interface TabPanelProps {
