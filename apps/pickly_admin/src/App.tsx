@@ -10,13 +10,12 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import Login from '@/pages/auth/Login'
 import Dashboard from '@/pages/dashboard/Dashboard'
 import UserList from '@/pages/users/UserList'
-import CategoryList from '@/pages/categories/CategoryList'
-import CategoryForm from '@/pages/categories/CategoryForm'
 import BenefitCategoryList from '@/pages/benefits/BenefitCategoryList'
 import BenefitAnnouncementList from '@/pages/benefits/BenefitAnnouncementList'
 import BenefitAnnouncementForm from '@/pages/benefits/BenefitAnnouncementForm'
 import BenefitCategoryPage from '@/pages/benefits/BenefitCategoryPage'
 import AnnouncementEditCompletePage from '@/pages/benefits/AnnouncementEditCompletePage'
+import AgeCategoriesPage from '@/pages/age-categories/AgeCategoriesPage'
 import AnnouncementTypesPage from '@/pages/announcement-types/AnnouncementTypesPage'
 
 function App() {
@@ -37,9 +36,7 @@ function App() {
             >
               <Route index element={<Dashboard />} />
               <Route path="users" element={<UserList />} />
-              <Route path="categories" element={<CategoryList />} />
-              <Route path="categories/new" element={<CategoryForm />} />
-              <Route path="categories/:id/edit" element={<CategoryForm />} />
+              <Route path="age-categories" element={<AgeCategoriesPage />} />
               <Route path="announcement-types" element={<AnnouncementTypesPage />} />
               <Route path="benefits/:categorySlug" element={<BenefitCategoryPage />} />
               <Route path="benefits/categories" element={<BenefitCategoryList />} />

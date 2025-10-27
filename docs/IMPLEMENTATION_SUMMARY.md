@@ -1,9 +1,37 @@
 # 🎉 Pickly Service - Implementation Summary
 
-**Date**: 2025-10-27
-**Branch**: `feature/announcement-detail-and-admin-sync`
-**PRD Version**: v7.2
+**Date**: 2025-10-28 (Updated)
+**Branch**: `feature/refactor-db-schema`
+**PRD Version**: v7.2.1
 **Status**: ✅ **All Tasks Completed**
+
+---
+
+## 🆕 Latest Changes (v7.2.1 - 2025-10-28)
+
+### Admin Page Cleanup
+
+**Objective**: Remove deprecated '연령대 관리' page and unify age category management under '연령 카테고리'
+
+**Changes**:
+- ❌ **Removed**: `apps/pickly_admin/src/pages/age-categories/AgeCategoriesPage.tsx` (entire folder)
+- ❌ **Removed**: `/age-categories` route from `App.tsx`
+- ❌ **Removed**: '연령대 관리' menu item from `Sidebar.tsx`
+- ❌ **Removed**: Unused `FolderIcon` import from MUI icons
+
+**Retained**:
+- ✅ **Kept**: '연령 카테고리' page (`CategoryList` at `/categories`)
+- ✅ **Kept**: '공고 유형 관리' page (`AnnouncementTypesPage` at `/announcement-types`)
+
+**Build Verification**:
+```bash
+✓ TypeScript compilation: 0 errors
+✓ Vite production build: 4.26s
+✓ Bundle size: 1,234.66 kB (gzip: 371.68 kB)
+```
+
+**Commit**: `f5786f8`
+**Files Changed**: 8 files (99 insertions, 569 deletions)
 
 ---
 
