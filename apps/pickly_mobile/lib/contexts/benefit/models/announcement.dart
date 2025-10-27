@@ -18,6 +18,8 @@ class Announcement with _$Announcement {
     DateTime? announcementDate,
     @Default(AnnouncementStatus.draft) AnnouncementStatus status,
     @Default(false) bool isFeatured,
+    @Default(false) bool isHomeVisible,
+    @Default(0) int displayPriority,
     @Default(0) int viewsCount,
     String? summary,
     String? thumbnailUrl,

@@ -26,6 +26,8 @@ _Announcement _$AnnouncementFromJson(Map<String, dynamic> json) =>
           $enumDecodeNullable(_$AnnouncementStatusEnumMap, json['status']) ??
           AnnouncementStatus.draft,
       isFeatured: json['isFeatured'] as bool? ?? false,
+      isHomeVisible: json['isHomeVisible'] as bool? ?? false,
+      displayPriority: (json['displayPriority'] as num?)?.toInt() ?? 0,
       viewsCount: (json['viewsCount'] as num?)?.toInt() ?? 0,
       summary: json['summary'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
@@ -69,6 +71,8 @@ Map<String, dynamic> _$AnnouncementToJson(
   'announcementDate': instance.announcementDate?.toIso8601String(),
   'status': _$AnnouncementStatusEnumMap[instance.status]!,
   'isFeatured': instance.isFeatured,
+  'isHomeVisible': instance.isHomeVisible,
+  'displayPriority': instance.displayPriority,
   'viewsCount': instance.viewsCount,
   'summary': instance.summary,
   'thumbnailUrl': instance.thumbnailUrl,

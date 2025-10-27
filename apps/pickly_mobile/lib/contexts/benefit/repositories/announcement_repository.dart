@@ -26,7 +26,7 @@ class AnnouncementRepository {
   }) async {
     try {
       final response = await _client
-          .from('benefit_announcements')
+          .from('announcements')
           .select()
           .eq('category_id', categoryId)
           .order('created_at', ascending: false)
@@ -46,7 +46,7 @@ class AnnouncementRepository {
   Future<Announcement> getAnnouncementById(String id) async {
     try {
       final response = await _client
-          .from('benefit_announcements')
+          .from('announcements')
           .select()
           .eq('id', id)
           .single();
@@ -65,7 +65,7 @@ class AnnouncementRepository {
   /// 공고 실시간 구독 (카테고리별)
   Stream<List<Announcement>> watchAnnouncementsByCategory(String categoryId) {
     return _client
-        .from('benefit_announcements')
+        .from('announcements')
         .stream(primaryKey: ['id'])
         .eq('category_id', categoryId)
         .order('created_at', ascending: false)
@@ -81,7 +81,7 @@ class AnnouncementRepository {
     int limit = 50,
   }) async {
     try {
-      var queryBuilder = _client.from('benefit_announcements').select();
+      var queryBuilder = _client.from('announcements').select();
 
       if (categoryId != null) {
         queryBuilder = queryBuilder.eq('category_id', categoryId);
@@ -108,7 +108,7 @@ class AnnouncementRepository {
     String? categoryId,
   }) async {
     try {
-      var queryBuilder = _client.from('benefit_announcements').select();
+      var queryBuilder = _client.from('announcements').select();
 
       if (categoryId != null) {
         queryBuilder = queryBuilder.eq('category_id', categoryId);
