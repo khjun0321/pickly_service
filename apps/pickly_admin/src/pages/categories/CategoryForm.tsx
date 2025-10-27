@@ -69,7 +69,17 @@ export default function CategoryForm() {
 
   useEffect(() => {
     if (category) {
-      reset(category)
+      // ✅ FIXED: Map category fields to form data, ensuring type compatibility
+      reset({
+        title: category.title,
+        description: category.description,
+        icon_component: category.icon_component,
+        icon_url: category.icon_url,
+        min_age: category.min_age,
+        max_age: category.max_age,
+        sort_order: category.sort_order ?? 0, // Convert null to 0
+        is_active: category.is_active ?? true, // Convert null to true
+      })
       if (category.icon_url) {
         setIconPreview(category.icon_url)
       }
@@ -146,7 +156,7 @@ export default function CategoryForm() {
 
       return { previousCategories }
     },
-    onError: (error: Error, newData, context: any) => {
+    onError: (error: Error, _newData, context: any) => { // ✅ FIXED: Prefixed unused param with _
       // Rollback on error
       queryClient.setQueryData(['categories'], context.previousCategories)
       const message = error.message || (isEdit ? '수정에 실패했습니다' : '등록에 실패했습니다')

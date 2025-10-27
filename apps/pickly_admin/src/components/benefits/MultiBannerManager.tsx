@@ -104,7 +104,7 @@ function SortableBannerItem({ banner, onEdit, onDelete, onToggleActive }: Sortab
           height: 60,
           overflow: 'hidden',
           borderRadius: 1,
-          bgcolor: imageError ? '#f5f5f5' : banner.background_color || '#E3F2FD',
+          bgcolor: imageError ? '#f5f5f5' : '#E3F2FD', // ❌ REMOVED: banner.background_color (not in DB)
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -144,9 +144,9 @@ function SortableBannerItem({ banner, onEdit, onDelete, onToggleActive }: Sortab
             {banner.subtitle}
           </Typography>
         )}
-        {banner.action_url && (
+        {banner.link_url && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
-            🔗 {banner.action_url}
+            🔗 {banner.link_url}
           </Typography>
         )}
       </Box>
@@ -155,7 +155,7 @@ function SortableBannerItem({ banner, onEdit, onDelete, onToggleActive }: Sortab
       <FormControlLabel
         control={
           <Switch
-            checked={banner.is_active}
+            checked={banner.is_active ?? false}
             onChange={(e) => onToggleActive(banner.id, e.target.checked)}
             size="small"
           />
@@ -180,9 +180,9 @@ export default function MultiBannerManager({ category }: MultiBannerManagerProps
   const [editingBanner, setEditingBanner] = useState<BenefitBanner | null>(null)
   const [formData, setFormData] = useState({
     title: '',
-    action_url: '',
+    link_url: '',
   })
-  const [uploadingImage, setUploadingImage] = useState(false)
+  // const [uploadingImage, setUploadingImage] = useState(false) // ❌ REMOVED: Unused variables
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
 
@@ -256,9 +256,9 @@ export default function MultiBannerManager({ category }: MultiBannerManagerProps
 
       if (editingBanner) {
         const updateData: BenefitBannerUpdate = {
-          title: formData.title || null,
+          title: formData.title || undefined,
           image_url: imageUrl,
-          action_url: formData.action_url || null,
+          link_url: formData.link_url || undefined,
         }
 
         const { error } = await supabase
@@ -272,7 +272,7 @@ export default function MultiBannerManager({ category }: MultiBannerManagerProps
           category_id: category.id,
           title: formData.title || '배너',
           image_url: imageUrl,
-          action_url: formData.action_url || null,
+          link_url: formData.link_url || null,
           display_order: banners.length,
           is_active: true,
         }
@@ -370,12 +370,12 @@ export default function MultiBannerManager({ category }: MultiBannerManagerProps
       setEditingBanner(banner)
       setFormData({
         title: banner.title || '',
-        action_url: banner.action_url || '',
+        link_url: banner.link_url || '',
       })
       setImagePreview(banner.image_url)
     } else {
       setEditingBanner(null)
-      setFormData({ title: '', action_url: '' })
+      setFormData({ title: '', link_url: '' })
       setImagePreview(null)
     }
     setImageFile(null)
@@ -385,7 +385,7 @@ export default function MultiBannerManager({ category }: MultiBannerManagerProps
   const handleCloseDialog = () => {
     setDialogOpen(false)
     setEditingBanner(null)
-    setFormData({ title: '', action_url: '' })
+    setFormData({ title: '', link_url: '' })
     setImagePreview(null)
     setImageFile(null)
   }
@@ -523,8 +523,8 @@ export default function MultiBannerManager({ category }: MultiBannerManagerProps
             {/* Action URL */}
             <TextField
               label="링크 URL (선택)"
-              value={formData.action_url}
-              onChange={(e) => setFormData({ ...formData, action_url: e.target.value })}
+              value={formData.link_url}
+              onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
               placeholder="https://example.com"
               fullWidth
             />

@@ -7,7 +7,7 @@ export interface BenefitBanner {
   subtitle: string | null
   image_url: string
   link_url: string | null
-  background_color: string | null
+  // background_color: string | null // ❌ REMOVED: Not in DB schema (category_banners table)
   display_order: number
   is_active: boolean
   created_at: string
@@ -20,7 +20,7 @@ export interface BenefitBannerInsert {
   subtitle?: string | null
   image_url: string
   link_url?: string | null
-  background_color?: string | null
+  // background_color?: string | null // ❌ REMOVED: Not in DB schema
   display_order?: number
   is_active?: boolean
 }
@@ -30,7 +30,7 @@ export interface BenefitBannerUpdate {
   subtitle?: string | null
   image_url?: string
   link_url?: string | null
-  background_color?: string | null
+  // background_color?: string | null // ❌ REMOVED: Not in DB schema
   display_order?: number
   is_active?: boolean
 }
@@ -121,7 +121,6 @@ export async function createBanner(banner: BenefitBannerInsert): Promise<Benefit
 
   const { data, error } = await supabase
     .from('category_banners')
-    // @ts-expect-error - Supabase type inference issue
     .insert(banner)
     .select()
     .single()
@@ -146,7 +145,6 @@ export async function updateBanner(id: string, banner: BenefitBannerUpdate): Pro
 
   const { data, error} = await supabase
     .from('category_banners')
-    // @ts-expect-error - Supabase type inference issue
     .update(banner)
     .eq('id', id)
     .select()

@@ -53,8 +53,8 @@ export function useDynamicColumns({ categoryId }: DynamicColumnsProps) {
     // For now, return housing-specific columns for LH housing category
 
     // Placeholder for future custom_fields implementation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const customFields: Record<string, unknown> = {}
+    // ❌ REMOVED: Unused variable (reserved for future use)
+    // const customFields: Record<string, unknown> = {}
 
     if (category.slug === 'lh-housing' || category.name.includes('주택')) {
       return [

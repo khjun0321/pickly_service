@@ -30,7 +30,6 @@ export async function fetchCategoryById(id: string) {
 export async function createCategory(category: Omit<AgeCategory, 'id' | 'created_at' | 'updated_at'>) {
   const { data, error } = await supabase
     .from('age_categories')
-    // @ts-expect-error - Supabase type inference issue
     .insert(category)
     .select()
     .single()
@@ -49,7 +48,6 @@ export async function updateCategory(id: string, category: Partial<AgeCategory>)
 
   const { data, error } = await supabase
     .from('age_categories')
-    // @ts-expect-error - Supabase type inference issue
     .update(category)
     .eq('id', id)
     .select()
@@ -92,7 +90,7 @@ export async function deleteCategory(id: string) {
 export async function fetchBenefitCategories() {
   const { data, error } = await supabase
     .from('benefit_categories')
-    .select('id, name as title, slug, description, icon_url')
+    .select('id, name, slug, description, icon_url') // ✅ FIXED: Removed 'as title' alias syntax
     .eq('is_active', true)
     .order('display_order', { ascending: true })
 

@@ -35,7 +35,7 @@ export default function CategoryList() {
       // Return context with previous value
       return { previousCategories }
     },
-    onError: (error: Error, deletedId, context: any) => {
+    onError: (error: Error, _deletedId, context: any) => { // ✅ FIXED: Prefixed unused param with _
       // Rollback on error
       queryClient.setQueryData(['categories'], context.previousCategories)
       console.error('❌ Category deletion error:', error)

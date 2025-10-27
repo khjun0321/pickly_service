@@ -33,9 +33,9 @@ import type { BenefitCategory } from '@/types/database'
 const benefitCategorySchema = z.object({
   name: z.string().min(1, '카테고리 이름을 입력해주세요'),
   description: z.string().nullable().optional(),
-  icon: z.string().nullable().optional(),
-  color: z.string().nullable().optional(),
-  sort_order: z.number().min(0, '표시 순서는 0 이상이어야 합니다'),
+  // icon: z.string().nullable().optional(), // ❌ REMOVED: DB uses icon_url instead
+  // color: z.string().nullable().optional(), // ❌ REMOVED: Not in DB schema
+  display_order: z.number().min(0, '표시 순서는 0 이상이어야 합니다'),
   is_active: z.boolean(),
 })
 
@@ -56,9 +56,9 @@ export default function BenefitCategoryList() {
     defaultValues: {
       name: '',
       description: '',
-      icon: '',
-      color: '',
-      sort_order: 0,
+      // icon: '', // ❌ REMOVED
+      // color: '', // ❌ REMOVED
+      display_order: 0,
       is_active: true,
     },
   })
@@ -110,19 +110,19 @@ export default function BenefitCategoryList() {
       reset({
         name: category.name,
         description: category.description || '',
-        icon: category.icon || '',
-        color: category.color || '',
-        sort_order: category.sort_order,
-        is_active: category.is_active,
+        // icon: category.icon || '', // ❌ REMOVED
+        // color: category.color || '', // ❌ REMOVED
+        display_order: category.display_order,
+        is_active: category.is_active ?? true,
       })
     } else {
       setEditingCategory(null)
       reset({
         name: '',
         description: '',
-        icon: '',
-        color: '',
-        sort_order: categories?.length || 0,
+        // icon: '', // ❌ REMOVED
+        // color: '', // ❌ REMOVED
+        display_order: categories?.length || 0,
         is_active: true,
       })
     }
@@ -136,12 +136,15 @@ export default function BenefitCategoryList() {
   }
 
   const onSubmit = (data: BenefitCategoryFormData) => {
+    const slug = data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+
     const payload = {
       name: data.name,
+      slug: slug,
       description: data.description || null,
-      icon: data.icon || null,
-      color: data.color || null,
-      sort_order: data.sort_order,
+      // icon: data.icon || null, // ❌ REMOVED
+      // color: data.color || null, // ❌ REMOVED
+      display_order: data.display_order,
       is_active: data.is_active,
     }
 
@@ -155,9 +158,9 @@ export default function BenefitCategoryList() {
   const columns: GridColDef[] = [
     { field: 'name', headerName: '카테고리 이름', flex: 1 },
     { field: 'description', headerName: '설명', flex: 2 },
-    { field: 'icon', headerName: '아이콘', width: 120 },
-    { field: 'color', headerName: '색상', width: 100 },
-    { field: 'sort_order', headerName: '표시 순서', width: 120 },
+    // { field: 'icon', headerName: '아이콘', width: 120 }, // ❌ REMOVED: Use icon_url instead
+    // { field: 'color', headerName: '색상', width: 100 }, // ❌ REMOVED: Not in DB
+    { field: 'display_order', headerName: '표시 순서', width: 120 },
     {
       field: 'is_active',
       headerName: '활성화',
@@ -263,6 +266,8 @@ export default function BenefitCategoryList() {
                 )}
               />
 
+              {/* ❌ REMOVED: icon field - use icon_url instead */}
+              {/*
               <Controller
                 name="icon"
                 control={control}
@@ -275,7 +280,10 @@ export default function BenefitCategoryList() {
                   />
                 )}
               />
+              */}
 
+              {/* ❌ REMOVED: color field - not in DB schema */}
+              {/*
               <Controller
                 name="color"
                 control={control}
@@ -288,9 +296,10 @@ export default function BenefitCategoryList() {
                   />
                 )}
               />
+              */}
 
               <Controller
-                name="sort_order"
+                name="display_order"
                 control={control}
                 render={({ field }) => (
                   <TextField
@@ -298,8 +307,8 @@ export default function BenefitCategoryList() {
                     label="표시 순서"
                     type="number"
                     required
-                    error={!!errors.sort_order}
-                    helperText={errors.sort_order?.message}
+                    error={!!errors.display_order}
+                    helperText={errors.display_order?.message}
                     fullWidth
                     onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
                   />

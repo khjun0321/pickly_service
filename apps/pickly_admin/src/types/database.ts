@@ -179,6 +179,8 @@ export type Database = {
       }
       announcements: {
         Row: {
+          application_end_date: string | null // ✅ ADDED: Missing from DB types after refactoring
+          application_start_date: string | null // ✅ ADDED: Missing from DB types after refactoring
           category_id: string | null
           created_at: string | null
           display_priority: number | null
@@ -198,6 +200,8 @@ export type Database = {
           views_count: number | null
         }
         Insert: {
+          application_end_date?: string | null // ✅ ADDED: Missing from DB types
+          application_start_date?: string | null // ✅ ADDED: Missing from DB types
           category_id?: string | null
           created_at?: string | null
           display_priority?: number | null
@@ -217,6 +221,8 @@ export type Database = {
           views_count?: number | null
         }
         Update: {
+          application_end_date?: string | null // ✅ ADDED: Missing from DB types
+          application_start_date?: string | null // ✅ ADDED: Missing from DB types
           category_id?: string | null
           created_at?: string | null
           display_priority?: number | null

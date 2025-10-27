@@ -34,7 +34,7 @@ async function uploadFile(file: File, bucket: string, folder: string): Promise<s
   const fileExt = file.name.split('.').pop()
   const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
 
-  const { error: uploadError, data } = await supabase.storage
+  const { error: uploadError } = await supabase.storage
     .from(bucket)
     .upload(fileName, file, {
       cacheControl: '3600',
@@ -58,38 +58,42 @@ const schema = z.object({
   subtitle: z.string().nullable(),
   category_id: z.string().min(1, '카테고리를 선택하세요'),
   organization: z.string().nullable(),
-  description: z.string().nullable(),
+  // description: z.string().nullable(), // ❌ REMOVED: Use subtitle + external_url instead
   status: z.string().min(1, '상태를 선택하세요'),
-
-  // Dates
-  application_start_date: z.string().nullable(),
-  application_end_date: z.string().nullable(),
-  announcement_date: z.string().nullable(),
-  move_in_date: z.string().nullable(),
 
   // Images & Files
   thumbnail_url: z.string().nullable(),
   external_url: z.string().nullable(),
 
-  // Requirements
-  min_age: z.number().int().min(0).nullable(),
-  max_age: z.number().int().min(0).nullable(),
-  income_requirement: z.string().nullable(),
-  household_requirement: z.string().nullable(),
-  special_conditions: z.any().nullable(),
-
-  // Location & Supply
-  location: z.string().nullable(),
-  supply_count: z.number().int().min(0).nullable(),
-
-  // Contact & Documents
-  contact_info: z.any().nullable(),
-  documents_required: z.array(z.string()).nullable(),
-
   // Tags & Settings
-  tags: z.array(z.string()).nullable(),
+  tags: z.array(z.string()),
   is_featured: z.boolean(),
-  is_active: z.boolean(),
+  // is_active: z.boolean(), // ❌ REMOVED: Use status field instead
+
+  // ============================================================================
+  // 🚧 PHASE 2/3 FIELDS - Commented out until DB schema is updated
+  // ============================================================================
+
+  // // 📅 Application Dates
+  // application_start_date: z.string().nullable(),
+  // application_end_date: z.string().nullable(),
+  // announcement_date: z.string().nullable(),
+  // move_in_date: z.string().nullable(),
+
+  // // 👤 Eligibility Requirements
+  // min_age: z.number().int().min(0).nullable(),
+  // max_age: z.number().int().min(0).nullable(),
+  // income_requirement: z.string().nullable(),
+  // household_requirement: z.string().nullable(),
+  // special_conditions: z.any().nullable(),
+
+  // // 🏠 Housing Details
+  // location: z.string().nullable(),
+  // supply_count: z.number().int().min(0).nullable(),
+
+  // // 📋 Application Info
+  // contact_info: z.any().nullable(),
+  // documents_required: z.array(z.string()).nullable(),
 })
 
 type FormData = z.infer<typeof schema>
@@ -149,36 +153,40 @@ export default function AnnouncementForm() {
       subtitle: null,
       category_id: '',
       organization: null,
-      description: null,
+      // description: null, // ❌ REMOVED
       status: 'draft',
-      application_start_date: null,
-      application_end_date: null,
-      announcement_date: null,
-      move_in_date: null,
       thumbnail_url: null,
       external_url: null,
-      min_age: null,
-      max_age: null,
-      income_requirement: null,
-      household_requirement: null,
-      special_conditions: null,
-      location: null,
-      supply_count: null,
-      contact_info: null,
-      documents_required: [],
       tags: [],
       is_featured: false,
-      is_active: true,
+      // is_active: true, // ❌ REMOVED
+
+      // 🚧 PHASE 2/3 FIELDS
+      // application_start_date: null,
+      // application_end_date: null,
+      // announcement_date: null,
+      // move_in_date: null,
+      // min_age: null,
+      // max_age: null,
+      // income_requirement: null,
+      // household_requirement: null,
+      // special_conditions: null,
+      // location: null,
+      // supply_count: null,
+      // contact_info: null,
+      // documents_required: [],
     },
   })
 
-  const { fields: docFields, append: appendDoc, remove: removeDoc } = useFieldArray({
-    control,
-    name: 'documents_required',
-  })
+  // 🚧 PHASE 2/3: Documents field array commented out
+  // const { fields: docFields, append: appendDoc, remove: removeDoc } = useFieldArray({
+  //   control,
+  //   name: 'documents_required',
+  // })
 
   const { fields: tagFields, append: appendTag, remove: removeTag } = useFieldArray({
     control,
+    // @ts-ignore - Known TypeScript limitation with useFieldArray and Zod schemas
     name: 'tags',
   })
 
@@ -186,30 +194,32 @@ export default function AnnouncementForm() {
     if (announcement) {
       reset({
         title: announcement.title,
-        subtitle: announcement.subtitle,
-        category_id: announcement.category_id,
-        organization: announcement.organization,
-        description: announcement.description,
+        subtitle: announcement.subtitle || null,
+        category_id: announcement.category_id || '',
+        organization: announcement.organization || null,
+        // description: announcement.description, // ❌ REMOVED
         status: announcement.status,
-        application_start_date: announcement.application_start_date,
-        application_end_date: announcement.application_end_date,
-        announcement_date: announcement.announcement_date,
-        move_in_date: announcement.move_in_date,
-        thumbnail_url: announcement.thumbnail_url,
-        external_url: announcement.external_url,
-        min_age: announcement.min_age,
-        max_age: announcement.max_age,
-        income_requirement: announcement.income_requirement,
-        household_requirement: announcement.household_requirement,
-        special_conditions: announcement.special_conditions,
-        location: announcement.location,
-        supply_count: announcement.supply_count,
-        contact_info: announcement.contact_info,
-        documents_required: announcement.documents_required || [],
+        thumbnail_url: announcement.thumbnail_url || null,
+        external_url: announcement.external_url || null,
         tags: announcement.tags || [],
-        is_featured: announcement.is_featured,
-        is_active: announcement.is_active,
-      })
+        is_featured: announcement.is_featured ?? false,
+        // is_active: announcement.is_active, // ❌ REMOVED
+
+        // 🚧 PHASE 2/3 FIELDS
+        // application_start_date: announcement.application_start_date,
+        // application_end_date: announcement.application_end_date,
+        // announcement_date: announcement.announcement_date,
+        // move_in_date: announcement.move_in_date,
+        // min_age: announcement.min_age,
+        // max_age: announcement.max_age,
+        // income_requirement: announcement.income_requirement,
+        // household_requirement: announcement.household_requirement,
+        // special_conditions: announcement.special_conditions,
+        // location: announcement.location,
+        // supply_count: announcement.supply_count,
+        // contact_info: announcement.contact_info,
+        // documents_required: announcement.documents_required || [],
+      } as FormData)
     }
   }, [announcement, reset])
 
@@ -291,11 +301,12 @@ export default function AnnouncementForm() {
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab label="기본 정보" />
-          <Tab label="날짜" />
           <Tab label="이미지 & 링크" />
-          <Tab label="자격 요건" />
-          <Tab label="위치 & 공급" />
-          <Tab label="문서 & 연락처" />
+          {/* 🚧 PHASE 2/3 TABS - Commented out */}
+          {/* <Tab label="날짜" /> */}
+          {/* <Tab label="자격 요건" /> */}
+          {/* <Tab label="위치 & 공급" /> */}
+          {/* <Tab label="문서 & 연락처" /> */}
         </Tabs>
 
         <Box sx={{ p: 3 }}>
@@ -378,6 +389,8 @@ export default function AnnouncementForm() {
                   />
                 </Grid>
 
+                {/* ❌ REMOVED: description field - use external_url for full details */}
+                {/*
                 <Grid item xs={12}>
                   <Controller
                     name="description"
@@ -396,6 +409,7 @@ export default function AnnouncementForm() {
                     )}
                   />
                 </Grid>
+                */}
 
                 <Grid item xs={12} md={6}>
                   <Controller
@@ -440,6 +454,8 @@ export default function AnnouncementForm() {
                   />
                 </Grid>
 
+                {/* ❌ REMOVED: is_active field - use status dropdown instead */}
+                {/*
                 <Grid item xs={12} md={3}>
                   <Controller
                     name="is_active"
@@ -459,10 +475,12 @@ export default function AnnouncementForm() {
                     )}
                   />
                 </Grid>
+                */}
               </Grid>
             </TabPanel>
 
-            {/* Tab 2: Dates */}
+            {/* 🚧 PHASE 2/3: Tab 2 (Dates) - Commented out */}
+            {/*
             <TabPanel value={currentTab} index={1}>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
@@ -542,9 +560,10 @@ export default function AnnouncementForm() {
                 </Grid>
               </Grid>
             </TabPanel>
+            */}
 
-            {/* Tab 3: Images & Links */}
-            <TabPanel value={currentTab} index={2}>
+            {/* Tab 2: Images & Links (was Tab 3) */}
+            <TabPanel value={currentTab} index={1}>
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" gutterBottom>
@@ -642,7 +661,8 @@ export default function AnnouncementForm() {
               </Grid>
             </TabPanel>
 
-            {/* Tab 4: Requirements */}
+            {/* 🚧 PHASE 2/3: Tab 4 (Requirements) - Commented out */}
+            {/*
             <TabPanel value={currentTab} index={3}>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
@@ -759,8 +779,10 @@ export default function AnnouncementForm() {
                 </Grid>
               </Grid>
             </TabPanel>
+            */}
 
-            {/* Tab 5: Location & Supply */}
+            {/* 🚧 PHASE 2/3: Tab 5 (Location & Supply) - Commented out */}
+            {/*
             <TabPanel value={currentTab} index={4}>
               <Grid container spacing={3}>
                 <Grid item xs={12}>
@@ -802,8 +824,10 @@ export default function AnnouncementForm() {
                 </Grid>
               </Grid>
             </TabPanel>
+            */}
 
-            {/* Tab 6: Documents & Contact */}
+            {/* 🚧 PHASE 2/3: Tab 6 (Documents & Contact) - Commented out */}
+            {/*
             <TabPanel value={currentTab} index={5}>
               <Grid container spacing={3}>
                 <Grid item xs={12}>
@@ -871,6 +895,7 @@ export default function AnnouncementForm() {
                 </Grid>
               </Grid>
             </TabPanel>
+            */}
 
             {/* Action Buttons */}
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>

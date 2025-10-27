@@ -29,7 +29,7 @@ const schema = z.object({
   subtitle: z.string().max(200, '부제목은 200자 이하여야 합니다').nullable(),
   image_url: z.string().url('유효한 URL을 입력하세요').min(1, '이미지 URL을 입력하세요'),
   background_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, '유효한 색상 코드를 입력하세요 (예: #E3F2FD)').nullable(),
-  action_url: z.string().nullable(),
+  link_url: z.string().nullable(),
   display_order: z.number().int().min(0).nullable(),
   is_active: z.boolean(),
 })
@@ -66,7 +66,7 @@ export default function CategoryBannerForm() {
       subtitle: null,
       image_url: '',
       background_color: '#E3F2FD',
-      action_url: null,
+      link_url: null,
       display_order: null,
       is_active: true,
     },
@@ -79,8 +79,8 @@ export default function CategoryBannerForm() {
         title: banner.title,
         subtitle: banner.subtitle,
         image_url: banner.image_url,
-        background_color: banner.background_color || '#E3F2FD',
-        action_url: banner.link_url,
+        background_color: '#E3F2FD', // ❌ REMOVED: banner.background_color (field doesn't exist in DB)
+        link_url: banner.link_url,
         display_order: banner.display_order,
         is_active: banner.is_active,
       })
@@ -94,7 +94,7 @@ export default function CategoryBannerForm() {
         title: data.title,
         subtitle: data.subtitle,
         image_url: data.image_url,
-        link_url: data.action_url,
+        link_url: data.link_url,
         background_color: data.background_color,
         display_order: data.display_order || 0,
         is_active: data.is_active,
@@ -277,7 +277,7 @@ export default function CategoryBannerForm() {
 
             <Grid item xs={12}>
               <Controller
-                name="action_url"
+                name="link_url"
                 control={control}
                 render={({ field }) => (
                   <TextField
@@ -286,8 +286,8 @@ export default function CategoryBannerForm() {
                     fullWidth
                     label="액션 URL"
                     placeholder="/benefits/housing/youth-housing"
-                    error={!!errors.action_url}
-                    helperText={errors.action_url?.message || '배너 클릭 시 이동할 URL (선택사항)'}
+                    error={!!errors.link_url}
+                    helperText={errors.link_url?.message || '배너 클릭 시 이동할 URL (선택사항)'}
                   />
                 )}
               />

@@ -33,7 +33,7 @@ import {
   fetchLHAnnouncements,
   fetchLHStyleAnnouncements
 } from '@/api/announcements'
-import type { Announcement } from '@/types/database'
+// import type { Announcement } from '@/types/database' // ❌ REMOVED: Unused import
 import { Download as DownloadIcon } from '@mui/icons-material'
 
 type AnnouncementStatus = 'recruiting' | 'closed' | 'draft' | 'upcoming'
