@@ -9,29 +9,33 @@
 
 ## 🆕 Latest Changes (v7.2.1 - 2025-10-28)
 
-### Admin Page Cleanup
+### Admin Page Cleanup - CORRECTED
 
-**Objective**: Remove deprecated '연령대 관리' page and unify age category management under '연령 카테고리'
+**Objective**: Remove deprecated '연령 카테고리' page and keep '연령대 관리' page
 
-**Changes**:
-- ❌ **Removed**: `apps/pickly_admin/src/pages/age-categories/AgeCategoriesPage.tsx` (entire folder)
-- ❌ **Removed**: `/age-categories` route from `App.tsx`
-- ❌ **Removed**: '연령대 관리' menu item from `Sidebar.tsx`
-- ❌ **Removed**: Unused `FolderIcon` import from MUI icons
+**Final Changes** (Commit: `c3ccdff`):
+- ❌ **Removed**: `apps/pickly_admin/src/pages/categories/` folder (CategoryList.tsx, CategoryForm.tsx)
+- ❌ **Removed**: `/categories` routes from `App.tsx`
+- ❌ **Removed**: '연령 카테고리' menu item from `Sidebar.tsx`
+- ❌ **Removed**: `App-backup.tsx` (outdated backup file)
 
 **Retained**:
-- ✅ **Kept**: '연령 카테고리' page (`CategoryList` at `/categories`)
+- ✅ **Kept**: '연령대 관리' page (`AgeCategoriesPage` at `/age-categories`)
 - ✅ **Kept**: '공고 유형 관리' page (`AnnouncementTypesPage` at `/announcement-types`)
 
 **Build Verification**:
 ```bash
 ✓ TypeScript compilation: 0 errors
-✓ Vite production build: 4.26s
-✓ Bundle size: 1,234.66 kB (gzip: 371.68 kB)
+✓ Vite production build: 4.05s
+✓ Bundle size: 1,233.41 kB (gzip: 370.47 kB)
 ```
 
-**Commit**: `f5786f8`
-**Files Changed**: 8 files (99 insertions, 569 deletions)
+**Commits**:
+- `f5786f8` - ❌ Incorrect deletion (deleted wrong page)
+- `099656a` - Documentation update
+- `c3ccdff` - ✅ Corrected deletion (fixed the mistake)
+
+**Files Changed**: 7 files (563 insertions, 551 deletions)
 
 ---
 
