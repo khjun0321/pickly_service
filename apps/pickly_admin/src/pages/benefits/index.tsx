@@ -13,6 +13,11 @@ export { default as BenefitAnnouncementForm } from './BenefitAnnouncementForm'
 // Component exports (v9.0)
 export { default as BannerManager } from './components/BannerManager'
 export { default as BenefitDetailManager } from './components/BenefitDetailManager'
+export { default as AnnouncementTabs } from './components/AnnouncementTabs'
+export { default as AnnouncementList } from './components/AnnouncementList'
+export { default as AnnouncementModal } from './components/AnnouncementModal'
+
+// Legacy v8.1 components
 export { default as AnnouncementManager } from './components/AnnouncementManager'
 
 // v8.1 components

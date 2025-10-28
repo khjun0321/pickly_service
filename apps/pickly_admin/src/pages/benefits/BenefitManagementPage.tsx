@@ -17,7 +17,7 @@ import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { supabase } from '@/lib/supabase'
 import BannerManager from './components/BannerManager'
 import BenefitDetailManager from './components/BenefitDetailManager'
-import AnnouncementManager from './components/AnnouncementManager'
+import AnnouncementTabs from './components/AnnouncementTabs'
 import type { BenefitCategory } from '@/types/benefit'
 
 // Category slug mapping
@@ -96,11 +96,11 @@ export default function BenefitManagementPage() {
         {/* 1. Banner Management Section */}
         <BannerManager categoryId={category.id} categoryTitle={categoryTitle} />
 
-        {/* 2. Benefit Detail Management Section (NEW in v9.0) */}
+        {/* 2. Benefit Detail Management Section (v9.0) */}
         <BenefitDetailManager categoryId={category.id} categoryTitle={categoryTitle} />
 
-        {/* 3. Announcement Management Section */}
-        <AnnouncementManager categoryId={category.id} categoryTitle={categoryTitle} />
+        {/* 3. Announcement Management Section (v9.0 - Tab-based) */}
+        <AnnouncementTabs categoryId={category.id} categoryTitle={categoryTitle} />
       </Box>
     </Box>
   )

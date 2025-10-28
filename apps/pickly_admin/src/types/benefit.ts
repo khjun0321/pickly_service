@@ -131,50 +131,50 @@ export interface AnnouncementTypeFormData {
 }
 
 // =====================================================
-// Benefit Announcement (v8.1)
+// Benefit Announcement (v9.0 - Tab-based with benefit_detail_id)
 // =====================================================
-export type AnnouncementStatus = 'active' | 'closed' | 'upcoming'
+export type AnnouncementStatus = 'draft' | 'published' | 'archived'
 
 export interface BenefitAnnouncement {
   id: string
-  benefit_category_id: string
-  benefit_program_id: string | null
+  category_id: string
+  benefit_detail_id: string | null
   title: string
   subtitle: string | null
-  content: string | null
-  organization: string | null
-  region: string | null
-  thumbnail_url: string | null
-  detail_url: string | null
-  application_start_date: string | null
-  application_end_date: string | null
-  announcement_start_date: string | null
-  announcement_end_date: string | null
+  organization: string
+  application_period_start: string | null
+  application_period_end: string | null
+  announcement_date: string | null
   status: AnnouncementStatus
-  display_order: number
   is_featured: boolean
-  custom_data: Record<string, any> | null
+  views_count: number
+  summary: string | null
+  thumbnail_url: string | null
+  external_url: string | null
+  tags: string[] | null
+  search_vector: any
   created_at: string
   updated_at: string
+  published_at: string | null
+  display_order: number
+  custom_data: Record<string, any> | null
+  content: string | null
 }
 
 export interface BenefitAnnouncementFormData {
-  benefit_category_id: string
-  benefit_program_id: string | null
+  category_id: string
+  benefit_detail_id: string
   title: string
   subtitle: string | null
-  content: string | null
-  organization: string | null
-  region: string | null
+  organization: string
+  summary: string | null
   thumbnail_url: string | null
-  detail_url: string | null
-  application_start_date: string | null
-  application_end_date: string | null
-  announcement_start_date: string | null
-  announcement_end_date: string | null
+  external_url: string | null
+  application_period_start: string | null
+  application_period_end: string | null
   status: AnnouncementStatus
-  display_order: number
   is_featured: boolean
+  display_order: number
 }
 
 // =====================================================
