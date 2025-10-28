@@ -1,0 +1,51 @@
+# Claude Code Ignore File
+# Protects critical files from being overwritten during automated operations
+
+# ================================================================
+# SEED FILES (Rollback Protection)
+# ================================================================
+supabase/seed.sql
+supabase/_stable_seed_v8.1.sql
+supabase/seeds/admin_account.sql
+supabase/seeds/age_categories.sql
+supabase/seeds/benefit_categories.sql
+supabase/seeds/category_banners.sql
+
+# ================================================================
+# AGE CATEGORY MANAGEMENT (Prevent Duplication)
+# ================================================================
+apps/pickly_mobile/lib/features/onboarding/providers/age_category_provider.dart
+apps/pickly_admin/src/pages/age/AgeCategoryManager.tsx
+
+# ================================================================
+# CRITICAL CONFIGURATION FILES
+# ================================================================
+.env
+.env.local
+.env.production
+supabase/.env
+
+# ================================================================
+# GENERATED TYPE FILES (Regenerate manually if needed)
+# ================================================================
+# Uncomment if you want to protect auto-generated types:
+# apps/pickly_admin/src/types/supabase.ts
+# apps/pickly_mobile/lib/core/database/supabase_types.ts
+
+# ================================================================
+# BUILD & CACHE DIRECTORIES
+# ================================================================
+node_modules/
+.dart_tool/
+build/
+dist/
+.cache/
+*.log
+
+# ================================================================
+# IDE & OS FILES
+# ================================================================
+.vscode/
+.idea/
+*.swp
+.DS_Store
