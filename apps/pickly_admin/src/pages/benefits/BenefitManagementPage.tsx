@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { supabase } from '@/lib/supabase'
 import BannerManager from './components/BannerManager'
-import AnnouncementTypeManager from './components/AnnouncementTypeManager'
+import ProgramManager from './components/ProgramManager'
 import AnnouncementManager from './components/AnnouncementManager'
 import type { BenefitCategory } from '@/types/benefit'
 
@@ -82,15 +82,15 @@ export default function BenefitManagementPage() {
         {categoryTitle} 혜택 관리
       </Typography>
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        배너, 공고유형, 공고를 통합 관리합니다
+        배너, 프로그램, 공고를 통합 관리합니다 (v8.1)
       </Typography>
 
       <Box sx={{ mt: 3 }}>
         {/* Banner Management Section */}
         <BannerManager categoryId={category.id} categoryTitle={categoryTitle} />
 
-        {/* Announcement Type Management Section */}
-        <AnnouncementTypeManager categoryId={category.id} categoryTitle={categoryTitle} />
+        {/* Program Management Section (v8.1 - replaces Announcement Type) */}
+        <ProgramManager categoryId={category.id} categoryTitle={categoryTitle} />
 
         {/* Announcement Management Section */}
         <AnnouncementManager categoryId={category.id} categoryTitle={categoryTitle} />
