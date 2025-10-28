@@ -132,19 +132,20 @@ END $$;
 -- This seed ensures they exist in the correct order
 -- ================================================================
 
--- v7.3 schema: title, sort_order (not name, display_order)
--- Note: 'slug' column was removed in v7.3, using 'title' as unique identifier
-INSERT INTO benefit_categories (title, description, icon_url, sort_order, is_active) VALUES
-('인기', '가장 인기있는 혜택 모음', NULL, 0, true),
-('주거', '주거 관련 혜택 및 지원', NULL, 1, true),
-('교육', '교육 관련 혜택 및 지원', NULL, 2, true),
-('건강', '건강 관련 혜택 및 지원', NULL, 3, true),
-('교통', '교통비 지원 및 할인', NULL, 4, true),
-('복지', '복지 관련 혜택 및 지원', NULL, 5, true),
-('취업', '취업 관련 혜택 및 지원', NULL, 6, true),
-('지원', '각종 지원금 및 보조금', NULL, 7, true),
-('문화', '문화 관련 혜택 및 지원', NULL, 8, true)
-ON CONFLICT (title) DO UPDATE SET
+-- Current schema: title, slug, description, icon_url, sort_order, is_active, parent_id
+-- Both title and slug are required (NOT NULL)
+INSERT INTO benefit_categories (title, slug, description, icon_url, sort_order, is_active, parent_id) VALUES
+('인기', 'popular', '가장 인기있는 혜택 모음', NULL, 0, true, NULL),
+('주거', 'housing', '주거 관련 혜택 및 지원', NULL, 1, true, NULL),
+('교육', 'education', '교육 관련 혜택 및 지원', NULL, 2, true, NULL),
+('건강', 'health', '건강 관련 혜택 및 지원', NULL, 3, true, NULL),
+('교통', 'transportation', '교통비 지원 및 할인', NULL, 4, true, NULL),
+('복지', 'welfare', '복지 관련 혜택 및 지원', NULL, 5, true, NULL),
+('취업', 'employment', '취업 관련 혜택 및 지원', NULL, 6, true, NULL),
+('지원', 'support', '각종 지원금 및 보조금', NULL, 7, true, NULL),
+('문화', 'culture', '문화 관련 혜택 및 지원', NULL, 8, true, NULL)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
   description = EXCLUDED.description,
   sort_order = EXCLUDED.sort_order,
   is_active = EXCLUDED.is_active;
@@ -167,13 +168,13 @@ DECLARE
     health_id UUID;
     culture_id UUID;
 BEGIN
-    -- Get category IDs (v7.3 uses 'title' instead of 'slug')
-    SELECT id INTO housing_id FROM benefit_categories WHERE title = '주거';
-    SELECT id INTO welfare_id FROM benefit_categories WHERE title = '복지';
-    SELECT id INTO education_id FROM benefit_categories WHERE title = '교육';
-    SELECT id INTO employment_id FROM benefit_categories WHERE title = '취업';
-    SELECT id INTO health_id FROM benefit_categories WHERE title = '건강';
-    SELECT id INTO culture_id FROM benefit_categories WHERE title = '문화';
+    -- Get category IDs using slug (unique identifier)
+    SELECT id INTO housing_id FROM benefit_categories WHERE slug = 'housing';
+    SELECT id INTO welfare_id FROM benefit_categories WHERE slug = 'welfare';
+    SELECT id INTO education_id FROM benefit_categories WHERE slug = 'education';
+    SELECT id INTO employment_id FROM benefit_categories WHERE slug = 'employment';
+    SELECT id INTO health_id FROM benefit_categories WHERE slug = 'health';
+    SELECT id INTO culture_id FROM benefit_categories WHERE slug = 'culture';
 
     -- Insert sample banners for each category
     INSERT INTO category_banners (benefit_category_id, title, subtitle, image_url, link_type, link_target, sort_order, is_active) VALUES
