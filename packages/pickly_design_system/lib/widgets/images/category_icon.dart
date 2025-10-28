@@ -181,9 +181,18 @@ class CategoryIcon extends StatelessWidget {
     const ageBasePath = '$basePath/age_categories';
 
     // 연령 카테고리 아이콘 매핑 (age_categories 폴더)
+    // v8.1: Updated to match actual icon_component values from database
     final ageIconMap = {
-      'youth': '$ageBasePath/young_man.svg',
-      'baby': '$ageBasePath/baby.svg',
+      // New v8.1 mappings
+      'bride': '$ageBasePath/bride.svg',           // 청년
+      'young_man': '$ageBasePath/young_man.svg',   // 신혼부부·예비부부
+      'baby': '$ageBasePath/baby.svg',             // 육아중인 부모
+      'kinder': '$ageBasePath/kinder.svg',         // 다자녀 가구
+      'old_man': '$ageBasePath/old_man.svg',       // 어르신
+      'wheel_chair': '$ageBasePath/wheel_chair.svg', // 장애인
+
+      // Legacy mappings (for backward compatibility)
+      'youth': '$ageBasePath/bride.svg',
       'newlywed': '$ageBasePath/bride.svg',
       'parenting': '$ageBasePath/kinder.svg',
       'senior': '$ageBasePath/old_man.svg',
