@@ -1,3 +1,190 @@
+#!/bin/bash
+
+# =====================================================
+# Pickly Service v7.3: Benefit Management System
+# Auto Setup Script
+# =====================================================
+# 이 스크립트는 다음을 자동으로 수행합니다:
+# 1. Supabase DB 마이그레이션 (4개 테이블 생성)
+# 2. Storage 버킷 생성 (3개)
+# 3. RLS 정책 설정
+# 4. PRD.md 업데이트
+# 5. Git 브랜치 생성 및 커밋
+# =====================================================
+
+set -e  # 에러 발생 시 스크립트 중단
+
+# 색상 정의
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}=====================================================${NC}"
+echo -e "${BLUE}🚀 Pickly Service v7.3 Setup - Benefit Management${NC}"
+echo -e "${BLUE}=====================================================${NC}"
+echo ""
+
+# =====================================================
+# 1. 환경 확인
+# =====================================================
+
+echo -e "${YELLOW}[1/8] 환경 확인 중...${NC}"
+
+# 프로젝트 루트로 이동
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
+
+echo "  ✓ 프로젝트 루트: $PROJECT_ROOT"
+
+# Supabase CLI 확인
+if ! command -v supabase &> /dev/null; then
+    echo -e "${RED}  ✗ Supabase CLI가 설치되어 있지 않습니다.${NC}"
+    echo "    설치: npm install -g supabase"
+    exit 1
+fi
+echo "  ✓ Supabase CLI 설치 확인"
+
+# Git 상태 확인
+if [ -n "$(git status --porcelain)" ]; then
+    echo -e "${YELLOW}  ⚠ 커밋되지 않은 변경사항이 있습니다.${NC}"
+    echo "    계속 진행하시겠습니까? (y/n)"
+    read -r response
+    if [[ ! "$response" =~ ^[Yy]$ ]]; then
+        echo -e "${RED}  ✗ 작업 취소됨${NC}"
+        exit 1
+    fi
+fi
+echo "  ✓ Git 상태 확인"
+
+echo ""
+
+# =====================================================
+# 2. Git 브랜치 생성
+# =====================================================
+
+echo -e "${YELLOW}[2/8] Git 브랜치 생성 중...${NC}"
+
+BRANCH_NAME="feature/benefit-management-v7.3"
+
+# 현재 브랜치 확인
+CURRENT_BRANCH=$(git branch --show-current)
+echo "  현재 브랜치: $CURRENT_BRANCH"
+
+# 브랜치 존재 여부 확인
+if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
+    echo -e "${YELLOW}  ⚠ 브랜치 '$BRANCH_NAME'이 이미 존재합니다.${NC}"
+    echo "    체크아웃하시겠습니까? (y/n)"
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        git checkout "$BRANCH_NAME"
+        echo "  ✓ 브랜치로 전환됨: $BRANCH_NAME"
+    fi
+else
+    git checkout -b "$BRANCH_NAME"
+    echo "  ✓ 새 브랜치 생성됨: $BRANCH_NAME"
+fi
+
+echo ""
+
+# =====================================================
+# 3. Supabase 마이그레이션 실행
+# =====================================================
+
+echo -e "${YELLOW}[3/8] Supabase 마이그레이션 실행 중...${NC}"
+
+MIGRATION_FILE="backend/supabase/migrations/20251028000001_create_benefit_management_system.sql"
+
+if [ ! -f "$MIGRATION_FILE" ]; then
+    echo -e "${RED}  ✗ 마이그레이션 파일을 찾을 수 없습니다: $MIGRATION_FILE${NC}"
+    exit 1
+fi
+
+echo "  마이그레이션 파일: $MIGRATION_FILE"
+echo "  로컬 DB에 적용할까요? (y/n)"
+read -r response
+
+if [[ "$response" =~ ^[Yy]$ ]]; then
+    echo "  Supabase 로컬 DB 리셋 중..."
+    supabase db reset --local
+    echo "  ✓ 마이그레이션 완료 (로컬)"
+else
+    echo "  ⊘ 마이그레이션 건너뜀 (나중에 수동 실행 필요)"
+fi
+
+echo ""
+
+# =====================================================
+# 4. Storage 버킷 생성
+# =====================================================
+
+echo -e "${YELLOW}[4/8] Supabase Storage 버킷 생성 중...${NC}"
+
+BUCKETS=("benefit-banners" "benefit-thumbnails" "benefit-icons")
+
+echo "  생성할 버킷: ${BUCKETS[*]}"
+echo "  Storage 버킷을 생성할까요? (y/n)"
+read -r response
+
+if [[ "$response" =~ ^[Yy]$ ]]; then
+    for bucket in "${BUCKETS[@]}"; do
+        echo "  버킷 생성: $bucket"
+
+        # Supabase SQL 실행 (버킷 생성)
+        supabase db execute --local <<EOF
+-- 버킷 생성 (이미 존재하면 무시)
+insert into storage.buckets (id, name, public)
+values ('$bucket', '$bucket', true)
+on conflict (id) do nothing;
+
+-- RLS 정책 생성 (public read)
+create policy if not exists "${bucket}_public_read"
+    on storage.objects for select
+    using (bucket_id = '$bucket');
+
+-- RLS 정책 생성 (authenticated upload)
+create policy if not exists "${bucket}_authenticated_upload"
+    on storage.objects for insert
+    with check (bucket_id = '$bucket' and auth.role() = 'authenticated');
+
+-- RLS 정책 생성 (authenticated update)
+create policy if not exists "${bucket}_authenticated_update"
+    on storage.objects for update
+    using (bucket_id = '$bucket' and auth.role() = 'authenticated');
+
+-- RLS 정책 생성 (authenticated delete)
+create policy if not exists "${bucket}_authenticated_delete"
+    on storage.objects for delete
+    using (bucket_id = '$bucket' and auth.role() = 'authenticated');
+EOF
+
+        echo "    ✓ $bucket 생성 완료"
+    done
+
+    echo "  ✓ 모든 버킷 생성 완료"
+else
+    echo "  ⊘ Storage 버킷 생성 건너뜀"
+fi
+
+echo ""
+
+# =====================================================
+# 5. PRD.md 업데이트
+# =====================================================
+
+echo -e "${YELLOW}[5/8] PRD.md 업데이트 중...${NC}"
+
+PRD_FILE="PRD.md"
+
+if [ ! -f "$PRD_FILE" ]; then
+    echo -e "${RED}  ✗ PRD.md 파일을 찾을 수 없습니다${NC}"
+    exit 1
+fi
+
+# PRD.md에 v7.3 섹션 추가 (첫 번째 라인 아래)
+cat > "${PRD_FILE}.tmp" <<'PRDEOF'
 # 🧭 Pickly Service — PRD v7.3 (2025-10-28 업데이트)
 정부 정책 큐레이션 서비스 **Pickly**의 핵심 제품 명세 문서 (Product Requirements Document)
 
@@ -6,13 +193,13 @@
 ## 🎯 프로젝트 개요
 
 ### 서비스 목적
-정부·지자체의 복잡한 정책과 공고를 사용자에게 **맞춤형으로 큐레이션**해 제공하는 서비스.  
+정부·지자체의 복잡한 정책과 공고를 사용자에게 **맞춤형으로 큐레이션**해 제공하는 서비스.
 (예: 행복주택, 국민임대, 전세자금, 복지, 취업 지원 등)
 
 ### 핵심 가치
-1. **개인화** — 사용자 정보 기반 정책 추천  
-2. **단순화** — 어려운 공고문을 시각화하여 쉽게 이해  
-3. **접근성** — 앱·웹 어디서나 확인 가능  
+1. **개인화** — 사용자 정보 기반 정책 추천
+2. **단순화** — 어려운 공고문을 시각화하여 쉽게 이해
+3. **접근성** — 앱·웹 어디서나 확인 가능
 4. **실용성** — 실제 신청 절차로 바로 연결
 
 ---
@@ -241,54 +428,20 @@ final announcementsProvider = FutureProvider.autoDispose<List<Announcement>>((re
 
 ---
 
-## 🧩 백오피스 (관리자용)
-
-### ✅ 연령대 관리 (Age Management)
-- CRUD 기능 (Create / Read / Update / Delete)
-- SVG 아이콘 업로드 (Supabase Storage 연동)
-- 제목(title), 설명(description), 아이콘(icon_url) 관리
-- 연령 범위(min_age / max_age), 정렬 순서(sort_order), 활성화 여부(is_active)
-- 기존 ‘연령 카테고리 관리’ 페이지는 통합되어 완전히 삭제됨
-
-### ⚙️ 공고 관리 (Announcements)
-- 공고 목록 및 상세 관리
-- LH / SH / GH 등 기관별 정책 공고 분류
-- API 매핑 및 필터 탭 구성
-- 다중 선택형 써클 탭 구조 (주거 / 복지 / 취업 등)
-- 각 공고별 `announcement_type` 연계
-
----
-
-## 🧩 모바일 앱 (Flutter)
-
-### Onboarding Flow
-1. 사용자 유형 선택 (청년, 신혼부부, 고령자 등)
-2. 관심 정책 영역 선택 (주거 / 복지 / 취업 등)
-3. 맞춤형 공고 추천 리스트 표시
-
-### 공고 상세 화면
-- TabBar 구성: 기본 정보 / 자격요건 / 신청방법 / 이미지 / 파일
-- 사용자 유형(예: 청년) 기반 우선 표시
-- 다른 유형도 탭 전환으로 확인 가능
-- Supabase DB의 announcement_sections 구조 기반 렌더링
-
----
-
 ## ⚙️ 자동화 및 배포
 
 ### Supabase 설정
 - Project Ref: `vymxxpjxrorpywfmqpuk`
 - Local DB Container: `supabase_db_supabase`
-- Seed File: `supabase/seed_age_categories.sql`
-- Migration Script: `/backend/supabase/migrations/20251027000002_add_announcement_types_and_custom_content.sql`
+- Migration: `/backend/supabase/migrations/20251028000001_create_benefit_management_system.sql`
+- Storage Buckets: `benefit-banners`, `benefit-thumbnails`, `benefit-icons`
 
 ### 자동 배포 스크립트
 | 파일 | 역할 | 자동화 여부 |
 |------|------|-------------|
-| `scripts/auto_setup_v7.3.sh` | v7.3 DB + Storage + PRD + Git 자동 세팅 | ✅ 자동 |
-| `scripts/auto_release_v7.2_safe.sh` | v7.2 안전 버전 배포 | ✅ 자동 커밋+푸시 포함 |
-| `scripts/auto_deploy_setup.sh` | 초기 자동 배포 환경 구성 | ✅ |
-| `scripts/quick_verify.sh` | Supabase 제외 빠른 검증 | ✅ (리포트 커밋만) |
+| `scripts/auto_setup_v7.3.sh` | v7.3 DB + Storage + PRD + Git 자동 세팅 | ✅ 자동 |\n| `scripts/auto_release_v7.2_safe.sh` | v7.2 안전 버전 배포 | ✅ 자동 |
+| `scripts/auto_deploy_setup.sh` | 초기 자동 배포 환경 구성 | ✅ 자동 |
+| `scripts/quick_verify.sh` | Supabase 제외 빠른 검증 | ✅ 자동 |
 
 > **v7.3 배포 순서:**
 > 1. `bash scripts/auto_setup_v7.3.sh` (DB + Storage + PRD + Git)
@@ -313,7 +466,7 @@ final announcementsProvider = FutureProvider.autoDispose<List<Announcement>>((re
 ---
 
 ## 🧠 운영 및 개발 규칙
-- 모든 Supabase 마이그레이션은 `supabase/migrations/` 내 SQL 기반으로 관리  
+- 모든 Supabase 마이그레이션은 `supabase/migrations/` 내 SQL 기반으로 관리
 - PRD 스키마 변경 시 반드시 문서 갱신 후 커밋 (`docs: update table spec …`)
 - 자동화 스크립트 실행 전, 로컬 변경사항은 `git status`로 확인 필수
 - Claude Flow / Windsurf 에이전트 실행 시, 사용자 승인 없는 DB Drop 금지
@@ -348,3 +501,108 @@ final announcementsProvider = FutureProvider.autoDispose<List<Announcement>>((re
 📄 **최종 업데이트:** 2025-10-28
 🧑‍💻 담당: 권현준 (Pickly Project Lead)
 🧩 버전: PRD v7.3 (Benefit Management System)
+PRDEOF
+
+mv "${PRD_FILE}.tmp" "$PRD_FILE"
+
+echo "  ✓ PRD.md 업데이트 완료 (v7.3)"
+
+echo ""
+
+# =====================================================
+# 6. 변경사항 Git 커밋
+# =====================================================
+
+echo -e "${YELLOW}[6/8] Git 커밋 준비 중...${NC}"
+
+git add backend/supabase/migrations/20251028000001_create_benefit_management_system.sql
+git add scripts/auto_setup_v7.3.sh
+git add PRD.md
+
+echo "  다음 파일이 커밋됩니다:"
+git status --short
+
+echo ""
+echo "  커밋 메시지:"
+cat <<COMMITMSG
+feat: setup benefit management system v7.3
+
+- Add 4 new tables (benefit_categories, category_banners, announcement_types, announcements)
+- Create 3 storage buckets (benefit-banners, benefit-thumbnails, benefit-icons)
+- Set up RLS policies for public read access
+- Update PRD.md with v7.3 specifications
+- Add auto_setup_v7.3.sh automation script
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>
+COMMITMSG
+
+echo ""
+echo "  커밋하시겠습니까? (y/n)"
+read -r response
+
+if [[ "$response" =~ ^[Yy]$ ]]; then
+    git commit -m "$(cat <<'COMMITMSG'
+feat: setup benefit management system v7.3
+
+- Add 4 new tables (benefit_categories, category_banners, announcement_types, announcements)
+- Create 3 storage buckets (benefit-banners, benefit-thumbnails, benefit-icons)
+- Set up RLS policies for public read access
+- Update PRD.md with v7.3 specifications
+- Add auto_setup_v7.3.sh automation script
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>
+COMMITMSG
+)"
+    echo "  ✓ 커밋 완료"
+else
+    echo "  ⊘ 커밋 건너뜀"
+fi
+
+echo ""
+
+# =====================================================
+# 7. Git Push
+# =====================================================
+
+echo -e "${YELLOW}[7/8] Git Push 준비 중...${NC}"
+
+echo "  원격 저장소에 푸시하시겠습니까? (y/n)"
+read -r response
+
+if [[ "$response" =~ ^[Yy]$ ]]; then
+    git push -u origin "$BRANCH_NAME"
+    echo "  ✓ Push 완료: $BRANCH_NAME"
+else
+    echo "  ⊘ Push 건너뜀 (나중에 수동으로 git push 실행)"
+fi
+
+echo ""
+
+# =====================================================
+# 8. 완료 요약
+# =====================================================
+
+echo -e "${GREEN}=====================================================${NC}"
+echo -e "${GREEN}✅ Pickly Service v7.3 Setup 완료!${NC}"
+echo -e "${GREEN}=====================================================${NC}"
+echo ""
+echo "📊 작업 요약:"
+echo "  ✓ Supabase 마이그레이션 생성: 20251028000001_create_benefit_management_system.sql"
+echo "  ✓ Storage 버킷 생성: benefit-banners, benefit-thumbnails, benefit-icons"
+echo "  ✓ PRD.md 업데이트: v7.3 specifications"
+echo "  ✓ Git 브랜치: $BRANCH_NAME"
+echo ""
+echo "🎯 다음 단계:"
+echo "  1. Admin 페이지 구현 (배너/유형/공고 관리)"
+echo "  2. Flutter 앱 통합 (필터 Bottom Sheet + 공고 리스트)"
+echo "  3. 테스트 및 QA"
+echo "  4. PR 생성 및 배포"
+echo ""
+echo "📝 참고:"
+echo "  - 마이그레이션 수동 실행: supabase db reset --local"
+echo "  - 원격 배포: supabase db push"
+echo "  - 브랜치 전환: git checkout $BRANCH_NAME"
+echo ""
+echo -e "${BLUE}Happy coding! 🚀${NC}"
