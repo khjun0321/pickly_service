@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Box,
@@ -56,6 +57,7 @@ const categorySchema = z.object({
 })
 
 export default function BenefitCategoryManager() {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<BenefitCategory | null>(null)
@@ -303,7 +305,16 @@ export default function BenefitCategoryManager() {
                 </TableRow>
               ) : (
                 categories.map((category, index) => (
-                  <TableRow key={category.id}>
+                  <TableRow
+                    key={category.id}
+                    onClick={() => navigate(`/benefits/manage/${category.slug}`)}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                      }
+                    }}
+                  >
                     <TableCell>
                       {category.icon_url && (
                         <Box
@@ -337,7 +348,7 @@ export default function BenefitCategoryManager() {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <IconButton size="small" onClick={() => handleMoveUp(category, index)} disabled={index === 0}>
                         <ArrowUpward fontSize="small" />
                       </IconButton>
