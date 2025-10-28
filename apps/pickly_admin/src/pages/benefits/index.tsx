@@ -3,6 +3,7 @@
  */
 
 export { default as BenefitDashboard } from './BenefitDashboard'
+export { default as BenefitCategoryManager } from './BenefitCategoryManager'
 export { default as BenefitManagementPage } from './BenefitManagementPage'
 export { default as BenefitCategoryList } from './BenefitCategoryList'
 export { default as BenefitCategoryPage } from './BenefitCategoryPage'
