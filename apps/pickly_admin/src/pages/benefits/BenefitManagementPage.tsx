@@ -1,11 +1,12 @@
 /**
- * Benefit Management Page (v8.1)
- * Manages a single benefit category with its banners and announcements
+ * Benefit Management Page (v9.0)
+ * Manages a single benefit category with its banners, details, and announcements
  *
  * Hierarchy:
  * - benefit_categories (top-level category, e.g. 주거, 교육)
  *   ├─ category_banners (carousel banners for the category)
- *   └─ announcements (via announcement_types)
+ *   ├─ benefit_details (policies like 행복주택, 국민임대주택)
+ *   └─ announcements (individual announcements)
  *
  * Route: /benefits/manage/:categorySlug
  */
@@ -15,6 +16,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { supabase } from '@/lib/supabase'
 import BannerManager from './components/BannerManager'
+import BenefitDetailManager from './components/BenefitDetailManager'
 import AnnouncementManager from './components/AnnouncementManager'
 import type { BenefitCategory } from '@/types/benefit'
 
@@ -87,14 +89,17 @@ export default function BenefitManagementPage() {
         {categoryTitle} 혜택 관리
       </Typography>
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        배너와 공고를 통합 관리합니다 (v8.1)
+        배너, 정책, 공고를 통합 관리합니다 (v9.0)
       </Typography>
 
       <Box sx={{ mt: 3 }}>
-        {/* Banner Management Section */}
+        {/* 1. Banner Management Section */}
         <BannerManager categoryId={category.id} categoryTitle={categoryTitle} />
 
-        {/* Announcement Management Section */}
+        {/* 2. Benefit Detail Management Section (NEW in v9.0) */}
+        <BenefitDetailManager categoryId={category.id} categoryTitle={categoryTitle} />
+
+        {/* 3. Announcement Management Section */}
         <AnnouncementManager categoryId={category.id} categoryTitle={categoryTitle} />
       </Box>
     </Box>

@@ -61,6 +61,30 @@ export interface CategoryBannerFormData {
 }
 
 // =====================================================
+// Benefit Detail (v9.0 - Policy/Program Layer)
+// =====================================================
+export interface BenefitDetail {
+  id: string
+  benefit_category_id: string
+  title: string
+  description: string | null
+  icon_url: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface BenefitDetailFormData {
+  benefit_category_id: string
+  title: string
+  description: string | null
+  icon_url: string | null
+  sort_order: number
+  is_active: boolean
+}
+
+// =====================================================
 // Benefit Program (v8.1 - Replaces Announcement Type)
 // =====================================================
 export interface BenefitProgram {
