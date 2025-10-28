@@ -1,7 +1,13 @@
 /**
- * Benefit Management Page
- * Integrated page for managing banners, announcement types, and announcements
- * Route: /benefits/:categorySlug
+ * Benefit Management Page (v8.1)
+ * Manages a single benefit category with its banners and announcements
+ *
+ * Hierarchy:
+ * - benefit_categories (top-level category, e.g. 주거, 교육)
+ *   ├─ category_banners (carousel banners for the category)
+ *   └─ announcements (via announcement_types)
+ *
+ * Route: /benefits/manage/:categorySlug
  */
 
 import { useParams } from 'react-router-dom'
@@ -9,7 +15,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { supabase } from '@/lib/supabase'
 import BannerManager from './components/BannerManager'
-import ProgramManager from './components/ProgramManager'
 import AnnouncementManager from './components/AnnouncementManager'
 import type { BenefitCategory } from '@/types/benefit'
 
@@ -82,15 +87,12 @@ export default function BenefitManagementPage() {
         {categoryTitle} 혜택 관리
       </Typography>
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        배너, 프로그램, 공고를 통합 관리합니다 (v8.1)
+        배너와 공고를 통합 관리합니다 (v8.1)
       </Typography>
 
       <Box sx={{ mt: 3 }}>
         {/* Banner Management Section */}
         <BannerManager categoryId={category.id} categoryTitle={categoryTitle} />
-
-        {/* Program Management Section (v8.1 - replaces Announcement Type) */}
-        <ProgramManager categoryId={category.id} categoryTitle={categoryTitle} />
 
         {/* Announcement Management Section */}
         <AnnouncementManager categoryId={category.id} categoryTitle={categoryTitle} />
