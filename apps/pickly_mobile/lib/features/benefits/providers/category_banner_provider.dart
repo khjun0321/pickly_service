@@ -95,7 +95,7 @@ final categoryBannerProvider = AsyncNotifierProvider<CategoryBannerNotifier, Lis
 ///
 /// Returns:
 /// - Empty list `[]` if loading, error, or category has no banners
-/// - List of [CategoryBanner] sorted by displayOrder
+/// - List of [CategoryBanner] sorted by sortOrder
 ///
 /// Example:
 /// ```dart
@@ -110,14 +110,14 @@ final bannersByCategoryProvider = Provider.family<List<CategoryBanner>, String>(
   return asyncBanners.maybeWhen(
     data: (banners) {
       final filtered = banners
-          .where((banner) => banner.categoryId == categoryId && banner.isActive)
+          .where((banner) => banner.benefitCategoryId == categoryId && banner.isActive)
           .toList()
-        ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
       debugPrint('🎯 [Banner Filter] Category: $categoryId, Found: ${filtered.length} banners');
       if (filtered.isEmpty) {
         debugPrint('⚠️ [Banner Filter] No banners for category: $categoryId');
-        debugPrint('   Available categories: ${banners.map((b) => b.categoryId).toSet().join(", ")}');
+        debugPrint('   Available categories: ${banners.map((b) => b.benefitCategoryId).toSet().join(", ")}');
       }
 
       return filtered;
@@ -234,7 +234,7 @@ final categoriesWithBannersProvider = Provider<List<String>>((ref) {
   final banners = ref.watch(bannersListProvider);
   return banners
       .where((banner) => banner.isActive)
-      .map((banner) => banner.categoryId)
+      .map((banner) => banner.benefitCategoryId)
       .toSet()
       .toList();
 });

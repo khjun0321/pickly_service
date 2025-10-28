@@ -11,11 +11,8 @@ class Announcement {
   final String? subtitle;
   final String? organization;
 
-  @JsonKey(name: 'category_id')
-  final String? categoryId;
-
-  @JsonKey(name: 'subcategory_id')
-  final String? subcategoryId;
+  @JsonKey(name: 'type_id')
+  final String? typeId;
 
   @JsonKey(name: 'thumbnail_url')
   final String? thumbnailUrl;
@@ -32,8 +29,8 @@ class Announcement {
   @JsonKey(name: 'is_home_visible', defaultValue: false)
   final bool isHomeVisible;
 
-  @JsonKey(name: 'display_priority', defaultValue: 0)
-  final int displayPriority;
+  @JsonKey(name: 'sort_order', defaultValue: 0)
+  final int sortOrder;
 
   @JsonKey(name: 'views_count', defaultValue: 0)
   final int viewsCount;
@@ -52,14 +49,13 @@ class Announcement {
     required this.title,
     this.subtitle,
     this.organization,
-    this.categoryId,
-    this.subcategoryId,
+    this.typeId,
     this.thumbnailUrl,
     this.externalUrl,
     this.status = 'draft',
     this.isFeatured = false,
     this.isHomeVisible = false,
-    this.displayPriority = 0,
+    this.sortOrder = 0,
     this.viewsCount = 0,
     this.tags = const [],
     this.createdAt,
@@ -109,14 +105,13 @@ class Announcement {
     String? title,
     String? subtitle,
     String? organization,
-    String? categoryId,
-    String? subcategoryId,
+    String? typeId,
     String? thumbnailUrl,
     String? externalUrl,
     String? status,
     bool? isFeatured,
     bool? isHomeVisible,
-    int? displayPriority,
+    int? sortOrder,
     int? viewsCount,
     List<String>? tags,
     DateTime? createdAt,
@@ -127,14 +122,13 @@ class Announcement {
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,
       organization: organization ?? this.organization,
-      categoryId: categoryId ?? this.categoryId,
-      subcategoryId: subcategoryId ?? this.subcategoryId,
+      typeId: typeId ?? this.typeId,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
       externalUrl: externalUrl ?? this.externalUrl,
       status: status ?? this.status,
       isFeatured: isFeatured ?? this.isFeatured,
       isHomeVisible: isHomeVisible ?? this.isHomeVisible,
-      displayPriority: displayPriority ?? this.displayPriority,
+      sortOrder: sortOrder ?? this.sortOrder,
       viewsCount: viewsCount ?? this.viewsCount,
       tags: tags ?? this.tags,
       createdAt: createdAt ?? this.createdAt,

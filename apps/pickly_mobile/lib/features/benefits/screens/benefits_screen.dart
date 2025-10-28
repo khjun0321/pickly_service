@@ -100,13 +100,13 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     ],
     2: [ // 교육
       {'icon': 'assets/icons/school.svg', 'title': '학자금 지원'},
-      {'icon': 'assets/icons/book.svg', 'title': '교육비 지원'},
+      {'icon': 'assets/icons/education.svg', 'title': '교육비 지원'},
     ],
     3: [ // 건강
       {'icon': 'assets/icons/health.svg', 'title': '건강 지원'},
     ],
     4: [ // 교통
-      {'icon': 'assets/icons/bus.svg', 'title': '교통비 지원'},
+      {'icon': 'assets/icons/transportation.svg', 'title': '교통비 지원'},
     ],
     5: [ // 복지
       {'icon': 'assets/icons/happy_apt.svg', 'title': '복지 혜택'},
@@ -124,15 +124,15 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
   };
 
   final List<Map<String, String>> _categories = [
-    {'label': '인기', 'icon': 'assets/icons/fire.svg'},
-    {'label': '주거', 'icon': 'assets/icons/home.svg'},
-    {'label': '교육', 'icon': 'assets/icons/book.svg'},
+    {'label': '인기', 'icon': 'assets/icons/popular.svg'},
+    {'label': '주거', 'icon': 'assets/icons/housing.svg'},
+    {'label': '교육', 'icon': 'assets/icons/education.svg'},
     {'label': '건강', 'icon': 'assets/icons/health.svg'},
-    {'label': '교통', 'icon': 'assets/icons/bus.svg'},
+    {'label': '교통', 'icon': 'assets/icons/transportation.svg'},
     {'label': '복지', 'icon': 'assets/icons/heart.svg'},
-    {'label': '취업', 'icon': 'assets/icons/shirts.svg'},
-    {'label': '지원', 'icon': 'assets/icons/dollar.svg'},
-    {'label': '문화', 'icon': 'assets/icons/speaker.svg'},
+    {'label': '취업', 'icon': 'assets/icons/employment.svg'},
+    {'label': '지원', 'icon': 'assets/icons/support.svg'},
+    {'label': '문화', 'icon': 'assets/icons/culture.svg'},
   ];
 
   /// Get category ID by index for banner provider
@@ -305,7 +305,7 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                                 final banner = banners[index];
                                 return GestureDetector(
                                   onTap: () {
-                                    debugPrint('Banner tapped: ${banner.actionUrl}');
+                                    debugPrint('Banner tapped: ${banner.linkTarget}');
                                   },
                                   child: Stack(
                                     fit: StackFit.expand,

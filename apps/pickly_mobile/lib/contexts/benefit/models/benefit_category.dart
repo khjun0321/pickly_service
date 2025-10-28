@@ -7,16 +7,16 @@ part 'benefit_category.g.dart';
 class BenefitCategory with _$BenefitCategory {
   const factory BenefitCategory({
     required String id,
-    required String name,
+    @JsonKey(name: 'title') required String title,
     required String slug,
     String? description,
-    String? iconUrl,
-    String? bannerImageUrl,
-    String? bannerLinkUrl,
-    required DateTime createdAt,
-    DateTime? updatedAt,
-    @Default(true) bool isActive,
-    @Default(0) int displayOrder,
+    @JsonKey(name: 'icon_url') String? iconUrl,
+    @JsonKey(name: 'banner_image_url') String? bannerImageUrl,
+    @JsonKey(name: 'banner_link_url') String? bannerLinkUrl,
+    @JsonKey(name: 'created_at') required DateTime createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
+    @JsonKey(name: 'is_active') @Default(true) bool isActive,
+    @JsonKey(name: 'sort_order') @Default(0) int sortOrder,
   }) = _BenefitCategory;
 
   factory BenefitCategory.fromJson(Map<String, dynamic> json) =>

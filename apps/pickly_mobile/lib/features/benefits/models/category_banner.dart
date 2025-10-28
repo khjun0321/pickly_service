@@ -19,26 +19,29 @@ class CategoryBanner {
   /// Unique identifier (UUID from Supabase or mock ID)
   final String id;
 
-  /// Associated category ID (e.g., 'popular', 'housing', 'education')
-  final String categoryId;
+  /// Associated benefit category ID (v7.3: renamed from category_id)
+  final String benefitCategoryId;
 
   /// Banner title text
   final String title;
 
   /// Banner subtitle or description text
-  final String subtitle;
+  final String? subtitle;
 
   /// Image URL for banner visual
   final String imageUrl;
 
   /// Background color for banner (hex format)
-  final String backgroundColor;
+  final String? backgroundColor;
 
-  /// Action URL when banner is tapped
-  final String actionUrl;
+  /// Link type: 'internal', 'external', or 'none' (v7.3)
+  final String linkType;
 
-  /// Display order within category (lower = higher priority)
-  final int displayOrder;
+  /// Link target when banner is tapped (v7.3: renamed from action_url)
+  final String? linkTarget;
+
+  /// Sort order within category (v7.3: renamed from display_order)
+  final int sortOrder;
 
   /// Whether this banner is currently active/visible
   final bool isActive;
@@ -52,31 +55,33 @@ class CategoryBanner {
   /// Creates an immutable [CategoryBanner] instance.
   const CategoryBanner({
     required this.id,
-    required this.categoryId,
+    required this.benefitCategoryId,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.imageUrl,
-    required this.backgroundColor,
-    required this.actionUrl,
-    required this.displayOrder,
+    this.backgroundColor,
+    required this.linkType,
+    this.linkTarget,
+    required this.sortOrder,
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
   });
 
-  /// Creates a [CategoryBanner] from Supabase JSON response.
+  /// Creates a [CategoryBanner] from Supabase JSON response (v7.3 schema).
   ///
   /// Handles type conversions and null safety for all fields.
   factory CategoryBanner.fromJson(Map<String, dynamic> json) {
     return CategoryBanner(
       id: json['id'] as String,
-      categoryId: json['category_id'] as String,
+      benefitCategoryId: json['benefit_category_id'] as String,
       title: json['title'] as String,
-      subtitle: json['subtitle'] as String,
+      subtitle: json['subtitle'] as String?,
       imageUrl: json['image_url'] as String,
-      backgroundColor: json['background_color'] as String,
-      actionUrl: json['action_url'] as String,
-      displayOrder: json['display_order'] as int? ?? 0,
+      backgroundColor: json['background_color'] as String?,
+      linkType: json['link_type'] as String? ?? 'none',
+      linkTarget: json['link_target'] as String?,
+      sortOrder: json['sort_order'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -87,13 +92,14 @@ class CategoryBanner {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'category_id': categoryId,
+      'benefit_category_id': benefitCategoryId,
       'title': title,
       'subtitle': subtitle,
       'image_url': imageUrl,
       'background_color': backgroundColor,
-      'action_url': actionUrl,
-      'display_order': displayOrder,
+      'link_type': linkType,
+      'link_target': linkTarget,
+      'sort_order': sortOrder,
       'is_active': isActive,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -103,26 +109,28 @@ class CategoryBanner {
   /// Creates a copy with optional field overrides.
   CategoryBanner copyWith({
     String? id,
-    String? categoryId,
+    String? benefitCategoryId,
     String? title,
     String? subtitle,
     String? imageUrl,
     String? backgroundColor,
-    String? actionUrl,
-    int? displayOrder,
+    String? linkType,
+    String? linkTarget,
+    int? sortOrder,
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return CategoryBanner(
       id: id ?? this.id,
-      categoryId: categoryId ?? this.categoryId,
+      benefitCategoryId: benefitCategoryId ?? this.benefitCategoryId,
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,
       imageUrl: imageUrl ?? this.imageUrl,
       backgroundColor: backgroundColor ?? this.backgroundColor,
-      actionUrl: actionUrl ?? this.actionUrl,
-      displayOrder: displayOrder ?? this.displayOrder,
+      linkType: linkType ?? this.linkType,
+      linkTarget: linkTarget ?? this.linkTarget,
+      sortOrder: sortOrder ?? this.sortOrder,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -136,10 +144,13 @@ class CategoryBanner {
   /// - '#AARRGGBB' (8 digits with alpha)
   /// - 'RRGGBB' (without #)
   ///
-  /// Returns default color if parsing fails.
+  /// Returns default color if parsing fails or backgroundColor is null.
   Color getBackgroundColor() {
+    if (backgroundColor == null) {
+      return const Color(0xFFE3F2FD); // Light blue fallback
+    }
     try {
-      String colorStr = backgroundColor.replaceAll('#', '');
+      String colorStr = backgroundColor!.replaceAll('#', '');
       if (colorStr.length == 6) {
         colorStr = 'FF$colorStr'; // Add full opacity
       }
@@ -161,7 +172,7 @@ class CategoryBanner {
 
   @override
   String toString() {
-    return 'CategoryBanner(id: $id, categoryId: $categoryId, title: $title, '
-        'displayOrder: $displayOrder, isActive: $isActive)';
+    return 'CategoryBanner(id: $id, benefitCategoryId: $benefitCategoryId, title: $title, '
+        'sortOrder: $sortOrder, isActive: $isActive)';
   }
 }

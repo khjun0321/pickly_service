@@ -182,3 +182,67 @@ export function validateFileType(file: File, allowedTypes: string[]): boolean {
     return file.type === type
   })
 }
+
+// =====================================================
+// v7.3: Benefit Management System Storage
+// =====================================================
+
+/**
+ * Upload benefit category banner image
+ */
+export async function uploadBenefitBanner(file: File): Promise<UploadResult> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Only image files are allowed for banners')
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('Banner size must be less than 5MB')
+  }
+
+  return uploadFile({
+    bucket: 'benefit-banners',
+    folder: 'banners',
+    file,
+    upsert: true,
+  })
+}
+
+/**
+ * Upload announcement thumbnail image
+ */
+export async function uploadAnnouncementThumbnail(file: File): Promise<UploadResult> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Only image files are allowed for thumbnails')
+  }
+
+  if (file.size > 3 * 1024 * 1024) {
+    throw new Error('Thumbnail size must be less than 3MB')
+  }
+
+  return uploadFile({
+    bucket: 'benefit-thumbnails',
+    folder: 'thumbnails',
+    file,
+    upsert: true,
+  })
+}
+
+/**
+ * Upload benefit category icon
+ */
+export async function uploadBenefitIcon(file: File): Promise<UploadResult> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Only image files are allowed for icons')
+  }
+
+  if (file.size > 1 * 1024 * 1024) {
+    throw new Error('Icon size must be less than 1MB')
+  }
+
+  return uploadFile({
+    bucket: 'benefit-icons',
+    folder: 'icons',
+    file,
+    upsert: true,
+  })
+}

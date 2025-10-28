@@ -14,7 +14,7 @@ import '../widgets/category_banner.dart';
 /// 특정 카테고리의 배너와 공고 목록을 보여주는 화면입니다.
 /// - 실시간 스트림을 통해 공고 목록 업데이트
 /// - 카테고리별 배너 표시 (활성화된 경우)
-/// - display_order 기준 정렬
+/// - sort_order 기준 정렬
 class CategoryDetailScreen extends ConsumerWidget {
   final String categoryId;
 
@@ -77,12 +77,12 @@ class CategoryDetailScreen extends ConsumerWidget {
                         );
                       }
 
-                      // display_priority와 createdAt 기준 정렬
+                      // sort_order와 createdAt 기준 정렬
                       final sortedAnnouncements = [...announcements]
                         ..sort((a, b) {
-                          // display_priority로 먼저 정렬 (내림차순)
+                          // sort_order로 먼저 정렬 (내림차순)
                           final priorityCompare =
-                              b.displayPriority.compareTo(a.displayPriority);
+                              b.sortOrder.compareTo(a.sortOrder);
                           if (priorityCompare != 0) return priorityCompare;
 
                           // 우선순위가 같으면 createdAt으로 정렬 (최신순)

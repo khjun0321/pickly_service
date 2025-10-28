@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BenefitCategory {
 
- String get id; String get name; String get slug; String? get description; String? get iconUrl; String? get bannerImageUrl; String? get bannerLinkUrl; DateTime get createdAt; DateTime? get updatedAt; bool get isActive; int get displayOrder;
+ String get id;@JsonKey(name: 'title') String get title; String get slug; String? get description;@JsonKey(name: 'icon_url') String? get iconUrl;@JsonKey(name: 'banner_image_url') String? get bannerImageUrl;@JsonKey(name: 'banner_link_url') String? get bannerLinkUrl;@JsonKey(name: 'created_at') DateTime get createdAt;@JsonKey(name: 'updated_at') DateTime? get updatedAt;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'sort_order') int get sortOrder;
 /// Create a copy of BenefitCategory
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $BenefitCategoryCopyWith<BenefitCategory> get copyWith => _$BenefitCategoryCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BenefitCategory&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.description, description) || other.description == description)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.bannerImageUrl, bannerImageUrl) || other.bannerImageUrl == bannerImageUrl)&&(identical(other.bannerLinkUrl, bannerLinkUrl) || other.bannerLinkUrl == bannerLinkUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BenefitCategory&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.description, description) || other.description == description)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.bannerImageUrl, bannerImageUrl) || other.bannerImageUrl == bannerImageUrl)&&(identical(other.bannerLinkUrl, bannerLinkUrl) || other.bannerLinkUrl == bannerLinkUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,description,iconUrl,bannerImageUrl,bannerLinkUrl,createdAt,updatedAt,isActive,displayOrder);
+int get hashCode => Object.hash(runtimeType,id,title,slug,description,iconUrl,bannerImageUrl,bannerLinkUrl,createdAt,updatedAt,isActive,sortOrder);
 
 @override
 String toString() {
-  return 'BenefitCategory(id: $id, name: $name, slug: $slug, description: $description, iconUrl: $iconUrl, bannerImageUrl: $bannerImageUrl, bannerLinkUrl: $bannerLinkUrl, createdAt: $createdAt, updatedAt: $updatedAt, isActive: $isActive, displayOrder: $displayOrder)';
+  return 'BenefitCategory(id: $id, title: $title, slug: $slug, description: $description, iconUrl: $iconUrl, bannerImageUrl: $bannerImageUrl, bannerLinkUrl: $bannerLinkUrl, createdAt: $createdAt, updatedAt: $updatedAt, isActive: $isActive, sortOrder: $sortOrder)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $BenefitCategoryCopyWith<$Res>  {
   factory $BenefitCategoryCopyWith(BenefitCategory value, $Res Function(BenefitCategory) _then) = _$BenefitCategoryCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String slug, String? description, String? iconUrl, String? bannerImageUrl, String? bannerLinkUrl, DateTime createdAt, DateTime? updatedAt, bool isActive, int displayOrder
+ String id,@JsonKey(name: 'title') String title, String slug, String? description,@JsonKey(name: 'icon_url') String? iconUrl,@JsonKey(name: 'banner_image_url') String? bannerImageUrl,@JsonKey(name: 'banner_link_url') String? bannerLinkUrl,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'sort_order') int sortOrder
 });
 
 
@@ -65,10 +65,10 @@ class _$BenefitCategoryCopyWithImpl<$Res>
 
 /// Create a copy of BenefitCategory
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? description = freezed,Object? iconUrl = freezed,Object? bannerImageUrl = freezed,Object? bannerLinkUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,Object? isActive = null,Object? displayOrder = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? slug = null,Object? description = freezed,Object? iconUrl = freezed,Object? bannerImageUrl = freezed,Object? bannerLinkUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,Object? isActive = null,Object? sortOrder = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,iconUrl: freezed == iconUrl ? _self.iconUrl : iconUrl // ignore: cast_nullable_to_non_nullable
@@ -77,7 +77,7 @@ as String?,bannerLinkUrl: freezed == bannerLinkUrl ? _self.bannerLinkUrl : banne
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
-as bool,displayOrder: null == displayOrder ? _self.displayOrder : displayOrder // ignore: cast_nullable_to_non_nullable
+as bool,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -163,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  String? description,  String? iconUrl,  String? bannerImageUrl,  String? bannerLinkUrl,  DateTime createdAt,  DateTime? updatedAt,  bool isActive,  int displayOrder)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'title')  String title,  String slug,  String? description, @JsonKey(name: 'icon_url')  String? iconUrl, @JsonKey(name: 'banner_image_url')  String? bannerImageUrl, @JsonKey(name: 'banner_link_url')  String? bannerLinkUrl, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'sort_order')  int sortOrder)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BenefitCategory() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.description,_that.iconUrl,_that.bannerImageUrl,_that.bannerLinkUrl,_that.createdAt,_that.updatedAt,_that.isActive,_that.displayOrder);case _:
+return $default(_that.id,_that.title,_that.slug,_that.description,_that.iconUrl,_that.bannerImageUrl,_that.bannerLinkUrl,_that.createdAt,_that.updatedAt,_that.isActive,_that.sortOrder);case _:
   return orElse();
 
 }
@@ -184,10 +184,10 @@ return $default(_that.id,_that.name,_that.slug,_that.description,_that.iconUrl,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  String? description,  String? iconUrl,  String? bannerImageUrl,  String? bannerLinkUrl,  DateTime createdAt,  DateTime? updatedAt,  bool isActive,  int displayOrder)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'title')  String title,  String slug,  String? description, @JsonKey(name: 'icon_url')  String? iconUrl, @JsonKey(name: 'banner_image_url')  String? bannerImageUrl, @JsonKey(name: 'banner_link_url')  String? bannerLinkUrl, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'sort_order')  int sortOrder)  $default,) {final _that = this;
 switch (_that) {
 case _BenefitCategory():
-return $default(_that.id,_that.name,_that.slug,_that.description,_that.iconUrl,_that.bannerImageUrl,_that.bannerLinkUrl,_that.createdAt,_that.updatedAt,_that.isActive,_that.displayOrder);case _:
+return $default(_that.id,_that.title,_that.slug,_that.description,_that.iconUrl,_that.bannerImageUrl,_that.bannerLinkUrl,_that.createdAt,_that.updatedAt,_that.isActive,_that.sortOrder);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +204,10 @@ return $default(_that.id,_that.name,_that.slug,_that.description,_that.iconUrl,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String slug,  String? description,  String? iconUrl,  String? bannerImageUrl,  String? bannerLinkUrl,  DateTime createdAt,  DateTime? updatedAt,  bool isActive,  int displayOrder)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'title')  String title,  String slug,  String? description, @JsonKey(name: 'icon_url')  String? iconUrl, @JsonKey(name: 'banner_image_url')  String? bannerImageUrl, @JsonKey(name: 'banner_link_url')  String? bannerLinkUrl, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'sort_order')  int sortOrder)?  $default,) {final _that = this;
 switch (_that) {
 case _BenefitCategory() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.description,_that.iconUrl,_that.bannerImageUrl,_that.bannerLinkUrl,_that.createdAt,_that.updatedAt,_that.isActive,_that.displayOrder);case _:
+return $default(_that.id,_that.title,_that.slug,_that.description,_that.iconUrl,_that.bannerImageUrl,_that.bannerLinkUrl,_that.createdAt,_that.updatedAt,_that.isActive,_that.sortOrder);case _:
   return null;
 
 }
@@ -219,20 +219,20 @@ return $default(_that.id,_that.name,_that.slug,_that.description,_that.iconUrl,_
 @JsonSerializable()
 
 class _BenefitCategory implements BenefitCategory {
-  const _BenefitCategory({required this.id, required this.name, required this.slug, this.description, this.iconUrl, this.bannerImageUrl, this.bannerLinkUrl, required this.createdAt, this.updatedAt, this.isActive = true, this.displayOrder = 0});
+  const _BenefitCategory({required this.id, @JsonKey(name: 'title') required this.title, required this.slug, this.description, @JsonKey(name: 'icon_url') this.iconUrl, @JsonKey(name: 'banner_image_url') this.bannerImageUrl, @JsonKey(name: 'banner_link_url') this.bannerLinkUrl, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'sort_order') this.sortOrder = 0});
   factory _BenefitCategory.fromJson(Map<String, dynamic> json) => _$BenefitCategoryFromJson(json);
 
 @override final  String id;
-@override final  String name;
+@override@JsonKey(name: 'title') final  String title;
 @override final  String slug;
 @override final  String? description;
-@override final  String? iconUrl;
-@override final  String? bannerImageUrl;
-@override final  String? bannerLinkUrl;
-@override final  DateTime createdAt;
-@override final  DateTime? updatedAt;
-@override@JsonKey() final  bool isActive;
-@override@JsonKey() final  int displayOrder;
+@override@JsonKey(name: 'icon_url') final  String? iconUrl;
+@override@JsonKey(name: 'banner_image_url') final  String? bannerImageUrl;
+@override@JsonKey(name: 'banner_link_url') final  String? bannerLinkUrl;
+@override@JsonKey(name: 'created_at') final  DateTime createdAt;
+@override@JsonKey(name: 'updated_at') final  DateTime? updatedAt;
+@override@JsonKey(name: 'is_active') final  bool isActive;
+@override@JsonKey(name: 'sort_order') final  int sortOrder;
 
 /// Create a copy of BenefitCategory
 /// with the given fields replaced by the non-null parameter values.
@@ -247,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BenefitCategory&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.description, description) || other.description == description)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.bannerImageUrl, bannerImageUrl) || other.bannerImageUrl == bannerImageUrl)&&(identical(other.bannerLinkUrl, bannerLinkUrl) || other.bannerLinkUrl == bannerLinkUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BenefitCategory&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.description, description) || other.description == description)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.bannerImageUrl, bannerImageUrl) || other.bannerImageUrl == bannerImageUrl)&&(identical(other.bannerLinkUrl, bannerLinkUrl) || other.bannerLinkUrl == bannerLinkUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,description,iconUrl,bannerImageUrl,bannerLinkUrl,createdAt,updatedAt,isActive,displayOrder);
+int get hashCode => Object.hash(runtimeType,id,title,slug,description,iconUrl,bannerImageUrl,bannerLinkUrl,createdAt,updatedAt,isActive,sortOrder);
 
 @override
 String toString() {
-  return 'BenefitCategory(id: $id, name: $name, slug: $slug, description: $description, iconUrl: $iconUrl, bannerImageUrl: $bannerImageUrl, bannerLinkUrl: $bannerLinkUrl, createdAt: $createdAt, updatedAt: $updatedAt, isActive: $isActive, displayOrder: $displayOrder)';
+  return 'BenefitCategory(id: $id, title: $title, slug: $slug, description: $description, iconUrl: $iconUrl, bannerImageUrl: $bannerImageUrl, bannerLinkUrl: $bannerLinkUrl, createdAt: $createdAt, updatedAt: $updatedAt, isActive: $isActive, sortOrder: $sortOrder)';
 }
 
 
@@ -267,7 +267,7 @@ abstract mixin class _$BenefitCategoryCopyWith<$Res> implements $BenefitCategory
   factory _$BenefitCategoryCopyWith(_BenefitCategory value, $Res Function(_BenefitCategory) _then) = __$BenefitCategoryCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String slug, String? description, String? iconUrl, String? bannerImageUrl, String? bannerLinkUrl, DateTime createdAt, DateTime? updatedAt, bool isActive, int displayOrder
+ String id,@JsonKey(name: 'title') String title, String slug, String? description,@JsonKey(name: 'icon_url') String? iconUrl,@JsonKey(name: 'banner_image_url') String? bannerImageUrl,@JsonKey(name: 'banner_link_url') String? bannerLinkUrl,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'sort_order') int sortOrder
 });
 
 
@@ -284,10 +284,10 @@ class __$BenefitCategoryCopyWithImpl<$Res>
 
 /// Create a copy of BenefitCategory
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? description = freezed,Object? iconUrl = freezed,Object? bannerImageUrl = freezed,Object? bannerLinkUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,Object? isActive = null,Object? displayOrder = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? slug = null,Object? description = freezed,Object? iconUrl = freezed,Object? bannerImageUrl = freezed,Object? bannerLinkUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,Object? isActive = null,Object? sortOrder = null,}) {
   return _then(_BenefitCategory(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,iconUrl: freezed == iconUrl ? _self.iconUrl : iconUrl // ignore: cast_nullable_to_non_nullable
@@ -296,7 +296,7 @@ as String?,bannerLinkUrl: freezed == bannerLinkUrl ? _self.bannerLinkUrl : banne
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
-as bool,displayOrder: null == displayOrder ? _self.displayOrder : displayOrder // ignore: cast_nullable_to_non_nullable
+as bool,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }

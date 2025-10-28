@@ -21,7 +21,7 @@ class CategoryBannerRepository {
 
   /// Fetch all active banners from the database with category slug
   ///
-  /// Returns list of [CategoryBanner] ordered by display_order.
+  /// Returns list of [CategoryBanner] ordered by sort_order.
   /// Only returns active banners (is_active = true).
   ///
   /// Note: This method performs a JOIN with benefit_categories to get the slug.
@@ -37,20 +37,21 @@ class CategoryBannerRepository {
           .from('category_banners')
           .select('''
             id,
-            category_id,
+            benefit_category_id,
             title,
             subtitle,
             image_url,
-            action_url,
+            link_type,
+            link_target,
             background_color,
-            display_order,
+            sort_order,
             is_active,
             created_at,
             updated_at,
             benefit_categories!inner(slug)
           ''')
           .eq('is_active', true)
-          .order('display_order', ascending: true);
+          .order('sort_order', ascending: true);
 
       debugPrint('✅ Fetched ${response.length} active banners from database');
 
@@ -63,13 +64,14 @@ class CategoryBannerRepository {
 
             return CategoryBanner(
               id: json['id'] as String,
-              categoryId: categorySlug, // Use slug instead of UUID
+              benefitCategoryId: categorySlug, // Use slug instead of UUID
               title: json['title'] as String,
-              subtitle: json['subtitle'] as String? ?? '',
+              subtitle: json['subtitle'] as String?,
               imageUrl: json['image_url'] as String,
-              backgroundColor: json['background_color'] as String? ?? '#E3F2FD',
-              actionUrl: json['action_url'] as String? ?? '',
-              displayOrder: json['display_order'] as int? ?? 0,
+              backgroundColor: json['background_color'] as String?,
+              linkType: json['link_type'] as String? ?? 'none',
+              linkTarget: json['link_target'] as String?,
+              sortOrder: json['sort_order'] as int? ?? 0,
               isActive: json['is_active'] as bool? ?? true,
               createdAt: DateTime.parse(json['created_at'] as String),
               updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -89,7 +91,7 @@ class CategoryBannerRepository {
   /// - [categoryId]: UUID of the benefit category
   ///
   /// Returns list of [CategoryBanner] for the specified category,
-  /// ordered by display_order.
+  /// ordered by sort_order.
   ///
   /// Throws:
   /// - [PostgrestException] if database query fails
@@ -101,33 +103,35 @@ class CategoryBannerRepository {
           .from('category_banners')
           .select('''
             id,
-            category_id,
+            benefit_category_id,
             title,
             subtitle,
             image_url,
-            action_url,
+            link_type,
+            link_target,
             background_color,
-            display_order,
+            sort_order,
             is_active,
             created_at,
             updated_at
           ''')
-          .eq('category_id', categoryId)
+          .eq('benefit_category_id', categoryId)
           .eq('is_active', true)
-          .order('display_order', ascending: true);
+          .order('sort_order', ascending: true);
 
       debugPrint('✅ Fetched ${response.length} banners for category $categoryId');
 
       return (response as List)
           .map((json) => CategoryBanner(
                 id: json['id'] as String,
-                categoryId: json['category_id'] as String,
+                benefitCategoryId: json['benefit_category_id'] as String,
                 title: json['title'] as String,
-                subtitle: json['subtitle'] as String? ?? '',
+                subtitle: json['subtitle'] as String?,
                 imageUrl: json['image_url'] as String,
-                backgroundColor: json['background_color'] as String? ?? '#E3F2FD',
-                actionUrl: json['action_url'] as String? ?? '',
-                displayOrder: json['display_order'] as int? ?? 0,
+                backgroundColor: json['background_color'] as String?,
+                linkType: json['link_type'] as String? ?? 'none',
+                linkTarget: json['link_target'] as String?,
+                sortOrder: json['sort_order'] as int? ?? 0,
                 isActive: json['is_active'] as bool? ?? true,
                 createdAt: DateTime.parse(json['created_at'] as String),
                 updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -154,13 +158,14 @@ class CategoryBannerRepository {
           .from('category_banners')
           .select('''
             id,
-            category_id,
+            benefit_category_id,
             title,
             subtitle,
             image_url,
-            action_url,
+            link_type,
+            link_target,
             background_color,
-            display_order,
+            sort_order,
             is_active,
             created_at,
             updated_at
@@ -177,13 +182,14 @@ class CategoryBannerRepository {
 
       return CategoryBanner(
         id: response['id'] as String,
-        categoryId: response['category_id'] as String,
+        benefitCategoryId: response['benefit_category_id'] as String,
         title: response['title'] as String,
-        subtitle: response['subtitle'] as String? ?? '',
+        subtitle: response['subtitle'] as String?,
         imageUrl: response['image_url'] as String,
-        backgroundColor: response['background_color'] as String? ?? '#E3F2FD',
-        actionUrl: response['action_url'] as String? ?? '',
-        displayOrder: response['display_order'] as int? ?? 0,
+        backgroundColor: response['background_color'] as String?,
+        linkType: response['link_type'] as String? ?? 'none',
+        linkTarget: response['link_target'] as String?,
+        sortOrder: response['sort_order'] as int? ?? 0,
         isActive: response['is_active'] as bool? ?? true,
         createdAt: DateTime.parse(response['created_at'] as String),
         updatedAt: DateTime.parse(response['updated_at'] as String),

@@ -14,6 +14,7 @@ import BenefitCategoryList from '@/pages/benefits/BenefitCategoryList'
 import BenefitAnnouncementList from '@/pages/benefits/BenefitAnnouncementList'
 import BenefitAnnouncementForm from '@/pages/benefits/BenefitAnnouncementForm'
 import BenefitCategoryPage from '@/pages/benefits/BenefitCategoryPage'
+import BenefitManagementPage from '@/pages/benefits/BenefitManagementPage'
 import AnnouncementEditCompletePage from '@/pages/benefits/AnnouncementEditCompletePage'
 import AgeCategoriesPage from '@/pages/age-categories/AgeCategoriesPage'
 import AnnouncementTypesPage from '@/pages/announcement-types/AnnouncementTypesPage'
@@ -38,6 +39,9 @@ function App() {
               <Route path="users" element={<UserList />} />
               <Route path="age-categories" element={<AgeCategoriesPage />} />
               <Route path="announcement-types" element={<AnnouncementTypesPage />} />
+              {/* v7.3 Benefit Management - integrated banner/type/announcement CRUD */}
+              <Route path="benefits/manage/:categorySlug" element={<BenefitManagementPage />} />
+              {/* Legacy benefit routes */}
               <Route path="benefits/:categorySlug" element={<BenefitCategoryPage />} />
               <Route path="benefits/categories" element={<BenefitCategoryList />} />
               <Route path="benefits/announcements" element={<BenefitAnnouncementList />} />

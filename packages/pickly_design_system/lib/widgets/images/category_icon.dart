@@ -36,6 +36,10 @@ class CategoryIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     // 1순위: 네트워크 아이콘 (iconUrl)
     if (iconUrl != null && iconUrl!.isNotEmpty) {
+      // 로컬 에셋 경로인지 확인 (packages/ 또는 assets/로 시작)
+      if (iconUrl!.startsWith('packages/') || iconUrl!.startsWith('assets/')) {
+        return _buildLocalIconFromUrl(iconUrl!);
+      }
       return _buildNetworkIcon();
     }
 
@@ -109,6 +113,36 @@ class CategoryIcon extends StatelessWidget {
     );
   }
 
+  /// iconUrl에 로컬 에셋 경로가 있을 때 사용
+  /// (DB에 실수로 로컬 경로가 저장된 경우 대응)
+  Widget _buildLocalIconFromUrl(String assetPath) {
+    // SVG인지 확인
+    final isSvg = assetPath.toLowerCase().endsWith('.svg');
+
+    if (isSvg) {
+      return SvgPicture.asset(
+        assetPath,
+        width: size,
+        height: size,
+        colorFilter: color != null
+            ? ColorFilter.mode(color!, BlendMode.srcIn)
+            : null,
+        placeholderBuilder: (context) => _buildLoadingPlaceholder(),
+        // 에러 시 iconComponent로 Fallback
+      );
+    }
+
+    // PNG
+    return Image.asset(
+      assetPath,
+      width: size,
+      height: size,
+      color: color,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => _buildLocalIcon(),
+    );
+  }
+
   /// 로딩 중 플레이스홀더
   Widget _buildLoadingPlaceholder() {
     return SizedBox(
@@ -144,28 +178,43 @@ class CategoryIcon extends StatelessWidget {
   /// packages/pickly_design_system/assets/icons/ 경로 사용
   String? _getLocalIconPath(String component) {
     const basePath = 'packages/pickly_design_system/assets/icons';
+    const ageBasePath = '$basePath/age_categories';
 
-    // 연령 카테고리 아이콘 매핑
-    final iconMap = {
-      'youth': '$basePath/category_youth.svg',
-      'newlywed': '$basePath/category_newlywed.svg',
-      'parenting': '$basePath/category_parenting.svg',
-      'multi_child': '$basePath/category_multi_child.svg',
-      'senior': '$basePath/category_senior.svg',
-      'disabled': '$basePath/category_disabled.svg',
-
-      // 혜택 카테고리 아이콘 (기존)
-      'popular': '$basePath/benefit_popular.svg',
-      'housing': '$basePath/benefit_housing.svg',
-      'education': '$basePath/benefit_education.svg',
-      'health': '$basePath/benefit_health.svg',
-      'transportation': '$basePath/benefit_transportation.svg',
-      'welfare': '$basePath/benefit_welfare.svg',
-      'employment': '$basePath/benefit_employment.svg',
-      'support': '$basePath/benefit_support.svg',
-      'culture': '$basePath/benefit_culture.svg',
+    // 연령 카테고리 아이콘 매핑 (age_categories 폴더)
+    final ageIconMap = {
+      'youth': '$ageBasePath/young_man.svg',
+      'baby': '$ageBasePath/baby.svg',
+      'newlywed': '$ageBasePath/bride.svg',
+      'parenting': '$ageBasePath/kinder.svg',
+      'senior': '$ageBasePath/old_man.svg',
+      'disabled': '$ageBasePath/wheel_chair.svg',
     };
 
-    return iconMap[component];
+    // 혜택 카테고리 아이콘 매핑 (icons 폴더 직접 사용)
+    final benefitIconMap = {
+      'popular': '$basePath/popular.svg',
+      'housing': '$basePath/housing.svg',
+      'education': '$basePath/education.svg',
+      'health': '$basePath/health.svg',
+      'transport': '$basePath/transportation.svg',
+      'transportation': '$basePath/transportation.svg',
+      'welfare': '$basePath/heart.svg',
+      'employment': '$basePath/employment.svg',
+      'support': '$basePath/support.svg',
+      'culture': '$basePath/culture.svg',
+    };
+
+    // 1순위: age_categories 확인
+    if (ageIconMap.containsKey(component)) {
+      return ageIconMap[component];
+    }
+
+    // 2순위: benefit_categories 확인
+    if (benefitIconMap.containsKey(component)) {
+      return benefitIconMap[component];
+    }
+
+    // 3순위: null 반환하여 fallback 아이콘 사용
+    return null;
   }
 }
