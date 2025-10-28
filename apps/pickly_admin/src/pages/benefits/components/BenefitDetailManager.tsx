@@ -27,6 +27,7 @@ import {
   Delete as DeleteIcon,
   ArrowUpward,
   ArrowDownward,
+  DragIndicator as DragIcon,
 } from '@mui/icons-material'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
@@ -148,6 +149,7 @@ export default function BenefitDetailManager({ categoryId, categoryTitle }: Bene
           <Table size="small">
             <TableHead>
               <TableRow>
+                <TableCell width={50}></TableCell>
                 <TableCell width={60}>아이콘</TableCell>
                 <TableCell>정책명</TableCell>
                 <TableCell>설명</TableCell>
@@ -159,20 +161,32 @@ export default function BenefitDetailManager({ categoryId, categoryTitle }: Bene
             <TableBody>
               {details.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={7} align="center">
                     등록된 정책이 없습니다
                   </TableCell>
                 </TableRow>
               ) : (
                 details.map((detail, index) => (
-                  <TableRow key={detail.id}>
+                  <TableRow key={detail.id} hover>
                     <TableCell>
-                      {detail.icon_url && (
+                      <DragIcon sx={{ color: 'text.disabled', cursor: 'move' }} />
+                    </TableCell>
+                    <TableCell>
+                      {detail.icon_url ? (
                         <Box
                           component="img"
                           src={detail.icon_url}
                           alt={detail.title}
-                          sx={{ width: 32, height: 32, objectFit: 'contain' }}
+                          sx={{ width: 40, height: 40, objectFit: 'contain' }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            bgcolor: 'grey.200',
+                            borderRadius: 1,
+                          }}
                         />
                       )}
                     </TableCell>

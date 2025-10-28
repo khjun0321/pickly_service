@@ -159,8 +159,9 @@ export default function BenefitDetailModal({
     const file = event.target.files?.[0]
     if (!file) return
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('이미지 파일만 업로드 가능합니다')
+    // Validate SVG file type (following age category pattern)
+    if (file.type !== 'image/svg+xml') {
+      toast.error('SVG 파일만 업로드 가능합니다')
       return
     }
 
@@ -220,14 +221,14 @@ export default function BenefitDetailModal({
 
             <Grid item xs={12}>
               <Typography variant="body2" gutterBottom>
-                아이콘 (선택)
+                아이콘 SVG 업로드
               </Typography>
               {iconPreview && (
                 <Paper sx={{ p: 2, mb: 1, display: 'inline-block' }}>
                   <img
                     src={iconPreview}
                     alt="Icon preview"
-                    style={{ width: 48, height: 48, objectFit: 'contain' }}
+                    style={{ width: 64, height: 64, objectFit: 'contain' }}
                   />
                 </Paper>
               )}
@@ -238,16 +239,16 @@ export default function BenefitDetailModal({
                 fullWidth
                 size="small"
               >
-                {iconPreview ? '아이콘 변경' : '아이콘 업로드'}
+                {iconPreview ? 'SVG 변경' : 'SVG 업로드'}
                 <input
                   type="file"
                   hidden
-                  accept="image/*"
+                  accept=".svg,image/svg+xml"
                   onChange={handleIconSelect}
                 />
               </Button>
               <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-                SVG, PNG 권장, 최대 1MB
+                SVG 파일만 가능, 최대 1MB
               </Typography>
             </Grid>
 
