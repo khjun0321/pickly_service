@@ -249,3 +249,120 @@ final hasAnnouncementsProvider = Provider.family<bool, String>((ref, typeId) {
 final announcementCountByStatusProvider = Provider.family<int, String>((ref, status) {
   return ref.watch(announcementsByStatusProvider(status)).length;
 });
+
+// ==================== Realtime Streams (v8.6) ====================
+
+/// StreamProvider for watching announcements in realtime
+///
+/// This provider:
+/// - Creates a realtime stream from Supabase
+/// - Automatically updates UI when data changes in Admin
+/// - Maintains loading and error states
+/// - Supports optional status and priority filters
+///
+/// Usage:
+/// ```dart
+/// // In your widget
+/// final announcementsAsync = ref.watch(announcementsStreamProvider);
+///
+/// announcementsAsync.when(
+///   data: (announcements) => ListView(children: announcements.map(...)),
+///   loading: () => CircularProgressIndicator(),
+///   error: (err, stack) => Text('Error: $err'),
+/// );
+/// ```
+///
+/// The stream will automatically emit updates when:
+/// - Admin creates a new announcement
+/// - Admin updates an existing announcement
+/// - Admin deletes an announcement
+/// - Any other client modifies the announcements table
+final announcementsStreamProvider = StreamProvider<List<Announcement>>((ref) {
+  final repository = ref.watch(announcementRepositoryProvider);
+  debugPrint('🌊 [Stream Provider] Starting announcements stream');
+  return repository.watchAnnouncements();
+});
+
+/// StreamProvider for watching announcements with status filter
+///
+/// Parameters:
+/// - [status]: 'open', 'closed', or 'upcoming'
+///
+/// Returns a stream of filtered announcements
+final announcementsStreamByStatusProvider = StreamProvider.family<List<Announcement>, String>((ref, status) {
+  final repository = ref.watch(announcementRepositoryProvider);
+  debugPrint('🌊 [Stream Provider] Starting announcements stream for status: $status');
+  return repository.watchAnnouncements(status: status);
+});
+
+/// StreamProvider for watching priority announcements only
+///
+/// Returns a stream of only priority announcements
+final priorityAnnouncementsStreamProvider = StreamProvider<List<Announcement>>((ref) {
+  final repository = ref.watch(announcementRepositoryProvider);
+  debugPrint('🌊 [Stream Provider] Starting priority announcements stream');
+  return repository.watchAnnouncements(priorityOnly: true);
+});
+
+/// StreamProvider for watching announcements by type
+///
+/// Parameters:
+/// - [typeId]: UUID of the announcement type
+///
+/// Returns a stream of announcements for the specified type
+final announcementsStreamByTypeProvider = StreamProvider.family<List<Announcement>, String>((ref, typeId) {
+  final repository = ref.watch(announcementRepositoryProvider);
+  debugPrint('🌊 [Stream Provider] Starting announcements stream for type: $typeId');
+  return repository.watchAnnouncementsByType(typeId);
+});
+
+/// StreamProvider for watching a single announcement by ID
+///
+/// Parameters:
+/// - [id]: Announcement UUID
+///
+/// Returns a stream of the announcement (or null if not found/deleted)
+final announcementStreamByIdProvider = StreamProvider.family<Announcement?, String>((ref, id) {
+  final repository = ref.watch(announcementRepositoryProvider);
+  debugPrint('🌊 [Stream Provider] Starting announcement stream for ID: $id');
+  return repository.watchAnnouncementById(id);
+});
+
+/// Provider to get announcements list from stream
+///
+/// This is a convenience provider that extracts the data from AsyncValue
+/// and returns an empty list if loading or error.
+final announcementsStreamListProvider = Provider<List<Announcement>>((ref) {
+  final asyncAnnouncements = ref.watch(announcementsStreamProvider);
+  return asyncAnnouncements.maybeWhen(
+    data: (announcements) => announcements,
+    orElse: () => [],
+  );
+});
+
+/// Provider to check if stream is currently loading
+final announcementsStreamLoadingProvider = Provider<bool>((ref) {
+  final asyncAnnouncements = ref.watch(announcementsStreamProvider);
+  return asyncAnnouncements.isLoading;
+});
+
+/// Provider to get stream error state
+final announcementsStreamErrorProvider = Provider<Object?>((ref) {
+  final asyncAnnouncements = ref.watch(announcementsStreamProvider);
+  return asyncAnnouncements.error;
+});
+
+/// Provider to get announcement count from stream
+final announcementsStreamCountProvider = Provider<int>((ref) {
+  final announcements = ref.watch(announcementsStreamListProvider);
+  return announcements.length;
+});
+
+/// Provider to get open announcements from stream
+final openAnnouncementsStreamProvider = Provider<List<Announcement>>((ref) {
+  final asyncAnnouncements = ref.watch(announcementsStreamByStatusProvider('open'));
+  return asyncAnnouncements.maybeWhen(
+    data: (announcements) => announcements,
+    orElse: () => [],
+  );
+});

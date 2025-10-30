@@ -303,4 +303,166 @@ class AnnouncementRepository {
       rethrow;
     }
   }
+
+  // ==================== Realtime Streams (v8.6) ====================
+
+  /// Watch announcements in realtime with Supabase Stream
+  ///
+  /// This method creates a realtime stream that automatically emits updates
+  /// when the announcements table changes in Supabase.
+  ///
+  /// Parameters:
+  /// - [status]: Optional status filter ('open', 'closed', 'upcoming')
+  /// - [priorityOnly]: If true, only stream priority announcements
+  ///
+  /// Returns a Stream of [List<Announcement>] that emits:
+  /// - Initial data immediately upon subscription
+  /// - Updated data whenever announcements are inserted/updated/deleted
+  ///
+  /// The stream:
+  /// - Automatically reconnects on connection loss
+  /// - Maintains proper ordering (priority DESC, posted_date DESC)
+  /// - Maps raw database records to Announcement models
+  ///
+  /// Usage:
+  /// ```dart
+  /// final stream = repository.watchAnnouncements(status: 'open');
+  /// stream.listen((announcements) {
+  ///   print('Got ${announcements.length} announcements');
+  /// });
+  /// ```
+  Stream<List<Announcement>> watchAnnouncements({
+    String? status,
+    bool priorityOnly = false,
+  }) {
+    try {
+      debugPrint(
+          '🌊 Starting realtime stream for announcements (status: $status, priority: $priorityOnly)');
+
+      // Build the base query
+      var query = _supabase.from('announcements').stream(primaryKey: ['id']);
+
+      // Apply filters if provided
+      // Note: Supabase stream() doesn't support chaining filters like .eq()
+      // We need to filter in the map() transformation instead
+
+      return query.map((records) {
+        debugPrint('🔄 Received ${records.length} announcements from stream');
+
+        // Parse all records to Announcement objects
+        var announcements = records
+            .map((json) => Announcement.fromJson(json))
+            .toList();
+
+        // Apply status filter if specified
+        if (status != null) {
+          announcements = announcements
+              .where((a) => a.status == status)
+              .toList();
+        }
+
+        // Apply priority filter if specified
+        if (priorityOnly) {
+          announcements = announcements
+              .where((a) => a.isPriority)
+              .toList();
+        }
+
+        // Sort by priority (DESC) then posted_date (DESC)
+        announcements.sort((a, b) {
+          // Priority comparison (true > false)
+          final priorityCompare = (b.isPriority ? 1 : 0) - (a.isPriority ? 1 : 0);
+          if (priorityCompare != 0) return priorityCompare;
+          // Date comparison (newest first)
+          return b.postedDate.compareTo(a.postedDate);
+        });
+
+        debugPrint('✅ Stream emitted ${announcements.length} filtered announcements');
+        return announcements;
+      });
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error creating announcements stream: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// Watch announcements for a specific type in realtime
+  ///
+  /// Parameters:
+  /// - [typeId]: UUID of the announcement type
+  /// - [status]: Optional status filter
+  ///
+  /// Returns a Stream of [List<Announcement>] filtered by type
+  Stream<List<Announcement>> watchAnnouncementsByType(
+    String typeId, {
+    String? status,
+  }) {
+    try {
+      debugPrint('🌊 Starting realtime stream for type: $typeId, status: $status');
+
+      return _supabase
+          .from('announcements')
+          .stream(primaryKey: ['id'])
+          .map((records) {
+            var announcements = records
+                .map((json) => Announcement.fromJson(json))
+                .where((a) => a.typeId == typeId)
+                .toList();
+
+            if (status != null) {
+              announcements = announcements
+                  .where((a) => a.status == status)
+                  .toList();
+            }
+
+            announcements.sort((a, b) {
+              final priorityCompare = (b.isPriority ? 1 : 0) - (a.isPriority ? 1 : 0);
+              if (priorityCompare != 0) return priorityCompare;
+              return b.postedDate.compareTo(a.postedDate);
+            });
+
+            debugPrint('✅ Stream emitted ${announcements.length} announcements for type $typeId');
+            return announcements;
+          });
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error creating announcements stream by type: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// Watch a single announcement by ID in realtime
+  ///
+  /// Parameters:
+  /// - [id]: Announcement UUID
+  ///
+  /// Returns a Stream of [Announcement?] that emits:
+  /// - The announcement if found
+  /// - null if not found or deleted
+  Stream<Announcement?> watchAnnouncementById(String id) {
+    try {
+      debugPrint('🌊 Starting realtime stream for announcement ID: $id');
+
+      return _supabase
+          .from('announcements')
+          .stream(primaryKey: ['id'])
+          .map((records) {
+            try {
+              final record = records.firstWhere(
+                (r) => r['id'] == id,
+              );
+              debugPrint('✅ Stream emitted announcement: $id');
+              return Announcement.fromJson(record);
+            } catch (e) {
+              debugPrint('⚠️ Announcement not found in stream: $id');
+              return null;
+            }
+          });
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error creating announcement stream by ID: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
 }
