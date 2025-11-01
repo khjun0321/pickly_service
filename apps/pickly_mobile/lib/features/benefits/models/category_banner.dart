@@ -22,6 +22,10 @@ class CategoryBanner {
   /// Associated benefit category ID (v7.3: renamed from category_id)
   final String benefitCategoryId;
 
+  /// Category slug for fast lookup (v8.7: denormalized from benefit_categories)
+  /// This eliminates the need for async JOIN operations in streams.
+  final String? categorySlug;
+
   /// Banner title text
   final String title;
 
@@ -56,6 +60,7 @@ class CategoryBanner {
   const CategoryBanner({
     required this.id,
     required this.benefitCategoryId,
+    this.categorySlug,
     required this.title,
     this.subtitle,
     required this.imageUrl,
@@ -68,13 +73,15 @@ class CategoryBanner {
     required this.updatedAt,
   });
 
-  /// Creates a [CategoryBanner] from Supabase JSON response (v7.3 schema).
+  /// Creates a [CategoryBanner] from Supabase JSON response (v8.7 schema).
   ///
   /// Handles type conversions and null safety for all fields.
+  /// Supports category_slug field from v8.7 migration.
   factory CategoryBanner.fromJson(Map<String, dynamic> json) {
     return CategoryBanner(
       id: json['id'] as String,
       benefitCategoryId: json['benefit_category_id'] as String,
+      categorySlug: json['category_slug'] as String?,
       title: json['title'] as String,
       subtitle: json['subtitle'] as String?,
       imageUrl: json['image_url'] as String,
@@ -93,6 +100,7 @@ class CategoryBanner {
     return {
       'id': id,
       'benefit_category_id': benefitCategoryId,
+      if (categorySlug != null) 'category_slug': categorySlug,
       'title': title,
       'subtitle': subtitle,
       'image_url': imageUrl,
@@ -110,6 +118,7 @@ class CategoryBanner {
   CategoryBanner copyWith({
     String? id,
     String? benefitCategoryId,
+    String? categorySlug,
     String? title,
     String? subtitle,
     String? imageUrl,
@@ -124,6 +133,7 @@ class CategoryBanner {
     return CategoryBanner(
       id: id ?? this.id,
       benefitCategoryId: benefitCategoryId ?? this.benefitCategoryId,
+      categorySlug: categorySlug ?? this.categorySlug,
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,
       imageUrl: imageUrl ?? this.imageUrl,
@@ -172,7 +182,7 @@ class CategoryBanner {
 
   @override
   String toString() {
-    return 'CategoryBanner(id: $id, benefitCategoryId: $benefitCategoryId, title: $title, '
-        'sortOrder: $sortOrder, isActive: $isActive)';
+    return 'CategoryBanner(id: $id, benefitCategoryId: $benefitCategoryId, '
+        'categorySlug: $categorySlug, title: $title, sortOrder: $sortOrder, isActive: $isActive)';
   }
 }

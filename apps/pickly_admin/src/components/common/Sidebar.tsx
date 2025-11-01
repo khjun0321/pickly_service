@@ -13,13 +13,16 @@ import {
 } from '@mui/material'
 import {
   Dashboard as DashboardIcon,
+  Home as HomeIcon,
+  CardGiftcard as CardGiftcardIcon,
+  Api as ApiIcon,
   People as PeopleIcon,
   Category as CategoryIcon,
-  CardGiftcard as CardGiftcardIcon,
+  ViewModule as ViewModuleIcon,
+  Image as ImageIcon,
+  Announcement as AnnouncementIcon,
   ExpandLess,
   ExpandMore,
-  FolderSpecial as FolderIcon,
-  Tab as TabIcon,
 } from '@mui/icons-material'
 
 interface SidebarProps {
@@ -28,23 +31,24 @@ interface SidebarProps {
   drawerWidth: number
 }
 
+// PRD v9.6 Section 4 - Admin Structure (matching Flutter app)
 const menuItems = [
   { text: '대시보드', icon: <DashboardIcon />, path: '/' },
-  { text: '사용자', icon: <PeopleIcon />, path: '/users' },
-  { text: '연령대 관리', icon: <FolderIcon />, path: '/age-categories' },
-  { text: '공고 유형 관리', icon: <TabIcon />, path: '/announcement-types' },
+  { text: '홈 관리', icon: <HomeIcon />, path: '/home-management' },
 ]
 
+// Benefits Management submenu (PRD v9.6 Section 4.2)
 const benefitMenuItems = [
-  { text: '인기', icon: <CategoryIcon />, path: '/benefits/manage/popular' },
-  { text: '주거', icon: <CategoryIcon />, path: '/benefits/manage/housing' },
-  { text: '교육', icon: <CategoryIcon />, path: '/benefits/manage/education' },
-  { text: '건강', icon: <CategoryIcon />, path: '/benefits/manage/health' },
-  { text: '교통', icon: <CategoryIcon />, path: '/benefits/manage/transportation' },
-  { text: '복지', icon: <CategoryIcon />, path: '/benefits/manage/welfare' },
-  { text: '취업', icon: <CategoryIcon />, path: '/benefits/manage/employment' },
-  { text: '지원', icon: <CategoryIcon />, path: '/benefits/manage/support' },
-  { text: '문화', icon: <CategoryIcon />, path: '/benefits/manage/culture' },
+  { text: '대분류 관리', icon: <CategoryIcon />, path: '/benefits/categories' },
+  { text: '하위분류 관리', icon: <ViewModuleIcon />, path: '/benefits/subcategories' },
+  { text: '배너 관리', icon: <ImageIcon />, path: '/benefits/banners' },
+  { text: '공고 관리', icon: <AnnouncementIcon />, path: '/benefits/announcements' },
+]
+
+// Bottom menu items
+const bottomMenuItems = [
+  { text: 'API 관리', icon: <ApiIcon />, path: '/api-management' },
+  { text: '사용자·권한', icon: <PeopleIcon />, path: '/users' },
 ]
 
 export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth }: SidebarProps) {
@@ -63,6 +67,7 @@ export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth }: Sid
       <Toolbar />
       <Box sx={{ overflow: 'auto' }}>
         <List>
+          {/* Main menu items */}
           {menuItems.map((item) => (
             <ListItem key={item.text} disablePadding>
               <ListItemButton
@@ -77,6 +82,8 @@ export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth }: Sid
               </ListItemButton>
             </ListItem>
           ))}
+
+          {/* Benefits Management (collapsible) */}
           <ListItem disablePadding>
             <ListItemButton onClick={handleBenefitMenuToggle}>
               <ListItemIcon>
@@ -105,6 +112,22 @@ export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth }: Sid
               ))}
             </List>
           </Collapse>
+
+          {/* Bottom menu items */}
+          {bottomMenuItems.map((item) => (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
+                selected={location.pathname === item.path}
+                onClick={() => {
+                  navigate(item.path)
+                  onDrawerToggle()
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
         </List>
       </Box>
     </div>

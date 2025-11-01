@@ -56,13 +56,14 @@ interface AnnouncementManagerProps {
 }
 
 const announcementSchema = z.object({
-  type_id: z.string().min(1, '공고유형을 선택하세요'),
+  category_id: z.string().nullable(),
+  subcategory_id: z.string().min(1, '하위 카테고리를 선택하세요'),
   title: z.string().min(1, '제목을 입력하세요'),
   organization: z.string().min(1, '기관명을 입력하세요'),
   region: z.string().nullable(),
   thumbnail_url: z.string().nullable(),
-  posted_date: z.string().nullable(),
-  status: z.enum(['active', 'closed', 'upcoming']),
+  application_start_date: z.string().nullable(),
+  status: z.enum(['recruiting', 'closed', 'upcoming', 'draft']),
   is_priority: z.boolean(),
   detail_url: z.string().nullable(),
 })
@@ -75,19 +76,19 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<AnnouncementStatus | 'all'>('all')
 
-  // Fetch announcement types for this category
-  const { data: types = [] } = useQuery({
-    queryKey: ['announcement_types', categoryId],
+  // Fetch benefit subcategories for this category
+  const { data: subcategories = [] } = useQuery({
+    queryKey: ['benefit_subcategories', categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('announcement_types')
+        .from('benefit_subcategories')
         .select('*')
-        .eq('benefit_category_id', categoryId)
+        .eq('category_id', categoryId)
         .eq('is_active', true)
         .order('sort_order', { ascending: true })
 
       if (error) throw error
-      return data as AnnouncementType[]
+      return data
     },
   })
 
@@ -95,16 +96,12 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
   const { data: announcements = [], isLoading } = useQuery({
     queryKey: ['announcements', categoryId, statusFilter],
     queryFn: async () => {
-      // Get all type IDs for this category
-      const typeIds = types.map(t => t.id)
-      if (typeIds.length === 0) return []
-
       let query = supabase
         .from('announcements')
         .select('*')
-        .in('type_id', typeIds)
+        .eq('category_id', categoryId)
         .order('is_priority', { ascending: false })
-        .order('posted_date', { ascending: false })
+        .order('application_start_date', { ascending: false })
 
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter)
@@ -115,7 +112,6 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
       if (error) throw error
       return data as Announcement[]
     },
-    enabled: types.length > 0,
   })
 
   const {
@@ -126,13 +122,14 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
   } = useForm<AnnouncementFormData>({
     resolver: zodResolver(announcementSchema),
     defaultValues: {
-      type_id: '',
+      category_id: categoryId,
+      subcategory_id: '',
       title: '',
       organization: '',
       region: null,
       thumbnail_url: null,
-      posted_date: null,
-      status: 'active',
+      application_start_date: null,
+      status: 'recruiting',
       is_priority: false,
       detail_url: null,
     },
@@ -222,12 +219,13 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
     if (announcement) {
       setEditingAnnouncement(announcement)
       reset({
-        type_id: announcement.type_id,
+        category_id: announcement.category_id || categoryId,
+        subcategory_id: announcement.subcategory_id || '',
         title: announcement.title,
         organization: announcement.organization,
         region: announcement.region,
         thumbnail_url: announcement.thumbnail_url,
-        posted_date: announcement.posted_date,
+        application_start_date: announcement.application_start_date,
         status: announcement.status,
         is_priority: announcement.is_priority,
         detail_url: announcement.detail_url,
@@ -236,13 +234,14 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
     } else {
       setEditingAnnouncement(null)
       reset({
-        type_id: types.length > 0 ? types[0].id : '',
+        category_id: categoryId,
+        subcategory_id: subcategories.length > 0 ? subcategories[0].id : '',
         title: '',
         organization: '',
         region: null,
         thumbnail_url: null,
-        posted_date: new Date().toISOString().split('T')[0],
-        status: 'active',
+        application_start_date: new Date().toISOString().split('T')[0],
+        status: 'recruiting',
         is_priority: false,
         detail_url: null,
       })
@@ -295,12 +294,14 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
 
   const getStatusColor = (status: AnnouncementStatus) => {
     switch (status) {
-      case 'active':
+      case 'recruiting':
         return 'success'
       case 'closed':
         return 'error'
       case 'upcoming':
         return 'info'
+      case 'draft':
+        return 'default'
       default:
         return 'default'
     }
@@ -308,12 +309,14 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
 
   const getStatusLabel = (status: AnnouncementStatus) => {
     switch (status) {
-      case 'active':
+      case 'recruiting':
         return '모집중'
       case 'closed':
         return '마감'
       case 'upcoming':
         return '예정'
+      case 'draft':
+        return '임시저장'
       default:
         return status
     }
@@ -328,21 +331,21 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
           size="small"
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
-          disabled={types.length === 0}
+          disabled={subcategories.length === 0}
         >
           공고 추가
         </Button>
       </Box>
 
-      {types.length === 0 && (
+      {subcategories.length === 0 && (
         <Box sx={{ p: 3, textAlign: 'center' }}>
           <Typography color="text.secondary">
-            공고를 추가하려면 먼저 공고유형을 생성하세요
+            공고를 추가하려면 먼저 하위 카테고리가 필요합니다
           </Typography>
         </Box>
       )}
 
-      {types.length > 0 && (
+      {subcategories.length > 0 && (
         <>
           <Tabs
             value={statusFilter}
@@ -350,9 +353,10 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
             sx={{ mb: 2 }}
           >
             <Tab label="전체" value="all" />
-            <Tab label="모집중" value="active" />
+            <Tab label="모집중" value="recruiting" />
             <Tab label="마감" value="closed" />
             <Tab label="예정" value="upcoming" />
+            <Tab label="임시저장" value="draft" />
           </Tabs>
 
           {isLoading ? (
@@ -420,7 +424,7 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2" color="text.secondary">
-                            {announcement.posted_date || '-'}
+                            {announcement.application_start_date || '-'}
                           </Typography>
                         </TableCell>
                         <TableCell>
@@ -456,21 +460,21 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Controller
-                  name="type_id"
+                  name="subcategory_id"
                   control={control}
                   render={({ field }) => (
-                    <FormControl fullWidth error={!!errors.type_id}>
-                      <InputLabel>공고 유형</InputLabel>
-                      <Select {...field} label="공고 유형">
-                        {types.map((type) => (
-                          <MenuItem key={type.id} value={type.id}>
-                            {type.title}
+                    <FormControl fullWidth error={!!errors.subcategory_id}>
+                      <InputLabel>하위 카테고리</InputLabel>
+                      <Select {...field} label="하위 카테고리">
+                        {subcategories.map((subcategory) => (
+                          <MenuItem key={subcategory.id} value={subcategory.id}>
+                            {subcategory.name}
                           </MenuItem>
                         ))}
                       </Select>
-                      {errors.type_id && (
+                      {errors.subcategory_id && (
                         <Typography variant="caption" color="error">
-                          {errors.type_id.message}
+                          {errors.subcategory_id.message}
                         </Typography>
                       )}
                     </FormControl>
@@ -561,14 +565,14 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
 
               <Grid item xs={6}>
                 <Controller
-                  name="posted_date"
+                  name="application_start_date"
                   control={control}
                   render={({ field }) => (
                     <TextField
                       {...field}
                       value={field.value || ''}
                       fullWidth
-                      label="게시일"
+                      label="신청 시작일"
                       type="date"
                       InputLabelProps={{ shrink: true }}
                     />
@@ -584,9 +588,10 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
                     <FormControl fullWidth>
                       <InputLabel>상태</InputLabel>
                       <Select {...field} label="상태">
-                        <MenuItem value="active">모집중</MenuItem>
+                        <MenuItem value="recruiting">모집중</MenuItem>
                         <MenuItem value="closed">마감</MenuItem>
                         <MenuItem value="upcoming">예정</MenuItem>
+                        <MenuItem value="draft">임시저장</MenuItem>
                       </Select>
                     </FormControl>
                   )}

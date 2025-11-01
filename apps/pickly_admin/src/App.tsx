@@ -18,6 +18,11 @@ import BenefitManagementPage from '@/pages/benefits/BenefitManagementPage'
 import AnnouncementEditCompletePage from '@/pages/benefits/AnnouncementEditCompletePage'
 import AgeCategoriesPage from '@/pages/age-categories/AgeCategoriesPage'
 import AnnouncementTypesPage from '@/pages/announcement-types/AnnouncementTypesPage'
+import HomeManagementPage from '@/pages/home/HomeManagementPage'
+import CategoryManagementPage from '@/pages/benefits/CategoryManagementPage'
+import SubcategoryManagementPage from '@/pages/benefits/SubcategoryManagementPage'
+import BannerManagementPage from '@/pages/benefits/BannerManagementPage'
+import AnnouncementManagementPage from '@/pages/benefits/AnnouncementManagementPage'
 
 function App() {
   return (
@@ -36,6 +41,14 @@ function App() {
               }
             >
               <Route index element={<Dashboard />} />
+              {/* PRD v9.6 Home Management */}
+              <Route path="home-management" element={<HomeManagementPage />} />
+              {/* PRD v9.6 Benefits Management */}
+              <Route path="benefits/categories" element={<CategoryManagementPage />} />
+              <Route path="benefits/subcategories" element={<SubcategoryManagementPage />} />
+              <Route path="benefits/banners" element={<BannerManagementPage />} />
+              <Route path="benefits/announcements-manage" element={<AnnouncementManagementPage />} />
+              {/* User & Roles */}
               <Route path="users" element={<UserList />} />
               <Route path="age-categories" element={<AgeCategoriesPage />} />
               <Route path="announcement-types" element={<AnnouncementTypesPage />} />
@@ -43,7 +56,7 @@ function App() {
               <Route path="benefits/manage/:categorySlug" element={<BenefitManagementPage />} />
               {/* Legacy benefit routes */}
               <Route path="benefits/:categorySlug" element={<BenefitCategoryPage />} />
-              <Route path="benefits/categories" element={<BenefitCategoryList />} />
+              <Route path="benefits/categories-old" element={<BenefitCategoryList />} />
               <Route path="benefits/announcements" element={<BenefitAnnouncementList />} />
               <Route path="benefits/announcements/new" element={<BenefitAnnouncementForm />} />
               <Route path="benefits/announcements/:id/edit" element={<AnnouncementEditCompletePage />} />

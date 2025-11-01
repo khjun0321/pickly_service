@@ -78,16 +78,17 @@ export interface AnnouncementTypeFormData {
 // =====================================================
 // Announcement
 // =====================================================
-export type AnnouncementStatus = 'active' | 'closed' | 'upcoming'
+export type AnnouncementStatus = 'recruiting' | 'closed' | 'upcoming' | 'draft'
 
 export interface Announcement {
   id: string
-  type_id: string
+  category_id: string | null
+  subcategory_id: string | null
   title: string
   organization: string
   region: string | null
   thumbnail_url: string | null
-  posted_date: string | null
+  application_start_date: string | null
   status: AnnouncementStatus
   is_priority: boolean
   detail_url: string | null
@@ -96,12 +97,13 @@ export interface Announcement {
 }
 
 export interface AnnouncementFormData {
-  type_id: string
+  category_id: string | null
+  subcategory_id: string | null
   title: string
   organization: string
   region: string | null
   thumbnail_url: string | null
-  posted_date: string | null
+  application_start_date: string | null
   status: AnnouncementStatus
   is_priority: boolean
   detail_url: string | null
