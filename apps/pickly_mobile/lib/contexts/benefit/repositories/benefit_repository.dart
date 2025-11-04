@@ -89,6 +89,30 @@ class BenefitRepository {
   }
 
   // ============================================================================
+  // CATEGORIES - STREAM BASED (REALTIME)
+  // ============================================================================
+
+  /// Watch benefit categories with Realtime updates
+  ///
+  /// Returns a stream of active categories sorted by display_order.
+  /// Automatically receives INSERT/UPDATE/DELETE events from Supabase.
+  ///
+  /// This enables the Flutter app to reflect Admin panel changes instantly
+  /// without requiring app restart.
+  ///
+  /// PRD v9.6.1 Phase 3: Realtime Sync Implementation
+  Stream<List<BenefitCategory>> watchCategories() {
+    return _client
+        .from('benefit_categories')
+        .stream(primaryKey: ['id'])
+        .eq('is_active', true)
+        .order('display_order', ascending: true)
+        .map((data) => data
+            .map((json) => BenefitCategory.fromJson(json as Map<String, dynamic>))
+            .toList());
+  }
+
+  // ============================================================================
   // ANNOUNCEMENTS - STREAM BASED (REALTIME)
   // ============================================================================
 
@@ -102,7 +126,7 @@ class BenefitRepository {
   /// Only includes published announcements without deleted_at timestamp.
   Stream<List<Announcement>> watchAnnouncementsByCategory(String categoryId) {
     return _client
-        .from('benefit_announcements')
+        .from('announcements')
         .stream(primaryKey: ['id'])
         .eq('category_id', categoryId)
         .eq('status', 'published')
@@ -121,7 +145,7 @@ class BenefitRepository {
     bool featuredOnly = false,
   }) {
     var query = _client
-        .from('benefit_announcements')
+        .from('announcements')
         .stream(primaryKey: ['id'])
         .eq('status', 'published')
         .order('published_at', ascending: false);
@@ -148,7 +172,7 @@ class BenefitRepository {
   /// Returns only announcements marked as featured (is_featured = true).
   Stream<List<Announcement>> watchFeaturedAnnouncements({int limit = 10}) {
     return _client
-        .from('benefit_announcements')
+        .from('announcements')
         .stream(primaryKey: ['id'])
         .eq('status', 'published')
         .eq('is_featured', true)
@@ -170,7 +194,7 @@ class BenefitRepository {
   Future<Announcement> getAnnouncement(String id) async {
     try {
       final response = await _client
-          .from('benefit_announcements')
+          .from('announcements')
           .select()
           .eq('id', id)
           .single();
@@ -197,7 +221,7 @@ class BenefitRepository {
   }) async {
     try {
       final response = await _client
-          .from('benefit_announcements')
+          .from('announcements')
           .select()
           .eq('category_id', categoryId)
           .eq('status', 'published')
@@ -225,7 +249,7 @@ class BenefitRepository {
   }) async {
     try {
       var queryBuilder = _client
-          .from('benefit_announcements')
+          .from('announcements')
           .select()
           .eq('status', 'published');
 
@@ -255,7 +279,7 @@ class BenefitRepository {
   }) async {
     try {
       var queryBuilder = _client
-          .from('benefit_announcements')
+          .from('announcements')
           .select()
           .eq('status', 'published');
 
@@ -371,7 +395,7 @@ class BenefitRepository {
   Future<int> getAnnouncementCount(String categoryId) async {
     try {
       final response = await _client
-          .from('benefit_announcements')
+          .from('announcements')
           .select('id', const FetchOptions(count: CountOption.exact))
           .eq('category_id', categoryId)
           .eq('status', 'published');
