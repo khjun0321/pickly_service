@@ -58,4 +58,4 @@ final class BenefitRepositoryProvider
   }
 }
 
-String _$benefitRepositoryHash() => r'ac07748918c17ef0afd3cfa0312c729f96fcfbd7';
+String _$benefitRepositoryHash() => r'bb29d0983b8ba94f072726b44f136a04856b70d2';

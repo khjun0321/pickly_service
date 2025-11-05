@@ -142,16 +142,7 @@ class TabCircleWithLabel extends StatelessWidget {
                 child: SizedBox(
                   width: 24,
                   height: 24,
-                  child: SvgPicture.asset(
-                    iconPath,
-                    package: 'pickly_design_system',
-                    width: 24,
-                    height: 24,
-                    fit: BoxFit.contain,
-                    colorFilter: iconColor != null
-                        ? ColorFilter.mode(iconColor, BlendMode.srcIn)
-                        : null,
-                  ),
+                  child: _buildIcon(iconColor),
                 ),
               ),
             ),
@@ -224,6 +215,54 @@ class TabCircleWithLabel extends StatelessWidget {
         return const Color(0xFF828282); // text-secondary
       case TabCircleWithLabelState.disabled:
         return const Color(0xFF999999); // text-disabled
+    }
+  }
+
+  /// Build icon widget - supports both asset:// and network URLs
+  ///
+  /// PRD v9.9.2: Dynamic icon loading
+  Widget _buildIcon(Color? iconColor) {
+    if (iconPath.startsWith('asset://')) {
+      // Load from local asset
+      final assetPath = iconPath.replaceFirst('asset://', '');
+
+      return SvgPicture.asset(
+        assetPath,
+        width: 24,
+        height: 24,
+        fit: BoxFit.contain,
+        colorFilter: iconColor != null
+            ? ColorFilter.mode(iconColor, BlendMode.srcIn)
+            : null,
+      );
+    } else if (iconPath.startsWith('http://') || iconPath.startsWith('https://')) {
+      // Load from network
+      return SvgPicture.network(
+        iconPath,
+        width: 24,
+        height: 24,
+        fit: BoxFit.contain,
+        colorFilter: iconColor != null
+            ? ColorFilter.mode(iconColor, BlendMode.srcIn)
+            : null,
+        placeholderBuilder: (context) => const SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    } else {
+      // Fallback: treat as asset path (backward compatibility)
+      return SvgPicture.asset(
+        iconPath,
+        package: 'pickly_design_system',
+        width: 24,
+        height: 24,
+        fit: BoxFit.contain,
+        colorFilter: iconColor != null
+            ? ColorFilter.mode(iconColor, BlendMode.srcIn)
+            : null,
+      );
     }
   }
 }

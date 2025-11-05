@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/core/router.dart';
+import 'package:pickly_mobile/core/utils/media_resolver.dart';
 import 'package:pickly_mobile/features/onboarding/providers/onboarding_storage_provider.dart';
 import 'package:pickly_mobile/features/onboarding/providers/region_provider.dart';
 import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
@@ -14,6 +15,7 @@ import 'package:pickly_mobile/features/benefits/widgets/support_category_content
 import 'package:pickly_mobile/features/benefits/widgets/transportation_category_content.dart';
 import 'package:pickly_mobile/features/benefits/providers/category_banner_provider.dart';
 import 'package:pickly_mobile/features/benefits/providers/category_id_provider.dart';
+import 'package:pickly_mobile/features/benefits/providers/benefit_category_provider.dart';
 
 /// Benefits screen (혜택 화면)
 ///
@@ -58,20 +60,15 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     });
   }
 
-  /// Get category index from category ID
-  int? _getCategoryIndexFromId(String categoryId) {
-    switch (categoryId) {
-      case 'popular': return 0;
-      case 'housing': return 1;
-      case 'education': return 2;
-      case 'health': return 3;
-      case 'transportation': return 4;
-      case 'welfare': return 5;
-      case 'employment': return 6;
-      case 'support': return 7;
-      case 'culture': return 8;
-      default: return null;
+  /// Get category index from category slug (now uses dynamic data from stream)
+  int? _getCategoryIndexFromId(String categorySlug) {
+    final categories = ref.read(categoriesStreamListProvider);
+    for (int i = 0; i < categories.length; i++) {
+      if (categories[i].slug == categorySlug) {
+        return i;
+      }
     }
+    return null;
   }
 
   /// Get icon path for a selected program type
@@ -123,32 +120,16 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     ],
   };
 
-  final List<Map<String, String>> _categories = [
-    {'label': '인기', 'icon': 'assets/icons/popular.svg'},
-    {'label': '주거', 'icon': 'assets/icons/housing.svg'},
-    {'label': '교육', 'icon': 'assets/icons/education.svg'},
-    {'label': '건강', 'icon': 'assets/icons/health.svg'},
-    {'label': '교통', 'icon': 'assets/icons/transportation.svg'},
-    {'label': '복지', 'icon': 'assets/icons/heart.svg'},
-    {'label': '취업', 'icon': 'assets/icons/employment.svg'},
-    {'label': '지원', 'icon': 'assets/icons/support.svg'},
-    {'label': '문화', 'icon': 'assets/icons/culture.svg'},
-  ];
+  // NOTE: Categories are now loaded dynamically from database via benefitCategoriesStreamProvider
+  // This enables realtime updates when Admin modifies categories (PRD v9.6.1 Phase 3)
 
-  /// Get category ID by index for banner provider
-  String _getCategoryId(int index) {
-    switch (index) {
-      case 0: return 'popular';
-      case 1: return 'housing';
-      case 2: return 'education';
-      case 3: return 'health';
-      case 4: return 'transportation';
-      case 5: return 'welfare';
-      case 6: return 'employment';
-      case 7: return 'support';
-      case 8: return 'culture';
-      default: return 'popular';
+  /// Get category slug by index (now uses dynamic data from stream)
+  String? _getCategorySlug(int index) {
+    final categories = ref.read(categoriesStreamListProvider);
+    if (index >= 0 && index < categories.length) {
+      return categories[index].slug;
     }
+    return null;
   }
 
   /// Build banner image widget (supports both network and asset images)
@@ -239,30 +220,75 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
             // Spacing from top: SafeArea(~44) + Header(60) + SizedBox(12) = 116px
             const SizedBox(height: 12),
 
-            // Category tabs (horizontal scroll)
+            // Category tabs (horizontal scroll) - Realtime stream from database
             SizedBox(
               height: 72,
-              child: ListView.separated(
-                padding: const EdgeInsets.only(left: Spacing.lg),
-                scrollDirection: Axis.horizontal,
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: _categories.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final category = _categories[index];
-                  final isActive = _selectedCategoryIndex == index;
+              child: Consumer(
+                builder: (context, ref, child) {
+                  // Watch categories from realtime stream (PRD v9.6.1 Phase 3)
+                  final categoriesAsync = ref.watch(benefitCategoriesStreamProvider);
 
-                  return TabCircleWithLabel(
-                    iconPath: category['icon']!,
-                    label: category['label']!,
-                    state: isActive
-                        ? TabCircleWithLabelState.active
-                        : TabCircleWithLabelState.default_,
-                    onTap: () {
-                      setState(() {
-                        _selectedCategoryIndex = index;
-                      });
+                  return categoriesAsync.when(
+                    data: (categories) {
+                      if (categories.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            '카테고리를 불러오는 중...',
+                            style: TextStyle(
+                              color: Color(0xFF828282),
+                              fontSize: 14,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.only(left: Spacing.lg),
+                        scrollDirection: Axis.horizontal,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: categories.length,
+                        separatorBuilder: (context, index) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final category = categories[index];
+                          final isActive = _selectedCategoryIndex == index;
+
+                          // PRD v9.9.2: Dynamic icon loading with resolveIconUrl()
+                          return FutureBuilder<String>(
+                            future: resolveIconUrl(category.iconUrl),
+                            builder: (context, snapshot) {
+                              // While loading, show placeholder
+                              final resolvedIconPath = snapshot.data ??
+                                  'asset://packages/pickly_design_system/assets/icons/placeholder.svg';
+
+                              return TabCircleWithLabel(
+                                iconPath: resolvedIconPath,
+                                label: category.title,
+                                state: isActive
+                                    ? TabCircleWithLabelState.active
+                                    : TabCircleWithLabelState.default_,
+                                onTap: () {
+                                  setState(() {
+                                    _selectedCategoryIndex = index;
+                                  });
+                                },
+                              );
+                            },
+                          );
+                        },
+                      );
                     },
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    error: (error, stack) => Center(
+                      child: Text(
+                        '카테고리를 불러올 수 없습니다',
+                        style: TextStyle(
+                          color: TextColors.secondary,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
                   );
                 },
               ),
@@ -278,9 +304,12 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                     // Image banner (swipeable in fixed container, category-specific)
                     Consumer(
                       builder: (context, ref, child) {
-                        // Get banners for the currently selected category
-                        final categoryId = _getCategoryId(_selectedCategoryIndex);
-                        final banners = ref.watch(bannersByCategoryProvider(categoryId));
+                        // Get banners for the currently selected category (using slug from realtime stream)
+                        final categorySlug = _getCategorySlug(_selectedCategoryIndex);
+                        if (categorySlug == null) {
+                          return const SizedBox.shrink();
+                        }
+                        final banners = ref.watch(bannersByCategoryProvider(categorySlug));
 
                         if (banners.isEmpty) {
                           return const SizedBox.shrink();
@@ -296,7 +325,7 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: PageView.builder(
-                              key: ValueKey(categoryId), // Reset PageView when category changes
+                              key: ValueKey(categorySlug), // Reset PageView when category changes
                               itemCount: banners.length,
                               padEnds: false, // Don't add padding at the ends
                               clipBehavior: Clip.hardEdge, // Ensure proper clipping
@@ -653,7 +682,8 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                       child: ElevatedButton(
                         onPressed: () async {
                           final storage = ref.read(onboardingStorageServiceProvider);
-                          final categoryId = _getCategoryId(_selectedCategoryIndex);
+                          final categorySlug = _getCategorySlug(_selectedCategoryIndex);
+                          if (categorySlug == null) return;
 
                           // Update main state
                           setState(() {
@@ -661,7 +691,7 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                           });
 
                           // Save to storage
-                          await storage.setSelectedProgramTypes(categoryId, currentSelections);
+                          await storage.setSelectedProgramTypes(categorySlug, currentSelections);
 
                           if (mounted) {
                             Navigator.pop(bottomSheetContext);

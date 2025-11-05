@@ -10,7 +10,7 @@ part 'benefit_repository.g.dart';
 
 /// Benefit Repository Provider
 @riverpod
-BenefitRepository benefitRepository(BenefitRepositoryRef ref) {
+BenefitRepository benefitRepository(Ref ref) {
   return BenefitRepository(Supabase.instance.client);
 }
 
@@ -21,7 +21,10 @@ BenefitRepository benefitRepository(BenefitRepositoryRef ref) {
 class BenefitRepository {
   final SupabaseClient _client;
 
-  const BenefitRepository(this._client);
+  // Stream caching to prevent duplicate subscriptions
+  Stream<List<BenefitCategory>>? _cachedCategoriesStream;
+
+  BenefitRepository(this._client);
 
   // ============================================================================
   // CATEGORIES
@@ -37,7 +40,7 @@ class BenefitRepository {
           .from('benefit_categories')
           .select()
           .eq('is_active', true)
-          .order('display_order', ascending: true);
+          .order('sort_order', ascending: true);
 
       return (response as List)
           .map((json) => BenefitCategory.fromJson(json as Map<String, dynamic>))
@@ -88,6 +91,76 @@ class BenefitRepository {
     }
   }
 
+  /// Watch all active benefit categories with Realtime updates
+  ///
+  /// Returns a stream of active categories sorted by display_order.
+  /// Automatically updates when Admin creates/updates/deletes categories.
+  ///
+  /// PRD v9.6.1 Phase 3: Realtime Sync Implementation (Step 3 - Provider Layer)
+  /// Phase 6.3: Stream caching to prevent duplicate subscriptions
+  ///
+  /// Note: This is a simplified implementation for Provider layer integration.
+  /// Full implementation with advanced filtering will be added in Step 4.
+  Stream<List<BenefitCategory>> watchCategories() {
+    // Return cached stream if already exists
+    if (_cachedCategoriesStream != null) {
+      print('🔄 [Stream Cache] Returning existing categories stream');
+      return _cachedCategoriesStream!;
+    }
+
+    print('🌊 [BenefitRepository] Creating watchCategories() stream subscription');
+    print('📡 [Supabase Realtime] Starting NEW stream on benefit_categories table');
+
+    // Create and cache the stream
+    _cachedCategoriesStream = _client
+        .from('benefit_categories')
+        .stream(primaryKey: ['id'])
+        .order('sort_order', ascending: true)
+        .handleError((error, stackTrace) {
+          print('❌ [Stream Error] Supabase stream error: $error');
+          print('   StackTrace: $stackTrace');
+        })
+        .map((data) {
+          print('\n🔄 [Supabase Event] Stream received data update');
+          print('📊 [Raw Data] Total rows received: ${data.length}');
+
+          // Filter active categories
+          final activeCategories = data
+              .where((json) => json['is_active'] == true)
+              .toList();
+
+          print('✅ [Filtered] Active categories: ${activeCategories.length}');
+
+          // Parse to model objects
+          final categories = activeCategories
+              .map((json) {
+                try {
+                  final category = BenefitCategory.fromJson(json as Map<String, dynamic>);
+                  print('  ✓ Category: ${category.title} (${category.slug}) - order: ${category.sortOrder}');
+                  return category;
+                } catch (e, stackTrace) {
+                  print('❌ [Parse Error] Failed to parse category: $e');
+                  print('   Raw JSON: $json');
+                  print('   StackTrace: $stackTrace');
+                  rethrow;
+                }
+              })
+              .toList();
+
+          print('📋 [Final Result] Emitting ${categories.length} categories to stream subscribers\n');
+
+          return categories;
+        })
+        .asBroadcastStream(); // Make stream shareable across multiple listeners
+
+    return _cachedCategoriesStream!;
+  }
+
+  /// Dispose of cached streams (called when repository is no longer needed)
+  void dispose() {
+    _cachedCategoriesStream = null;
+  }
+
   // ============================================================================
   // ANNOUNCEMENTS - STREAM BASED (REALTIME)
   // ============================================================================
@@ -104,11 +177,12 @@ class BenefitRepository {
     return _client
         .from('benefit_announcements')
         .stream(primaryKey: ['id'])
-        .eq('category_id', categoryId)
-        .eq('status', 'published')
-        .order('display_order', ascending: true)
+        .order('sort_order', ascending: true)
         .order('created_at', ascending: false)
         .map((data) => data
+            .where((json) =>
+                json['category_id'] == categoryId &&
+                json['status'] == 'published')
             .map((json) => Announcement.fromJson(json as Map<String, dynamic>))
             .toList());
   }
@@ -120,27 +194,26 @@ class BenefitRepository {
     int? limit,
     bool featuredOnly = false,
   }) {
-    var query = _client
+    return _client
         .from('benefit_announcements')
         .stream(primaryKey: ['id'])
-        .eq('status', 'published')
-        .order('published_at', ascending: false);
+        .order('published_at', ascending: false)
+        .map((data) {
+          var announcements = data
+              .where((json) {
+                if (json['status'] != 'published') return false;
+                if (featuredOnly && json['is_featured'] != true) return false;
+                return true;
+              })
+              .map((json) => Announcement.fromJson(json as Map<String, dynamic>))
+              .toList();
 
-    if (featuredOnly) {
-      query = query.eq('is_featured', true);
-    }
+          if (limit != null && announcements.length > limit) {
+            return announcements.sublist(0, limit);
+          }
 
-    return query.map((data) {
-      final announcements = data
-          .map((json) => Announcement.fromJson(json as Map<String, dynamic>))
-          .toList();
-
-      if (limit != null && announcements.length > limit) {
-        return announcements.sublist(0, limit);
-      }
-
-      return announcements;
-    });
+          return announcements;
+        });
   }
 
   /// Watch featured announcements with Realtime updates
@@ -150,11 +223,12 @@ class BenefitRepository {
     return _client
         .from('benefit_announcements')
         .stream(primaryKey: ['id'])
-        .eq('status', 'published')
-        .eq('is_featured', true)
         .order('published_at', ascending: false)
-        .limit(limit)
         .map((data) => data
+            .where((json) =>
+                json['status'] == 'published' &&
+                json['is_featured'] == true)
+            .take(limit)
             .map((json) => Announcement.fromJson(json as Map<String, dynamic>))
             .toList());
   }
@@ -201,7 +275,7 @@ class BenefitRepository {
           .select()
           .eq('category_id', categoryId)
           .eq('status', 'published')
-          .order('display_order', ascending: true)
+          .order('sort_order', ascending: true)
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
@@ -372,11 +446,12 @@ class BenefitRepository {
     try {
       final response = await _client
           .from('benefit_announcements')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id')
           .eq('category_id', categoryId)
-          .eq('status', 'published');
+          .eq('status', 'published')
+          .count(CountOption.exact);
 
-      return response.count ?? 0;
+      return response.count;
     } on PostgrestException catch (e) {
       throw AnnouncementNetworkException(e.message);
     } catch (e, stackTrace) {
@@ -385,29 +460,18 @@ class BenefitRepository {
   }
 
   /// Check if an announcement is currently accepting applications
+  ///
+  /// Note: Application period fields (applicationPeriodStart, applicationPeriodEnd)
+  /// are not present in the current Announcement model.
+  /// This method returns whether the announcement status is 'recruiting'.
+  ///
+  /// PRD v9.6.1: Status field alignment
   Future<bool> isAcceptingApplications(String announcementId) async {
     try {
       final announcement = await getAnnouncement(announcementId);
-      final now = DateTime.now();
 
-      // No dates specified = always accepting
-      if (announcement.applicationPeriodStart == null &&
-          announcement.applicationPeriodEnd == null) {
-        return true;
-      }
-
-      // Check if within application period
-      if (announcement.applicationPeriodStart != null &&
-          now.isBefore(announcement.applicationPeriodStart!)) {
-        return false; // Not started yet
-      }
-
-      if (announcement.applicationPeriodEnd != null &&
-          now.isAfter(announcement.applicationPeriodEnd!)) {
-        return false; // Already ended
-      }
-
-      return true;
+      // Check if status is 'recruiting' (모집중)
+      return announcement.status == 'recruiting';
     } catch (e, stackTrace) {
       throw AnnouncementException(e.toString(), stackTrace);
     }

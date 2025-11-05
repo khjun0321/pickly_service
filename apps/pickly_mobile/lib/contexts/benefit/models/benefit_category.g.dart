@@ -6,8 +6,8 @@ part of 'benefit_category.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_BenefitCategory _$BenefitCategoryFromJson(Map<String, dynamic> json) =>
-    _BenefitCategory(
+BenefitCategory _$BenefitCategoryFromJson(Map<String, dynamic> json) =>
+    BenefitCategory(
       id: json['id'] as String,
       title: json['title'] as String,
       slug: json['slug'] as String,
@@ -23,7 +23,7 @@ _BenefitCategory _$BenefitCategoryFromJson(Map<String, dynamic> json) =>
       sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
     );
 
-Map<String, dynamic> _$BenefitCategoryToJson(_BenefitCategory instance) =>
+Map<String, dynamic> _$BenefitCategoryToJson(BenefitCategory instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
