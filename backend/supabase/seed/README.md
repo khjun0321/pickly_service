@@ -16,7 +16,7 @@ This directory contains SQL seed scripts that populate Pickly's core master data
 |------|---------|--------------|
 | `01_age_categories.sql` | Age categories (연령대) | 6 |
 | `02_benefit_categories.sql` | Benefit categories (혜택 분류) | 9 |
-| `03_benefit_subcategories.sql` | Placeholder for future subcategories | 0 (準備) |
+| `03_benefit_subcategories.sql` | Benefit subcategories (하위 필터) | 30 |
 
 ---
 
@@ -78,6 +78,26 @@ psql -U postgres -d postgres -f 01_age_categories.sql
 **Icon Resolution:**
 - `icon_url` → MediaResolver → Local SVG or Supabase Storage
 - Fallback: `packages/pickly_design_system/assets/icons/{filename}.svg`
+
+### Benefit Subcategories (하위 필터)
+
+**Total:** 30 subcategories across 8 parent categories
+
+| Parent Category | Subcategories | Count |
+|----------------|---------------|-------|
+| 주거 (Housing) | 행복주택, 국민임대, 전세임대, 매입임대, 장기전세 | 5 |
+| 교육 (Education) | 대학 장학금, 고등학생 지원, 유아 교육비, 학자금 대출 | 4 |
+| 건강 (Health) | 건강검진, 의료비 지원, 치과 지원, 정신건강 지원 | 4 |
+| 교통 (Transportation) | 대중교통 할인, 차량 구매 지원, 유류비 지원 | 3 |
+| 복지 (Welfare) | 기초생활수급, 긴급복지지원, 아동수당, 양육수당 | 4 |
+| 취업 (Employment) | 직업훈련, 취업성공패키지, 청년내일채움공제, 일자리 매칭 | 4 |
+| 지원 (Support) | 돌봄서비스, 생활지원, 법률지원 | 3 |
+| 문화 (Culture) | 문화누리카드, 체육시설 이용, 공연/전시 할인 | 3 |
+
+**Schema:**
+- Foreign key to `benefit_categories.id`
+- Unique constraint on `(category_id, slug)`
+- Idempotent inserts with `ON CONFLICT DO UPDATE`
 
 ---
 
@@ -172,15 +192,20 @@ cd seed
 - Local age icon integration
 - CategoryIcon mapping system
 
-### ✅ Phase 2 - Current (v9.9.7)
+### ✅ Phase 2 - Complete (v9.9.7)
 - Seed script automation
 - Idempotent insert pattern
 - Auto-recovery on db reset
 
-### 📋 Phase 3 - Planned (v9.9.8)
-- Benefit subcategories implementation
-- Filtering system expansion
-- Admin CRUD for subcategories
+### ✅ Phase 3 - Complete (v9.9.8)
+- Benefit subcategories seed data (30 records)
+- Hierarchical filtering structure
+- Foreign key relationships established
+
+### 📋 Phase 4 - Planned (v9.9.9)
+- Admin CRUD UI for subcategories
+- Flutter bottom sheet filter integration
+- Real-time synchronization
 
 ### 📋 Phase 7 - Future (v9.10.0)
 - Admin upload UI for icons
