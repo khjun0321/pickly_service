@@ -179,8 +179,10 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
         final category = categories[index];
         final isSelected = _selectedCategoryId == category.id;
 
+        // PRD v9.9.6: Pass icon_component directly to CategoryIcon
+        // CategoryIcon has built-in age icon mapping (youth, newlywed, baby, etc.)
         return SelectionListItem(
-          iconUrl: category.iconUrl,
+          iconComponent: category.iconComponent,
           title: category.title,
           description: category.description,
           isSelected: isSelected,
@@ -189,6 +191,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
       },
     );
   }
+
 
   Widget _buildLoadingState() {
     return const Center(

@@ -23,6 +23,11 @@ import {
   Announcement as AnnouncementIcon,
   ExpandLess,
   ExpandMore,
+  EmojiPeople as AgeCategoryIcon,
+  Settings as SettingsIcon,
+  Source as SourceIcon,
+  Code as CodeIcon,
+  Science as ScienceIcon,
 } from '@mui/icons-material'
 
 interface SidebarProps {
@@ -35,6 +40,7 @@ interface SidebarProps {
 const menuItems = [
   { text: '대시보드', icon: <DashboardIcon />, path: '/' },
   { text: '홈 관리', icon: <HomeIcon />, path: '/home-management' },
+  { text: '연령 카테고리', icon: <AgeCategoryIcon />, path: '/age-categories' },
 ]
 
 // Benefits Management submenu (PRD v9.6 Section 4.2)
@@ -43,6 +49,13 @@ const benefitMenuItems = [
   { text: '하위분류 관리', icon: <ViewModuleIcon />, path: '/benefits/subcategories' },
   { text: '배너 관리', icon: <ImageIcon />, path: '/benefits/banners' },
   { text: '공고 관리', icon: <AnnouncementIcon />, path: '/benefits/announcements' },
+]
+
+// API Mapping Management submenu (PRD v9.8.1 Section 16)
+const apiMappingMenuItems = [
+  { text: 'API 소스', icon: <SourceIcon />, path: '/api-mapping/sources' },
+  { text: '매핑 규칙', icon: <CodeIcon />, path: '/api-mapping/config' },
+  { text: '시뮬레이터', icon: <ScienceIcon />, path: '/api-mapping/simulator' },
 ]
 
 // Bottom menu items
@@ -57,9 +70,16 @@ export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth }: Sid
   const [benefitMenuOpen, setBenefitMenuOpen] = useState(
     location.pathname.startsWith('/benefits')
   )
+  const [apiMappingMenuOpen, setApiMappingMenuOpen] = useState(
+    location.pathname.startsWith('/api-mapping')
+  )
 
   const handleBenefitMenuToggle = () => {
     setBenefitMenuOpen(!benefitMenuOpen)
+  }
+
+  const handleApiMappingMenuToggle = () => {
+    setApiMappingMenuOpen(!apiMappingMenuOpen)
   }
 
   const drawer = (
@@ -96,6 +116,36 @@ export default function Sidebar({ mobileOpen, onDrawerToggle, drawerWidth }: Sid
           <Collapse in={benefitMenuOpen} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
               {benefitMenuItems.map((item) => (
+                <ListItem key={item.text} disablePadding>
+                  <ListItemButton
+                    sx={{ pl: 4 }}
+                    selected={location.pathname === item.path}
+                    onClick={() => {
+                      navigate(item.path)
+                      onDrawerToggle()
+                    }}
+                  >
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemText primary={item.text} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </Collapse>
+
+          {/* API Mapping Management (collapsible) - PRD v9.8.1 */}
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleApiMappingMenuToggle}>
+              <ListItemIcon>
+                <SettingsIcon />
+              </ListItemIcon>
+              <ListItemText primary="API 매핑 관리" />
+              {apiMappingMenuOpen ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+          </ListItem>
+          <Collapse in={apiMappingMenuOpen} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {apiMappingMenuItems.map((item) => (
                 <ListItem key={item.text} disablePadding>
                   <ListItemButton
                     sx={{ pl: 4 }}

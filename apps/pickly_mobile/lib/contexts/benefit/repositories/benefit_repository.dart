@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/announcement.dart';
 import '../models/announcement_file.dart';
 import '../models/benefit_category.dart';
+import '../models/benefit_subcategory.dart';
 import '../exceptions/announcement_exception.dart';
 
 part 'benefit_repository.g.dart';
@@ -264,17 +265,27 @@ class BenefitRepository {
   }
 
   /// Get announcements by category (one-time fetch)
+  ///
+  /// PRD v9.10.0: Added subcategoryIds filter for hierarchical filtering
   Future<List<Announcement>> getAnnouncementsByCategory(
     String categoryId, {
+    List<String>? subcategoryIds,
     int limit = 50,
     int offset = 0,
   }) async {
     try {
-      final response = await _client
+      var query = _client
           .from('benefit_announcements')
           .select()
           .eq('category_id', categoryId)
-          .eq('status', 'published')
+          .eq('status', 'published');
+
+      // PRD v9.10.0: Filter by subcategories if provided
+      if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
+        query = query.inFilter('subcategory_id', subcategoryIds);
+      }
+
+      final response = await query
           .order('sort_order', ascending: true)
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
@@ -472,6 +483,141 @@ class BenefitRepository {
 
       // Check if status is 'recruiting' (모집중)
       return announcement.status == 'recruiting';
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  // ============================================================================
+  // SUBCATEGORIES (PRD v9.10.0)
+  // ============================================================================
+
+  /// Fetch subcategories by parent category ID
+  ///
+  /// Returns list of subcategories for hierarchical filtering (e.g., 주거 > 행복주택).
+  ///
+  /// Parameters:
+  /// - [categoryId]: Parent category UUID
+  /// - [onlyActive]: If true, returns only active subcategories (default: true)
+  ///
+  /// Returns:
+  /// - List of [BenefitSubcategory] sorted by sort_order
+  ///
+  /// PRD v9.10.0: Subcategory filter foundation
+  Future<List<BenefitSubcategory>> fetchSubcategoriesByCategory(
+    String categoryId, {
+    bool onlyActive = true,
+  }) async {
+    try {
+      var query = _client
+          .from('benefit_subcategories')
+          .select()
+          .eq('category_id', categoryId)
+          .order('sort_order', ascending: true);
+
+      if (onlyActive) {
+        query = query.eq('is_active', true);
+      }
+
+      final response = await query;
+
+      return (response as List)
+          .map((json) => BenefitSubcategory.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
+    } catch (e, stackTrace) {
+      throw AnnouncementException(e.toString(), stackTrace);
+    }
+  }
+
+  /// Stream subcategories with Realtime updates
+  ///
+  /// Returns a stream that emits updated subcategory lists when Admin
+  /// creates/updates/deletes subcategories.
+  ///
+  /// Parameters:
+  /// - [categoryId]: Parent category UUID
+  /// - [onlyActive]: If true, streams only active subcategories (default: true)
+  ///
+  /// Returns:
+  /// - Stream<List<BenefitSubcategory>> with realtime updates
+  ///
+  /// PRD v9.10.0: Real-time subcategory synchronization
+  Stream<List<BenefitSubcategory>> streamSubcategoriesByCategory(
+    String categoryId, {
+    bool onlyActive = true,
+  }) {
+    var query = _client
+        .from('benefit_subcategories')
+        .stream(primaryKey: ['id'])
+        .eq('category_id', categoryId)
+        .order('sort_order', ascending: true);
+
+    return query.map((data) {
+      final subcategories = (data as List)
+          .map((json) => BenefitSubcategory.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      // Filter active subcategories client-side if needed
+      if (onlyActive) {
+        return subcategories.where((sub) => sub.isActive).toList();
+      }
+
+      return subcategories;
+    }).asBroadcastStream();
+  }
+
+  /// Fetch all subcategories grouped by parent category
+  ///
+  /// Returns a map where keys are category IDs and values are lists of subcategories.
+  /// Useful for building hierarchical filter UI with all categories at once.
+  ///
+  /// Parameters:
+  /// - [onlyActive]: If true, returns only active subcategories (default: true)
+  ///
+  /// Returns:
+  /// - Map<String, List<BenefitSubcategory>> - categoryId -> subcategories
+  ///
+  /// Example:
+  /// ```dart
+  /// {
+  ///   'housing-uuid': [행복주택, 국민임대, ...],
+  ///   'education-uuid': [대학 장학금, 고등학생 지원, ...]
+  /// }
+  /// ```
+  ///
+  /// PRD v9.10.0: Efficient multi-category filter initialization
+  Future<Map<String, List<BenefitSubcategory>>> fetchAllSubcategoriesGrouped({
+    bool onlyActive = true,
+  }) async {
+    try {
+      var query = _client
+          .from('benefit_subcategories')
+          .select()
+          .order('sort_order', ascending: true);
+
+      if (onlyActive) {
+        query = query.eq('is_active', true);
+      }
+
+      final response = await query;
+
+      final subcategories = (response as List)
+          .map((json) => BenefitSubcategory.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      // Group by category_id
+      final Map<String, List<BenefitSubcategory>> grouped = {};
+      for (final subcategory in subcategories) {
+        if (subcategory.categoryId != null) {
+          grouped.putIfAbsent(subcategory.categoryId!, () => []).add(subcategory);
+        }
+      }
+
+      return grouped;
+    } on PostgrestException catch (e) {
+      throw AnnouncementNetworkException(e.message);
     } catch (e, stackTrace) {
       throw AnnouncementException(e.toString(), stackTrace);
     }

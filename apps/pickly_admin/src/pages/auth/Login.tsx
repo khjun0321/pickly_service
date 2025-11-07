@@ -19,12 +19,15 @@ export default function Login() {
   const { signIn, user, isDevMode } = useAuth()
   const navigate = useNavigate()
 
-  // Auto-redirect if already logged in (including dev mode)
+  // Auto-redirect if already logged in
   useEffect(() => {
     if (user) {
       navigate('/')
     }
   }, [user, navigate])
+
+  // ✅ Auto-login disabled for stability
+  // Manual login required for all environments
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/core/router.dart';
@@ -13,6 +12,7 @@ import 'package:pickly_mobile/features/benefits/widgets/housing_category_content
 import 'package:pickly_mobile/features/benefits/widgets/education_category_content.dart';
 import 'package:pickly_mobile/features/benefits/widgets/support_category_content.dart';
 import 'package:pickly_mobile/features/benefits/widgets/transportation_category_content.dart';
+import 'package:pickly_mobile/features/benefits/widgets/filter_bottom_sheet.dart';
 import 'package:pickly_mobile/features/benefits/providers/category_banner_provider.dart';
 import 'package:pickly_mobile/features/benefits/providers/category_id_provider.dart';
 import 'package:pickly_mobile/features/benefits/providers/benefit_category_provider.dart';
@@ -71,54 +71,10 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     return null;
   }
 
-  /// Get icon path for a selected program type
-  String _getIconForProgramType(String programTypeName) {
-    final programTypes = _programTypesByCategory[_selectedCategoryIndex] ?? [];
+  /// PRD v9.10.0: Removed _getIconForProgramType() - icons now loaded from database via FilterBottomSheet
 
-    for (final type in programTypes) {
-      if (type['title'] == programTypeName) {
-        return type['icon'] ?? 'assets/icons/all.svg';
-      }
-    }
-
-    return 'assets/icons/all.svg'; // fallback
-  }
-
-  // 탭별 공고 타입 목록
-  final Map<int, List<Map<String, String>>> _programTypesByCategory = {
-    0: [], // 인기: 공고 선택 없음 (전체만)
-    1: [ // 주거
-      {'icon': 'assets/icons/happy_apt.svg', 'title': '행복주택'},
-      {'icon': 'assets/icons/apt.svg', 'title': '국민임대주택'},
-      {'icon': 'assets/icons/home2.svg', 'title': '영구임대주택'},
-      {'icon': 'assets/icons/building.svg', 'title': '공공임대주택'},
-      {'icon': 'assets/icons/buy.svg', 'title': '매입임대주택'},
-      {'icon': 'assets/icons/ring.svg', 'title': '신혼희망타운'},
-    ],
-    2: [ // 교육
-      {'icon': 'assets/icons/school.svg', 'title': '학자금 지원'},
-      {'icon': 'assets/icons/education.svg', 'title': '교육비 지원'},
-    ],
-    3: [ // 건강
-      {'icon': 'assets/icons/health.svg', 'title': '건강 지원'},
-    ],
-    4: [ // 교통
-      {'icon': 'assets/icons/transportation.svg', 'title': '교통비 지원'},
-    ],
-    5: [ // 복지
-      {'icon': 'assets/icons/happy_apt.svg', 'title': '복지 혜택'},
-    ],
-    6: [ // 취업
-      {'icon': 'assets/icons/dollar.svg', 'title': '취업 지원'},
-    ],
-    7: [ // 지원
-      {'icon': 'assets/icons/dollar.svg', 'title': '면접비'},
-      {'icon': 'assets/icons/buy.svg', 'title': '창업지원금'},
-    ],
-    8: [ // 문화
-      {'icon': 'assets/icons/speaker.svg', 'title': '문화 지원'},
-    ],
-  };
+  // PRD v9.10.0: Removed hardcoded _programTypesByCategory map
+  // Subcategory filters now loaded dynamically from database via FilterBottomSheet
 
   // NOTE: Categories are now loaded dynamically from database via benefitCategoriesStreamProvider
   // This enables realtime updates when Admin modifies categories (PRD v9.6.1 Phase 3)
@@ -410,45 +366,33 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                             const SizedBox(width: 8),
                           ],
 
-                          // Vertical divider if there are program type selections
-                          if ((_programTypesByCategory[_selectedCategoryIndex]?.isNotEmpty ?? false) &&
-                              (selectedRegion != null || selectedAgeCategory != null)) ...[
-                            Center(
-                              child: Container(
-                                height: 20,
-                                width: 1,
-                                margin: const EdgeInsets.symmetric(horizontal: 4),
-                                color: const Color(0xFFEBEBEB),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
+                          // PRD v9.10.0: Subcategory filter button (shows dynamic FilterBottomSheet)
+                          Consumer(
+                            builder: (context, ref, child) {
+                              final selectedIds = ref.watch(selectedSubcategoryIdsProvider);
+                              final categories = ref.watch(categoriesStreamListProvider);
 
-                          // Program type filters (multiple selections possible)
-                          if (_programTypesByCategory[_selectedCategoryIndex]?.isNotEmpty ?? false)
-                            ...(_selectedProgramTypes[_selectedCategoryIndex] ?? []).map((type) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: TabPill.default_(
-                                  iconPath: _getIconForProgramType(type),
-                                  text: type,
-                                  onTap: () {
-                                    _showProgramTypeSelector(context);
+                              // Only show if current category has subcategories
+                              if (_selectedCategoryIndex >= 0 && _selectedCategoryIndex < categories.length) {
+                                final currentCategory = categories[_selectedCategoryIndex];
+
+                                return TabPill.default_(
+                                  iconPath: 'assets/icons/all.svg',
+                                  text: selectedIds.isEmpty ? '전체' : '${selectedIds.length}개 선택',
+                                  onTap: () async {
+                                    await showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (context) => FilterBottomSheet(category: currentCategory),
+                                    );
                                   },
-                                ),
-                              );
-                            }),
+                                );
+                              }
 
-                          // Show "전체" if no program types selected but category has program types
-                          if ((_programTypesByCategory[_selectedCategoryIndex]?.isNotEmpty ?? false) &&
-                              (_selectedProgramTypes[_selectedCategoryIndex]?.isEmpty ?? true))
-                            TabPill.default_(
-                              iconPath: 'assets/icons/all.svg',
-                              text: '전체',
-                              onTap: () {
-                                _showProgramTypeSelector(context);
-                              },
-                            ),
+                              return const SizedBox.shrink();
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -566,164 +510,7 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     );
   }
 
-  /// Show program type selector bottom sheet (category-specific, multiple selection)
-  void _showProgramTypeSelector(BuildContext context) {
-    final programTypes = _programTypesByCategory[_selectedCategoryIndex] ?? [];
-
-    if (programTypes.isEmpty) return;
-
-    // 현재 선택된 항목들을 임시 상태로 복사
-    final currentSelections = List<String>.from(_selectedProgramTypes[_selectedCategoryIndex] ?? []);
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (bottomSheetContext) {
-        return StatefulBuilder(
-          builder: (stateContext, setBottomSheetState) {
-            // 전체 선택 여부
-            final isAllSelected = currentSelections.isEmpty;
-
-            return SafeArea(
-              child: Container(
-                height: 600,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(Spacing.lg, Spacing.lg, Spacing.lg, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '주거 공고 선택',
-                          style: PicklyTypography.titleMedium.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: TextColors.primary,
-                          ),
-                        ),
-                        const SizedBox(height: Spacing.sm),
-                        Text(
-                          '해당 공고문을 안내해드립니다.',
-                          style: PicklyTypography.bodyMedium.copyWith(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: TextColors.secondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Scrollable program type list (expanded to fill available space)
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                      child: Column(
-                        children: [
-                          // "전체 선택" option
-                          _buildProgramTypeItem(
-                            icon: 'assets/icons/all.svg',
-                            title: '전체 선택',
-                            subtitle: '모든 주거 공고',
-                            isSelected: isAllSelected,
-                            onTap: () {
-                              setBottomSheetState(() {
-                                currentSelections.clear(); // 전체 선택 = 빈 리스트
-                              });
-                            },
-                          ),
-                          const SizedBox(height: Spacing.md),
-
-                          // Individual program types
-                          ...programTypes.map((type) {
-                            final isSelected = currentSelections.contains(type['title']);
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: Spacing.md),
-                              child: _buildProgramTypeItem(
-                                icon: type['icon']!,
-                                title: type['title']!,
-                                subtitle: 'LH 행복주택',
-                                isSelected: isSelected,
-                                onTap: () {
-                                  setBottomSheetState(() {
-                                    if (isSelected) {
-                                      // 선택 해제
-                                      currentSelections.remove(type['title']);
-                                    } else {
-                                      // 선택 (전체 선택 상태가 아니라면)
-                                      currentSelections.add(type['title']!);
-                                    }
-                                  });
-                                },
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Save button (Figma: height 48px) - Matching onboarding layout
-                  Padding(
-                    padding: const EdgeInsets.all(Spacing.lg),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final storage = ref.read(onboardingStorageServiceProvider);
-                          final categorySlug = _getCategorySlug(_selectedCategoryIndex);
-                          if (categorySlug == null) return;
-
-                          // Update main state
-                          setState(() {
-                            _selectedProgramTypes[_selectedCategoryIndex] = currentSelections;
-                          });
-
-                          // Save to storage
-                          await storage.setSelectedProgramTypes(categorySlug, currentSelections);
-
-                          if (mounted) {
-                            Navigator.pop(bottomSheetContext);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: BrandColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
-                        ),
-                        child: Text(
-                          '저장',
-                          style: PicklyTypography.bodyLarge.copyWith(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            );
-          },
-        );
-      },
-    );
-  }
+  /// PRD v9.10.0: Removed _showProgramTypeSelector() - replaced by FilterBottomSheet
 
   /// Show region selector bottom sheet
   void _showRegionSelector(BuildContext context) {
@@ -993,86 +780,5 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     );
   }
 
-  /// Build program type selection item
-  Widget _buildProgramTypeItem({
-    required String icon,
-    required String title,
-    required String subtitle,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(
-            color: isSelected ? BrandColors.primary : const Color(0xFFEBEBEB),
-            width: 1,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            // Icon
-            SvgPicture.asset(
-              icon,
-              width: 32,
-              height: 32,
-              package: 'pickly_design_system',
-            ),
-            const SizedBox(width: 12),
-            // Title and subtitle
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Color(0xFF3E3E3E),
-                      fontSize: 14,
-                      fontFamily: 'Pretendard',
-                      fontWeight: FontWeight.w700,
-                      height: 1.43,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: Color(0xFF828282),
-                      fontSize: 12,
-                      fontFamily: 'Pretendard',
-                      fontWeight: FontWeight.w600,
-                      height: 1.50,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Checkbox
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: isSelected ? BrandColors.primary : const Color(0xFFDDDDDD),
-                shape: BoxShape.circle,
-              ),
-              child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 16,
-                    )
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  /// PRD v9.10.0: Removed _buildProgramTypeItem() - UI now in FilterBottomSheet widget
 }

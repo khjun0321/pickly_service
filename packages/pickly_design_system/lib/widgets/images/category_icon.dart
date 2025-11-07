@@ -36,11 +36,22 @@ class CategoryIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     // 1순위: 네트워크 아이콘 (iconUrl)
     if (iconUrl != null && iconUrl!.isNotEmpty) {
+      // asset:// 프로토콜 처리 (PRD v9.9.5)
+      if (iconUrl!.startsWith('asset://')) {
+        final assetPath = iconUrl!.replaceFirst('asset://', '');
+        return _buildLocalIconFromUrl(assetPath);
+      }
       // 로컬 에셋 경로인지 확인 (packages/ 또는 assets/로 시작)
       if (iconUrl!.startsWith('packages/') || iconUrl!.startsWith('assets/')) {
         return _buildLocalIconFromUrl(iconUrl!);
       }
-      return _buildNetworkIcon();
+      // http:// 또는 https://로 시작하는 경우에만 네트워크 로드
+      if (iconUrl!.startsWith('http://') || iconUrl!.startsWith('https://')) {
+        return _buildNetworkIcon();
+      }
+      // 파일명만 있는 경우 (예: young_man.svg) → Fallback to local icon
+      // MediaResolver를 사용하지 않는 레거시 케이스 대응
+      return _buildLocalIcon();
     }
 
     // 2순위: 로컬 아이콘 (iconComponent)

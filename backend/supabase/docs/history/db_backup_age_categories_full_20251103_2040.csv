@@ -1,0 +1,13 @@
+id,title,description,icon_component,icon_url,min_age,max_age,sort_order,is_active,created_at,updated_at
+158bde5a-fb9e-454d-be62-559e0baafc27,청소년,(14~19세) 중고등학생,young_man,packages/pickly_design_system/assets/icons/age_categories/young_man.svg,14,19,3,t,2025-11-02 11:54:02.787228+00,2025-11-02 11:54:02.787228+00
+4775f9b2-ccad-41fd-b25c-8ffcd9778f81,어린이,(8~13세) 초등학생,kinder,packages/pickly_design_system/assets/icons/age_categories/kinder.svg,8,13,2,t,2025-11-02 11:54:02.787228+00,2025-11-02 11:54:02.787228+00
+64edc2de-b4b8-4fcb-954c-b043891480c0,유아,(0~7세) 영유아 및 미취학 아동,baby,packages/pickly_design_system/assets/icons/age_categories/baby.svg,0,7,1,t,2025-11-02 11:54:02.787228+00,2025-11-02 11:54:02.787228+00
+78b1830d-ce0c-4eba-b447-9e0dc703bf64,장애인,장애인 등록 대상,wheel_chair,packages/pickly_design_system/assets/icons/age_categories/wheel_chair.svg,,,6,t,2025-11-02 11:54:02.657644+00,2025-11-02 11:54:02.665957+00
+86a25686-ccfb-4210-a133-2d8784153cb2,다자녀 가구,자녀 2명 이상 양육중,kinder,packages/pickly_design_system/assets/icons/age_categories/kinder.svg,,,4,t,2025-11-02 11:54:02.657644+00,2025-11-02 11:54:02.665957+00
+b1ebd842-cc83-4ca9-b56e-46323654e2c1,어르신,만 65세 이상,old_man,packages/pickly_design_system/assets/icons/age_categories/old_man.svg,65,,5,t,2025-11-02 11:54:02.657644+00,2025-11-02 11:54:02.665957+00
+c935ef49-03fb-4c6b-9da1-3dc12abb9b7f,중년,(35~49세) 중장년층,old_man,packages/pickly_design_system/assets/icons/age_categories/old_man.svg,35,49,5,t,2025-11-02 11:54:02.787228+00,2025-11-02 11:54:02.787228+00
+ce1dbf16-b241-4c05-abe7-3c634b39be0a,청년,"(20~34세) 대학생, 취업준비생, 직장인",bride,packages/pickly_design_system/assets/icons/age_categories/bride.svg,20,34,4,t,2025-11-02 11:54:02.787228+00,2025-11-02 11:54:02.787228+00
+e3f740a5-fe8e-4cb2-8bfd-de8553ad665e,청년,"(만 19세-39세) 대학생, 취업준비생, 직장인",young_man,packages/pickly_design_system/assets/icons/age_categories/young_man.svg,19,39,1,t,2025-11-02 11:54:02.657644+00,2025-11-02 11:54:02.665957+00
+e54ec703-4f37-4116-93a2-59c9bdec31eb,신혼부부·예비부부,결혼 예정 또는 결혼 7년이내,bride,packages/pickly_design_system/assets/icons/age_categories/bride.svg,,,2,t,2025-11-02 11:54:02.657644+00,2025-11-02 11:54:02.665957+00
+f6c1b16d-eca5-4e89-ab05-e9b325ff82ba,육아중인 부모,영유아~초등 자녀 양육 중,baby,packages/pickly_design_system/assets/icons/age_categories/baby.svg,,,3,t,2025-11-02 11:54:02.657644+00,2025-11-02 11:54:02.665957+00
+fb3a725b-fa17-42f1-8971-b3d927de402c,노년,(50세 이상) 장년 및 어르신,wheel_chair,packages/pickly_design_system/assets/icons/age_categories/wheel_chair.svg,50,,6,t,2025-11-02 11:54:02.787228+00,2025-11-02 11:54:02.787228+00

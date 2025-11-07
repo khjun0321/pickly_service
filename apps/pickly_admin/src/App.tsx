@@ -23,6 +23,9 @@ import CategoryManagementPage from '@/pages/benefits/CategoryManagementPage'
 import SubcategoryManagementPage from '@/pages/benefits/SubcategoryManagementPage'
 import BannerManagementPage from '@/pages/benefits/BannerManagementPage'
 import AnnouncementManagementPage from '@/pages/benefits/AnnouncementManagementPage'
+import ApiSourcesPage from '@/pages/api-mapping/ApiSourcesPage'
+import MappingConfigPage from '@/pages/api-mapping/MappingConfigPage'
+import MappingSimulatorPage from '@/pages/api-mapping/MappingSimulatorPage'
 
 function App() {
   return (
@@ -60,6 +63,10 @@ function App() {
               <Route path="benefits/announcements" element={<BenefitAnnouncementList />} />
               <Route path="benefits/announcements/new" element={<BenefitAnnouncementForm />} />
               <Route path="benefits/announcements/:id/edit" element={<AnnouncementEditCompletePage />} />
+              {/* PRD v9.8.1 API Mapping Management */}
+              <Route path="api-mapping/sources" element={<ApiSourcesPage />} />
+              <Route path="api-mapping/config" element={<MappingConfigPage />} />
+              <Route path="api-mapping/simulator" element={<MappingSimulatorPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

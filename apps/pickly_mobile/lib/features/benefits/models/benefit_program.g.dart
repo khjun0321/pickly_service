@@ -6,8 +6,8 @@ part of 'benefit_program.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_BenefitProgram _$BenefitProgramFromJson(Map<String, dynamic> json) =>
-    _BenefitProgram(
+BenefitProgram _$BenefitProgramFromJson(Map<String, dynamic> json) =>
+    BenefitProgram(
       id: json['id'] as String,
       benefitCategoryId: json['benefitCategoryId'] as String,
       title: json['title'] as String,
@@ -23,7 +23,7 @@ _BenefitProgram _$BenefitProgramFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['updatedAt'] as String),
     );
 
-Map<String, dynamic> _$BenefitProgramToJson(_BenefitProgram instance) =>
+Map<String, dynamic> _$BenefitProgramToJson(BenefitProgram instance) =>
     <String, dynamic>{
       'id': instance.id,
       'benefitCategoryId': instance.benefitCategoryId,

@@ -2,11 +2,13 @@
 ///
 /// Manages benefit category data using Riverpod with realtime streams.
 /// PRD v9.6.1 Phase 3: Realtime Sync Implementation
+/// PRD v9.10.0: Added subcategory providers for hierarchical filtering
 library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pickly_mobile/contexts/benefit/models/benefit_category.dart';
+import 'package:pickly_mobile/contexts/benefit/models/benefit_subcategory.dart';
 import 'package:pickly_mobile/contexts/benefit/repositories/benefit_repository.dart';
 
 // ==================== Realtime Streams (v9.6.1 Phase 3) ====================
@@ -203,3 +205,90 @@ final categoryStreamIdsProvider = Provider<List<String>>((ref) {
   final categories = ref.watch(categoriesStreamListProvider);
   return categories.map((category) => category.id).toList();
 });
+
+// ==================== Subcategory Providers (PRD v9.10.0) ====================
+
+/// Provider for fetching subcategories by parent category
+/// Returns Future<List<BenefitSubcategory>>
+///
+/// Usage:
+/// ```dart
+/// final subcategoriesAsync = ref.watch(subcategoriesByCategoryProvider(categoryId));
+/// subcategoriesAsync.when(
+///   data: (subs) => SubcategoryChips(subcategories: subs),
+///   loading: () => CircularProgressIndicator(),
+///   error: (err, stack) => Text('Error: $err'),
+/// );
+/// ```
+final subcategoriesByCategoryProvider =
+    FutureProvider.family<List<BenefitSubcategory>, String>((ref, categoryId) async {
+  final repository = ref.watch(benefitRepositoryProvider);
+  return repository.fetchSubcategoriesByCategory(categoryId, onlyActive: true);
+});
+
+/// Provider for streaming subcategories with Realtime updates
+/// Returns Stream<List<BenefitSubcategory>>
+///
+/// Usage:
+/// ```dart
+/// final subcategoriesStream = ref.watch(subcategoriesStreamProvider(categoryId));
+/// subcategoriesStream.when(
+///   data: (subs) => SubcategoryList(subcategories: subs),
+///   loading: () => CircularProgressIndicator(),
+///   error: (err, stack) => Text('Error: $err'),
+/// );
+/// ```
+final subcategoriesStreamProvider =
+    StreamProvider.family<List<BenefitSubcategory>, String>((ref, categoryId) {
+  final repository = ref.watch(benefitRepositoryProvider);
+  debugPrint('🌊 [Subcategory Stream] Starting stream for category: $categoryId');
+  return repository.streamSubcategoriesByCategory(categoryId, onlyActive: true);
+});
+
+/// Provider for all subcategories grouped by category
+/// Returns Future<Map<String, List<BenefitSubcategory>>>
+///
+/// Usage:
+/// ```dart
+/// final allSubcategoriesAsync = ref.watch(allSubcategoriesGroupedProvider);
+/// allSubcategoriesAsync.when(
+///   data: (grouped) {
+///     for (final categoryId in grouped.keys) {
+///       final subs = grouped[categoryId]!;
+///       // Build UI for each category's subcategories
+///     }
+///   },
+///   loading: () => CircularProgressIndicator(),
+///   error: (err, stack) => Text('Error: $err'),
+/// );
+/// ```
+final allSubcategoriesGroupedProvider =
+    FutureProvider<Map<String, List<BenefitSubcategory>>>((ref) async {
+  final repository = ref.watch(benefitRepositoryProvider);
+  debugPrint('📦 [Subcategories Grouped] Fetching all subcategories grouped by category');
+  return repository.fetchAllSubcategoriesGrouped(onlyActive: true);
+});
+
+/// State provider for selected subcategory IDs (multi-select)
+/// Used in FilterBottomSheet for tracking user selections
+///
+/// Usage:
+/// ```dart
+/// // Read current selections
+/// final selectedIds = ref.watch(selectedSubcategoryIdsProvider);
+///
+/// // Add/remove selection
+/// ref.read(selectedSubcategoryIdsProvider.notifier).update((state) {
+///   final newSet = Set<String>.from(state);
+///   if (newSet.contains(id)) {
+///     newSet.remove(id);  // Toggle off
+///   } else {
+///     newSet.add(id);     // Toggle on
+///   }
+///   return newSet;
+/// });
+///
+/// // Clear all selections
+/// ref.read(selectedSubcategoryIdsProvider.notifier).state = {};
+/// ```
+final selectedSubcategoryIdsProvider = StateProvider<Set<String>>((ref) => {});

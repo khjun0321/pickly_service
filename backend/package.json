@@ -1,0 +1,38 @@
+{
+  "name": "pickly-backend",
+  "version": "1.0.0",
+  "description": "Pickly Backend Services - API Collection and Data Transformation",
+  "main": "index.js",
+  "scripts": {
+    "collect:api": "ts-node services/api-collector/runCollection.ts",
+    "collect:api:dry-run": "ts-node services/api-collector/runCollection.ts --dry-run",
+    "collect:api:help": "ts-node services/api-collector/runCollection.ts --help",
+    "transform:api": "ts-node services/data-transformer/runTransformer.ts",
+    "transform:api:dry-run": "ts-node services/data-transformer/runTransformer.ts --dry-run",
+    "transform:api:help": "ts-node services/data-transformer/runTransformer.ts --help",
+    "scheduler:run": "ts-node services/scheduler/runScheduler.ts",
+    "scheduler:help": "ts-node services/scheduler/runScheduler.ts --help"
+  },
+  "keywords": [
+    "pickly",
+    "api-collector",
+    "data-transformer",
+    "scheduler",
+    "cron",
+    "supabase",
+    "typescript"
+  ],
+  "author": "Pickly Team",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "@types/node-cron": "^3.0.11",
+    "dotenv": "^17.2.3",
+    "node-cron": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

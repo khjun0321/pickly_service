@@ -6,8 +6,8 @@ part of 'announcement_file.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_AnnouncementFile _$AnnouncementFileFromJson(Map<String, dynamic> json) =>
-    _AnnouncementFile(
+AnnouncementFile _$AnnouncementFileFromJson(Map<String, dynamic> json) =>
+    AnnouncementFile(
       id: json['id'] as String,
       announcementId: json['announcementId'] as String,
       fileName: json['fileName'] as String,
@@ -23,7 +23,7 @@ _AnnouncementFile _$AnnouncementFileFromJson(Map<String, dynamic> json) =>
       customData: json['customData'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$AnnouncementFileToJson(_AnnouncementFile instance) =>
+Map<String, dynamic> _$AnnouncementFileToJson(AnnouncementFile instance) =>
     <String, dynamic>{
       'id': instance.id,
       'announcementId': instance.announcementId,
