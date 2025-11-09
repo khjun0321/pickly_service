@@ -246,3 +246,109 @@ export async function uploadBenefitIcon(file: File): Promise<UploadResult> {
     upsert: true,
   })
 }
+
+// =====================================================
+// Age Category Icon Management
+// =====================================================
+
+/**
+ * Upload age category icon and update database
+ *
+ * @param file - SVG icon file
+ * @param ageCategoryId - Age category ID to update
+ * @returns Upload result with public URL
+ * @throws Error if upload or update fails
+ *
+ * @example
+ * ```typescript
+ * const file = event.target.files[0];
+ * const result = await uploadAndUpdateAgeCategoryIcon(file, 'category-id-123');
+ * console.log('Uploaded to:', result.url);
+ * ```
+ */
+export async function uploadAndUpdateAgeCategoryIcon(
+  file: File,
+  ageCategoryId: string
+): Promise<UploadResult> {
+  // Validate file type (SVG only for age category icons)
+  if (file.type !== 'image/svg+xml') {
+    throw new Error('Age category icons must be SVG files')
+  }
+
+  if (file.size > 1 * 1024 * 1024) {
+    throw new Error('Icon size must be less than 1MB')
+  }
+
+  // Generate unique filename
+  const fileExt = file.name.split('.').pop()
+  const timestamp = Date.now()
+  const randomStr = Math.random().toString(36).substring(2, 8)
+  const fileName = `${timestamp}-${randomStr}.${fileExt}`
+  const filePath = `icons/${fileName}`
+
+  // Upload to age-icons bucket
+  const { error: uploadError } = await supabase.storage
+    .from('age-icons')
+    .upload(filePath, file, {
+      upsert: true,
+      contentType: 'image/svg+xml',
+      cacheControl: '3600',
+    })
+
+  if (uploadError) {
+    throw new Error(`Upload failed: ${uploadError.message}`)
+  }
+
+  // Get public URL
+  const { data } = supabase.storage
+    .from('age-icons')
+    .getPublicUrl(filePath)
+
+  const publicUrl = data.publicUrl
+
+  // Extract component name from original filename (without extension)
+  const componentName = file.name.replace(/\.(svg|SVG)$/, '')
+
+  // Update age_categories table with new icon_url and icon_component
+  const { error: updateError } = await supabase
+    .from('age_categories')
+    .update({
+      icon_url: publicUrl,
+      icon_component: componentName,
+    })
+    .eq('id', ageCategoryId)
+
+  if (updateError) {
+    throw new Error(`Database update failed: ${updateError.message}`)
+  }
+
+  return {
+    url: publicUrl,
+    path: filePath,
+    name: file.name,
+    size: file.size,
+    type: file.type,
+  }
+}
+
+/**
+ * Upload age category icon to storage only (without DB update)
+ *
+ * Use this when you want to upload the icon first and update DB separately.
+ */
+export async function uploadAgeCategoryIconOnly(file: File): Promise<UploadResult> {
+  if (file.type !== 'image/svg+xml') {
+    throw new Error('Age category icons must be SVG files')
+  }
+
+  if (file.size > 1 * 1024 * 1024) {
+    throw new Error('Icon size must be less than 1MB')
+  }
+
+  return uploadFile({
+    bucket: 'age-icons',
+    folder: 'icons',
+    file,
+    upsert: true,
+  })
+}
