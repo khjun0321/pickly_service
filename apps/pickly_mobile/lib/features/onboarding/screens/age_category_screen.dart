@@ -179,9 +179,10 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
         final category = categories[index];
         final isSelected = _selectedCategoryId == category.id;
 
-        // PRD v9.9.6: Pass icon_component directly to CategoryIcon
-        // CategoryIcon has built-in age icon mapping (youth, newlywed, baby, etc.)
+        // PRD v9.10.1: Pass iconUrl for dynamic icon loading
+        // CategoryIcon prioritizes iconUrl (Supabase Storage) over hardcoded iconComponent mapping
         return SelectionListItem(
+          iconUrl: category.iconUrl,
           iconComponent: category.iconComponent,
           title: category.title,
           description: category.description,

@@ -49,7 +49,8 @@ class CategoryIcon extends StatelessWidget {
       if (iconUrl!.startsWith('http://') || iconUrl!.startsWith('https://')) {
         return _buildNetworkIcon();
       }
-      // 파일명만 있는 경우 (예: young_man.svg) → Fallback to local icon
+      // 파일명만 있는 경우 (예: young_man.svg, bride.svg) → Fallback to local icon
+      // PRD v9.10.1: DB에 bare filename이 저장된 경우 iconComponent로 Fallback
       // MediaResolver를 사용하지 않는 레거시 케이스 대응
       return _buildLocalIcon();
     }
