@@ -94,6 +94,60 @@ Future<String> resolveAgeIconUrl(String? filename) async {
   return resolveMediaUrl(filename, bucket: 'age-icons');
 }
 
+/// Flexible SVG resolver: handles filename, full URL, or local asset path
+///
+/// Resolution Order:
+/// 1. If already a full URL (http/https) → return as-is
+/// 2. Check local assets (design system icons)
+/// 3. Generate Supabase Storage public URL
+///
+/// Returns null if no valid path found
+Future<String?> resolveSvgUrlOrAssetFlexible(
+  String? value, {
+  String bucket = 'benefit-icons',
+  String folder = 'icons',
+}) async {
+  if (value == null || value.isEmpty) return null;
+
+  // 1. Already a URL - use it directly
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    print('✅ [MediaResolver Flexible] Already URL: $value');
+    return value;
+  }
+
+  // 2. Local asset candidates
+  final candidates = <String>[
+    'packages/pickly_design_system/assets/icons/$value',
+    'packages/pickly_design_system/assets/icons/age_categories/$value',
+    'assets/icons/$value',
+  ];
+
+  for (final path in candidates) {
+    try {
+      await rootBundle.load(path);
+      print('✅ [MediaResolver Flexible] Found local asset: $path');
+      return path;
+    } catch (_) {
+      // Try next candidate
+      continue;
+    }
+  }
+
+  // 3. Supabase Storage public URL (for filename-only cases)
+  try {
+    final fullPath = '$folder/$value';
+    final storageUrl = Supabase.instance.client.storage
+        .from(bucket)
+        .getPublicUrl(fullPath);
+
+    print('✅ [MediaResolver Flexible] Generated storage URL: $storageUrl');
+    return storageUrl;
+  } catch (e) {
+    print('❌ [MediaResolver Flexible] Failed to generate URL: $e');
+    return null;
+  }
+}
+
 /// Load SVG from resolved URL
 ///
 /// Automatically detects asset:// vs https:// protocol

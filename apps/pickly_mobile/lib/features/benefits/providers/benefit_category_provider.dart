@@ -269,26 +269,80 @@ final allSubcategoriesGroupedProvider =
   return repository.fetchAllSubcategoriesGrouped(onlyActive: true);
 });
 
-/// State provider for selected subcategory IDs (multi-select)
-/// Used in FilterBottomSheet for tracking user selections
+/// State provider for selected subcategory IDs (multi-select) - DEPRECATED
+/// This was the old global provider. Use selectedSubcategoryIdsForCategoryProvider instead.
+@Deprecated('Use selectedSubcategoryIdsForCategoryProvider instead')
+class SelectedSubcategoryIdsNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => {};
+
+  void toggle(String id) {
+    if (state.contains(id)) {
+      state = {...state}..remove(id);
+    } else {
+      state = {...state, id};
+    }
+  }
+
+  void clear() {
+    state = {};
+  }
+}
+
+@Deprecated('Use selectedSubcategoryIdsForCategoryProvider instead')
+final selectedSubcategoryIdsProvider = NotifierProvider<SelectedSubcategoryIdsNotifier, Set<String>>(
+  SelectedSubcategoryIdsNotifier.new,
+);
+
+// ==================== Category-Specific Selection State (PRD v9.10.1) ====================
+
+/// Provider for category-specific subcategory selection state
 ///
-/// Usage:
-/// ```dart
-/// // Read current selections
-/// final selectedIds = ref.watch(selectedSubcategoryIdsProvider);
-///
-/// // Add/remove selection
-/// ref.read(selectedSubcategoryIdsProvider.notifier).update((state) {
-///   final newSet = Set<String>.from(state);
-///   if (newSet.contains(id)) {
-///     newSet.remove(id);  // Toggle off
-///   } else {
-///     newSet.add(id);     // Toggle on
-///   }
-///   return newSet;
-/// });
-///
-/// // Clear all selections
-/// ref.read(selectedSubcategoryIdsProvider.notifier).state = {};
-/// ```
-final selectedSubcategoryIdsProvider = StateProvider<Set<String>>((ref) => {});
+/// Implementation: Uses Map<categoryId, Set<subcategoryId>> to track selections per category
+/// This ensures that selecting filters in "주거" category doesn't affect "교육" category, etc.
+final selectedSubcategoryIdsForCategoryProvider =
+    Provider.family<Set<String>, String>((ref, categoryId) {
+  // Watch the global selection map and return this category's selections
+  final allSelections = ref.watch(subcategorySelectionsMapProvider);
+  return allSelections[categoryId] ?? <String>{};
+});
+
+/// Global map of selections by category ID
+/// Format: Map<categoryId, Set<subcategoryId>>
+class SubcategorySelectionsNotifier extends Notifier<Map<String, Set<String>>> {
+  @override
+  Map<String, Set<String>> build() => {};
+
+  /// Toggle selection for a subcategory within a specific category
+  void toggle(String categoryId, String subcategoryId) {
+    final categorySelections = state[categoryId] ?? <String>{};
+    final newSelections = Set<String>.from(categorySelections);
+
+    if (newSelections.contains(subcategoryId)) {
+      newSelections.remove(subcategoryId);
+      debugPrint('➖ [Selection] Category: $categoryId, Removed: $subcategoryId');
+    } else {
+      newSelections.add(subcategoryId);
+      debugPrint('➕ [Selection] Category: $categoryId, Added: $subcategoryId');
+    }
+
+    state = {...state, categoryId: newSelections};
+  }
+
+  /// Clear all selections for a specific category
+  void clear(String categoryId) {
+    state = {...state, categoryId: <String>{}};
+    debugPrint('🧹 [Selection] Cleared category: $categoryId');
+  }
+
+  /// Clear all selections for all categories
+  void clearAll() {
+    state = {};
+    debugPrint('🧹 [Selection] Cleared all categories');
+  }
+}
+
+final subcategorySelectionsMapProvider =
+    NotifierProvider<SubcategorySelectionsNotifier, Map<String, Set<String>>>(
+  SubcategorySelectionsNotifier.new,
+);

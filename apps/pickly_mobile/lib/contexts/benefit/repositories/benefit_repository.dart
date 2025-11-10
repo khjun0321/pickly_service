@@ -512,14 +512,13 @@ class BenefitRepository {
       var query = _client
           .from('benefit_subcategories')
           .select()
-          .eq('category_id', categoryId)
-          .order('sort_order', ascending: true);
+          .eq('category_id', categoryId);
 
       if (onlyActive) {
         query = query.eq('is_active', true);
       }
 
-      final response = await query;
+      final response = await query.order('sort_order', ascending: true);
 
       return (response as List)
           .map((json) => BenefitSubcategory.fromJson(json as Map<String, dynamic>))
@@ -594,14 +593,13 @@ class BenefitRepository {
     try {
       var query = _client
           .from('benefit_subcategories')
-          .select()
-          .order('sort_order', ascending: true);
+          .select();
 
       if (onlyActive) {
         query = query.eq('is_active', true);
       }
 
-      final response = await query;
+      final response = await query.order('sort_order', ascending: true);
 
       final subcategories = (response as List)
           .map((json) => BenefitSubcategory.fromJson(json as Map<String, dynamic>))

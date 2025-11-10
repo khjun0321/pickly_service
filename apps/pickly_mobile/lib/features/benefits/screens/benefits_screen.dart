@@ -208,13 +208,32 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                           final category = categories[index];
                           final isActive = _selectedCategoryIndex == index;
 
-                          // PRD v9.9.2: Dynamic icon loading with resolveIconUrl()
-                          return FutureBuilder<String>(
-                            future: resolveIconUrl(category.iconUrl),
+                          // PRD v9.9.4: Flexible icon loading - handles filename/URL/asset
+                          return FutureBuilder<String?>(
+                            future: resolveSvgUrlOrAssetFlexible(
+                              category.iconUrl,
+                              bucket: 'benefit-icons',
+                              folder: 'icons',
+                            ),
                             builder: (context, snapshot) {
-                              // While loading, show placeholder
-                              final resolvedIconPath = snapshot.data ??
-                                  'asset://packages/pickly_design_system/assets/icons/placeholder.svg';
+                              // Determine the resolved path
+                              String resolvedIconPath;
+
+                              if (snapshot.hasData && snapshot.data != null) {
+                                final resolvedUrl = snapshot.data!;
+
+                                // If it's a network URL, use it directly
+                                if (resolvedUrl.startsWith('http://') ||
+                                    resolvedUrl.startsWith('https://')) {
+                                  resolvedIconPath = resolvedUrl;
+                                } else {
+                                  // Local asset path - add asset:// prefix for TabCircleWithLabel
+                                  resolvedIconPath = 'asset://$resolvedUrl';
+                                }
+                              } else {
+                                // Fallback to placeholder while loading or on error
+                                resolvedIconPath = 'asset://packages/pickly_design_system/assets/icons/placeholder.svg';
+                              }
 
                               return TabCircleWithLabel(
                                 iconPath: resolvedIconPath,
@@ -335,65 +354,156 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Filter pills (horizontal scrollable)
-                    SizedBox(
-                      height: 40,
-                      child: ListView(
-                        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          // Region filter (location)
-                          if (selectedRegion != null) ...[
-                            TabPill.default_(
-                              iconPath: 'assets/icons/location.svg',
-                              text: selectedRegion.name,
-                              onTap: () {
-                                _showRegionSelector(context);
+                    // PRD v9.10.2: Filter pills with divider - Figma spec layout
+                    // Layout: (region)(age) | (subcategory chips with horizontal scroll)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+                      child: SizedBox(
+                        height: 40,
+                        child: Row(
+                          children: [
+                            // Region filter chip
+                            if (selectedRegion != null) ...[
+                              TabPill.default_(
+                                iconPath: 'assets/icons/location.svg',
+                                text: selectedRegion.name,
+                                onTap: () {
+                                  _showRegionSelector(context);
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+
+                            // Age category filter chip
+                            if (selectedAgeCategory != null) ...[
+                              TabPill.default_(
+                                iconPath: 'assets/icons/condition.svg',
+                                text: selectedAgeCategory.title,
+                                onTap: () {
+                                  _showAgeCategorySelector(context);
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+
+                            // Vertical divider (if region or age selected AND subcategories exist)
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final categories = ref.watch(categoriesStreamListProvider);
+
+                                if (_selectedCategoryIndex >= 0 && _selectedCategoryIndex < categories.length) {
+                                  final currentCategory = categories[_selectedCategoryIndex];
+                                  final subcategoriesAsync = ref.watch(subcategoriesStreamProvider(currentCategory.id));
+
+                                  return subcategoriesAsync.when(
+                                    data: (subcategories) {
+                                      // Show divider if region/age selected AND subcategories exist
+                                      if ((selectedRegion != null || selectedAgeCategory != null) && subcategories.isNotEmpty) {
+                                        return Row(
+                                          children: [
+                                            // Divider: 1px width, 24px height, #EBEBEB
+                                            Container(
+                                              width: 1,
+                                              height: 24,
+                                              decoration: const BoxDecoration(
+                                                color: Color(0xFFEBEBEB),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                          ],
+                                        );
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
+                                    loading: () => const SizedBox.shrink(),
+                                    error: (_, __) => const SizedBox.shrink(),
+                                  );
+                                }
+                                return const SizedBox.shrink();
                               },
                             ),
-                            const SizedBox(width: 8),
-                          ],
 
-                          // Age category filter (condition)
-                          if (selectedAgeCategory != null) ...[
-                            TabPill.default_(
-                              iconPath: 'assets/icons/condition.svg',
-                              text: selectedAgeCategory.title,
-                              onTap: () {
-                                _showAgeCategorySelector(context);
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                          ],
+                            // Subcategory chips (horizontal scrollable)
+                            Expanded(
+                              child: Consumer(
+                                builder: (context, ref, child) {
+                                  final categories = ref.watch(categoriesStreamListProvider);
 
-                          // PRD v9.10.0: Subcategory filter button (shows dynamic FilterBottomSheet)
-                          Consumer(
-                            builder: (context, ref, child) {
-                              final selectedIds = ref.watch(selectedSubcategoryIdsProvider);
-                              final categories = ref.watch(categoriesStreamListProvider);
+                                  if (_selectedCategoryIndex >= 0 && _selectedCategoryIndex < categories.length) {
+                                    final currentCategory = categories[_selectedCategoryIndex];
+                                    final selectedIds = ref.watch(selectedSubcategoryIdsForCategoryProvider(currentCategory.id));
+                                    final subcategoriesAsync = ref.watch(subcategoriesStreamProvider(currentCategory.id));
 
-                              // Only show if current category has subcategories
-                              if (_selectedCategoryIndex >= 0 && _selectedCategoryIndex < categories.length) {
-                                final currentCategory = categories[_selectedCategoryIndex];
+                                    return subcategoriesAsync.when(
+                                      data: (subcategories) {
+                                        if (subcategories.isEmpty) {
+                                          return const SizedBox.shrink();
+                                        }
 
-                                return TabPill.default_(
-                                  iconPath: 'assets/icons/all.svg',
-                                  text: selectedIds.isEmpty ? '전체' : '${selectedIds.length}개 선택',
-                                  onTap: () async {
-                                    await showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (context) => FilterBottomSheet(category: currentCategory),
+                                        // Build subcategory chip widgets
+                                        final chipWidgets = <Widget>[];
+
+                                        if (selectedIds.isNotEmpty) {
+                                          // Show each selected subcategory as a chip
+                                          for (final subcategoryId in selectedIds) {
+                                            final subcategory = subcategories.firstWhere(
+                                              (s) => s.id == subcategoryId,
+                                              orElse: () => subcategories.first,
+                                            );
+                                            chipWidgets.add(
+                                              TabPill.default_(
+                                                iconPath: subcategory.iconUrl ?? 'assets/icons/all.svg',
+                                                text: subcategory.name,
+                                                onTap: () async {
+                                                  await showModalBottomSheet(
+                                                    context: context,
+                                                    isScrollControlled: true,
+                                                    backgroundColor: Colors.transparent,
+                                                    builder: (context) => FilterBottomSheet(category: currentCategory),
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                            chipWidgets.add(const SizedBox(width: 8));
+                                          }
+                                        } else {
+                                          // Show "전체" chip when no subcategories selected
+                                          chipWidgets.add(
+                                            TabPill.default_(
+                                              iconPath: 'assets/icons/all.svg',
+                                              text: '전체',
+                                              onTap: () async {
+                                                await showModalBottomSheet(
+                                                  context: context,
+                                                  isScrollControlled: true,
+                                                  backgroundColor: Colors.transparent,
+                                                  builder: (context) => FilterBottomSheet(category: currentCategory),
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        }
+
+                                        // Horizontal scrollable list of chips
+                                        return SizedBox(
+                                          height: 36,
+                                          child: ListView(
+                                            scrollDirection: Axis.horizontal,
+                                            children: chipWidgets,
+                                          ),
+                                        );
+                                      },
+                                      loading: () => const SizedBox.shrink(),
+                                      error: (_, __) => const SizedBox.shrink(),
                                     );
-                                  },
-                                );
-                              }
+                                  }
 
-                              return const SizedBox.shrink();
-                            },
-                          ),
-                        ],
+                                  return const SizedBox.shrink();
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
