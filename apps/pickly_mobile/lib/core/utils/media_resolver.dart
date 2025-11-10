@@ -98,8 +98,9 @@ Future<String> resolveAgeIconUrl(String? filename) async {
 ///
 /// Resolution Order:
 /// 1. If already a full URL (http/https) → return as-is
-/// 2. Check local assets (design system icons)
-/// 3. Generate Supabase Storage public URL
+/// 2. If contains Supabase storage path → return as-is
+/// 3. Check local assets (design system icons)
+/// 4. Generate Supabase Storage public URL (filename only)
 ///
 /// Returns null if no valid path found
 Future<String?> resolveSvgUrlOrAssetFlexible(
@@ -109,13 +110,21 @@ Future<String?> resolveSvgUrlOrAssetFlexible(
 }) async {
   if (value == null || value.isEmpty) return null;
 
-  // 1. Already a URL - use it directly
+  debugPrint('🔍 [MediaResolver Flexible] Input: $value');
+
+  // 1. Network URLs should return as-is
   if (value.startsWith('http://') || value.startsWith('https://')) {
-    print('✅ [MediaResolver Flexible] Already URL: $value');
+    debugPrint('✅ [MediaResolver Flexible] Detected network URL: $value');
     return value;
   }
 
-  // 2. Local asset candidates
+  // 2. Handle Supabase storage URLs gracefully (already complete URL)
+  if (value.contains('/storage/v1/object/public/')) {
+    debugPrint('✅ [MediaResolver Flexible] Already Supabase storage URL: $value');
+    return value;
+  }
+
+  // 3. Local asset candidates
   final candidates = <String>[
     'packages/pickly_design_system/assets/icons/$value',
     'packages/pickly_design_system/assets/icons/age_categories/$value',
@@ -125,7 +134,7 @@ Future<String?> resolveSvgUrlOrAssetFlexible(
   for (final path in candidates) {
     try {
       await rootBundle.load(path);
-      print('✅ [MediaResolver Flexible] Found local asset: $path');
+      debugPrint('✅ [MediaResolver Flexible] Found local asset: $path');
       return path;
     } catch (_) {
       // Try next candidate
@@ -133,19 +142,25 @@ Future<String?> resolveSvgUrlOrAssetFlexible(
     }
   }
 
-  // 3. Supabase Storage public URL (for filename-only cases)
-  try {
-    final fullPath = '$folder/$value';
-    final storageUrl = Supabase.instance.client.storage
-        .from(bucket)
-        .getPublicUrl(fullPath);
+  // 4. Supabase Storage public URL (for filename-only cases)
+  // Only generate URL if value looks like a filename (not a path)
+  if (!value.contains('/')) {
+    try {
+      final fullPath = '$folder/$value';
+      final storageUrl = Supabase.instance.client.storage
+          .from(bucket)
+          .getPublicUrl(fullPath);
 
-    print('✅ [MediaResolver Flexible] Generated storage URL: $storageUrl');
-    return storageUrl;
-  } catch (e) {
-    print('❌ [MediaResolver Flexible] Failed to generate URL: $e');
-    return null;
+      debugPrint('✅ [MediaResolver Flexible] Generated storage URL: $storageUrl');
+      return storageUrl;
+    } catch (e) {
+      debugPrint('❌ [MediaResolver Flexible] Failed to generate URL: $e');
+      return null;
+    }
   }
+
+  debugPrint('⚠️ [MediaResolver Flexible] No resolution found for: $value');
+  return null;
 }
 
 /// Load SVG from resolved URL

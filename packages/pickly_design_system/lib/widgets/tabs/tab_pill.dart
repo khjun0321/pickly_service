@@ -115,15 +115,7 @@ class TabPill extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SvgPicture.asset(
-              iconPath,
-              package: 'pickly_design_system',
-              width: 20,
-              height: 20,
-              colorFilter: iconColor != null
-                  ? ColorFilter.mode(iconColor, BlendMode.srcIn)
-                  : null,
-            ),
+            _buildIcon(iconColor),
             const SizedBox(width: 8),
             Text(
               text,
@@ -137,6 +129,49 @@ class TabPill extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  /// Build SVG icon widget (supports network and asset URLs)
+  Widget _buildIcon(Color? iconColor) {
+    // Check if it's a network URL
+    if (iconPath.startsWith('http://') || iconPath.startsWith('https://')) {
+      return SvgPicture.network(
+        iconPath,
+        width: 20,
+        height: 20,
+        colorFilter: iconColor != null
+            ? ColorFilter.mode(iconColor, BlendMode.srcIn)
+            : null,
+        placeholderBuilder: (context) => SizedBox(
+          width: 20,
+          height: 20,
+          child: Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: iconColor ?? const Color(0xFF828282),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Asset path - remove asset:// prefix if present
+    final assetPath = iconPath.startsWith('asset://')
+        ? iconPath.replaceFirst('asset://', '')
+        : iconPath;
+
+    // Check if path already includes package prefix
+    final bool hasPackagePrefix = assetPath.startsWith('packages/');
+
+    return SvgPicture.asset(
+      assetPath,
+      package: hasPackagePrefix ? null : 'pickly_design_system',
+      width: 20,
+      height: 20,
+      colorFilter: iconColor != null
+          ? ColorFilter.mode(iconColor, BlendMode.srcIn)
+          : null,
     );
   }
 

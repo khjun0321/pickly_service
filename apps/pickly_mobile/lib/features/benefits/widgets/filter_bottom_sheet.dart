@@ -7,6 +7,7 @@ import 'package:pickly_mobile/features/benefits/providers/benefit_category_provi
 /// FilterBottomSheet - Hierarchical subcategory filter UI
 ///
 /// PRD v9.10.1: Database-driven filter with category-specific selection state
+/// Updated: Full-width layout matching age category bottom sheet (v2)
 ///
 /// Features:
 /// - Uses SelectionListItem from design system (same as age category)
@@ -37,38 +38,42 @@ class FilterBottomSheet extends ConsumerWidget {
     // Watch current selections for THIS category only
     final selectedIds = ref.watch(selectedSubcategoryIdsForCategoryProvider(category.id));
 
-    return SafeArea(
-      child: Container(
-        height: 540, // PRD v9.10.2: Figma spec height
-        decoration: const ShapeDecoration(
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            side: BorderSide(color: Color(0xFFEBEBEB), width: 1),
-          ),
+    return Container(
+      decoration: const ShapeDecoration(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          side: BorderSide(color: Color(0xFFEBEBEB), width: 1),
         ),
+      ),
+      child: SafeArea(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Drag handle
             const SizedBox(height: 8),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: const Color(0xFFDDDDDD),
-                borderRadius: BorderRadius.circular(2),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDDDDDD),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
             const SizedBox(height: 16),
 
-            // Header: Title + Subtitle
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+            // Header: Title + Subtitle - Full width with left alignment
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${category.title} 공고 선택', // PRD v9.10.2: Specific format
+                    '${category.title} 필터 선택', // Changed from "공고 선택" to "필터 선택"
                     style: PicklyTypography.titleMedium.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -77,7 +82,7 @@ class FilterBottomSheet extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '해당 공고문을 안내해드립니다.', // PRD v9.10.2: Subtitle
+                    '해당 공고문을 안내해드립니다.',
                     style: PicklyTypography.bodyMedium.copyWith(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -90,7 +95,9 @@ class FilterBottomSheet extends ConsumerWidget {
             const SizedBox(height: 12),
 
             // Body: Subcategory list with "전체 선택" first item
-            Expanded(
+            // Using flexible height to match content (max 400px for reasonable scrolling)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 400),
               child: subcategoriesAsync.when(
                 data: (subcategories) {
                   if (subcategories.isEmpty) {
@@ -106,7 +113,8 @@ class FilterBottomSheet extends ConsumerWidget {
                   }
 
                   return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: 8),
+                    shrinkWrap: true,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemCount: subcategories.length + 1, // +1 for "전체 선택"
                     itemBuilder: (context, index) {
@@ -114,8 +122,8 @@ class FilterBottomSheet extends ConsumerWidget {
                       if (index == 0) {
                         final isAllSelected = selectedIds.isEmpty;
                         return SelectionListItem(
-                          iconUrl: null,
-                          iconComponent: 'all',
+                          // ✅ 항상 고정된 all.svg 아이콘 사용
+                          iconUrl: 'asset://packages/pickly_design_system/assets/icons/all.svg',
                           title: '전체 선택',
                           description: '모든 ${category.title} 공고',
                           isSelected: isAllSelected,
@@ -133,16 +141,17 @@ class FilterBottomSheet extends ConsumerWidget {
                       final isSelected = selectedIds.contains(subcategory.id);
 
                       return SelectionListItem(
-                        iconUrl: subcategory.iconUrl,
+                        iconUrl: subcategory.iconUrl ?? 'assets/icons/all.svg',
                         iconComponent: 'all', // fallback icon
                         title: subcategory.name,
-                        description: '', // No subtitle for subcategories
+                        description: subcategory.description ?? '',
                         isSelected: isSelected,
                         onTap: () {
                           // Toggle selection for THIS category only
+                          // Pass full subcategory object to preserve iconUrl
                           ref
                               .read(subcategorySelectionsMapProvider.notifier)
-                              .toggle(category.id, subcategory.id);
+                              .toggle(category.id, subcategory);
                         },
                       );
                     },
@@ -166,9 +175,10 @@ class FilterBottomSheet extends ConsumerWidget {
               ),
             ),
 
-            // Footer: 저장 button only (no reset button)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            // Footer: 저장 button - Full width
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(Spacing.lg),
               child: SizedBox(
                 width: double.infinity,
                 height: 48,

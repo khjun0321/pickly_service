@@ -431,7 +431,8 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
 
                                   if (_selectedCategoryIndex >= 0 && _selectedCategoryIndex < categories.length) {
                                     final currentCategory = categories[_selectedCategoryIndex];
-                                    final selectedIds = ref.watch(selectedSubcategoryIdsForCategoryProvider(currentCategory.id));
+                                    // Use selectedSubcategoriesForCategoryProvider to get full objects with iconUrl
+                                    final selectedSubcategories = ref.watch(selectedSubcategoriesForCategoryProvider(currentCategory.id));
                                     final subcategoriesAsync = ref.watch(subcategoriesStreamProvider(currentCategory.id));
 
                                     return subcategoriesAsync.when(
@@ -443,23 +444,61 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                                         // Build subcategory chip widgets
                                         final chipWidgets = <Widget>[];
 
-                                        if (selectedIds.isNotEmpty) {
-                                          // Show each selected subcategory as a chip
-                                          for (final subcategoryId in selectedIds) {
-                                            final subcategory = subcategories.firstWhere(
-                                              (s) => s.id == subcategoryId,
-                                              orElse: () => subcategories.first,
-                                            );
+                                        if (selectedSubcategories.isNotEmpty) {
+                                          // Show each selected subcategory as a chip with its iconUrl preserved
+                                          for (final subcategory in selectedSubcategories) {
+                                            debugPrint('🎨 [BenefitScreen] Rendering chip for: ${subcategory.name}');
+                                            debugPrint('   iconUrl: ${subcategory.iconUrl}');
                                             chipWidgets.add(
-                                              TabPill.default_(
-                                                iconPath: subcategory.iconUrl ?? 'assets/icons/all.svg',
-                                                text: subcategory.name,
-                                                onTap: () async {
-                                                  await showModalBottomSheet(
-                                                    context: context,
-                                                    isScrollControlled: true,
-                                                    backgroundColor: Colors.transparent,
-                                                    builder: (context) => FilterBottomSheet(category: currentCategory),
+                                              FutureBuilder<String?>(
+                                                future: resolveSvgUrlOrAssetFlexible(
+                                                  subcategory.iconUrl,
+                                                  bucket: 'benefit-icons',
+                                                  folder: 'icons',
+                                                ),
+                                                builder: (context, snapshot) {
+                                                  // Determine the resolved path
+                                                  String resolvedIconPath;
+
+                                                  debugPrint('🔍 [Icon Resolve] ${subcategory.name}: hasData=${snapshot.hasData}, data=${snapshot.data}');
+
+                                                  if (snapshot.hasData && snapshot.data != null) {
+                                                    final resolvedUrl = snapshot.data!;
+
+                                                    // Handle different URL formats
+                                                    if (resolvedUrl.startsWith('http://') ||
+                                                        resolvedUrl.startsWith('https://')) {
+                                                      // Network SVG → use directly
+                                                      resolvedIconPath = resolvedUrl;
+                                                      debugPrint('   ✅ Using network URL: $resolvedIconPath');
+                                                    } else if (resolvedUrl.startsWith('asset://')) {
+                                                      // Local asset with asset:// prefix (already formatted)
+                                                      resolvedIconPath = resolvedUrl;
+                                                      debugPrint('   ✅ Using local asset (prefixed): $resolvedIconPath');
+                                                    } else {
+                                                      // Local asset path - add asset:// prefix for TabPill
+                                                      resolvedIconPath = 'asset://$resolvedUrl';
+                                                      debugPrint('   ✅ Adding asset prefix: $resolvedIconPath');
+                                                    }
+                                                  } else {
+                                                    // Fallback to all.svg while loading or on error
+                                                    resolvedIconPath = 'asset://packages/pickly_design_system/assets/icons/all.svg';
+                                                    debugPrint('   ⚠️ Fallback to all.svg (error: ${snapshot.error})');
+                                                  }
+
+                                                  debugPrint('   🎯 Final iconPath: $resolvedIconPath');
+
+                                                  return TabPill.default_(
+                                                    iconPath: resolvedIconPath,
+                                                    text: subcategory.name,
+                                                    onTap: () async {
+                                                      await showModalBottomSheet(
+                                                        context: context,
+                                                        isScrollControlled: true,
+                                                        backgroundColor: Colors.transparent,
+                                                        builder: (context) => FilterBottomSheet(category: currentCategory),
+                                                      );
+                                                    },
                                                   );
                                                 },
                                               ),

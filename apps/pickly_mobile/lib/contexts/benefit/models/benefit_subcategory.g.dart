@@ -16,6 +16,7 @@ BenefitSubcategory _$BenefitSubcategoryFromJson(Map<String, dynamic> json) =>
       isActive: json['is_active'] as bool? ?? true,
       iconUrl: json['icon_url'] as String?,
       iconName: json['icon_name'] as String?,
+      description: json['description'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: json['updated_at'] == null
           ? null
@@ -32,6 +33,7 @@ Map<String, dynamic> _$BenefitSubcategoryToJson(BenefitSubcategory instance) =>
       'is_active': instance.isActive,
       'icon_url': instance.iconUrl,
       'icon_name': instance.iconName,
+      'description': instance.description,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt?.toIso8601String(),
     };

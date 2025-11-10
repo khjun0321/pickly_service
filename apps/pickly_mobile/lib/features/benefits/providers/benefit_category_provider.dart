@@ -302,28 +302,45 @@ final selectedSubcategoryIdsProvider = NotifierProvider<SelectedSubcategoryIdsNo
 /// This ensures that selecting filters in "주거" category doesn't affect "교육" category, etc.
 final selectedSubcategoryIdsForCategoryProvider =
     Provider.family<Set<String>, String>((ref, categoryId) {
-  // Watch the global selection map and return this category's selections
+  // Watch the global selection map and return this category's selections (IDs only)
   final allSelections = ref.watch(subcategorySelectionsMapProvider);
-  return allSelections[categoryId] ?? <String>{};
+  final categorySubcategories = allSelections[categoryId] ?? [];
+  return categorySubcategories.map((sub) => sub.id).toSet();
+});
+
+/// Provider for category-specific selected subcategories (full objects with iconUrl)
+///
+/// Returns the full BenefitSubcategory objects for the selected subcategories
+/// This preserves iconUrl and other metadata needed for display
+final selectedSubcategoriesForCategoryProvider =
+    Provider.family<List<BenefitSubcategory>, String>((ref, categoryId) {
+  final allSelections = ref.watch(subcategorySelectionsMapProvider);
+  return allSelections[categoryId] ?? [];
 });
 
 /// Global map of selections by category ID
-/// Format: Map<categoryId, Set<subcategoryId>>
-class SubcategorySelectionsNotifier extends Notifier<Map<String, Set<String>>> {
+/// Format: `Map<String, List<BenefitSubcategory>>`
+/// Changed from `Set<String>` to `List<BenefitSubcategory>` to preserve icon URLs
+class SubcategorySelectionsNotifier extends Notifier<Map<String, List<BenefitSubcategory>>> {
   @override
-  Map<String, Set<String>> build() => {};
+  Map<String, List<BenefitSubcategory>> build() => {};
 
   /// Toggle selection for a subcategory within a specific category
-  void toggle(String categoryId, String subcategoryId) {
-    final categorySelections = state[categoryId] ?? <String>{};
-    final newSelections = Set<String>.from(categorySelections);
+  /// Now accepts the full BenefitSubcategory object to preserve iconUrl
+  void toggle(String categoryId, BenefitSubcategory subcategory) {
+    final categorySelections = state[categoryId] ?? [];
+    final newSelections = List<BenefitSubcategory>.from(categorySelections);
 
-    if (newSelections.contains(subcategoryId)) {
-      newSelections.remove(subcategoryId);
-      debugPrint('➖ [Selection] Category: $categoryId, Removed: $subcategoryId');
+    // Check if already selected by ID
+    final existingIndex = newSelections.indexWhere((s) => s.id == subcategory.id);
+
+    if (existingIndex >= 0) {
+      newSelections.removeAt(existingIndex);
+      debugPrint('➖ [Selection] Category: $categoryId, Removed: ${subcategory.name} (${subcategory.id})');
     } else {
-      newSelections.add(subcategoryId);
-      debugPrint('➕ [Selection] Category: $categoryId, Added: $subcategoryId');
+      newSelections.add(subcategory);
+      debugPrint('➕ [Selection] Category: $categoryId, Added: ${subcategory.name} (${subcategory.id})');
+      debugPrint('   Icon URL: ${subcategory.iconUrl}');
     }
 
     state = {...state, categoryId: newSelections};
@@ -331,7 +348,7 @@ class SubcategorySelectionsNotifier extends Notifier<Map<String, Set<String>>> {
 
   /// Clear all selections for a specific category
   void clear(String categoryId) {
-    state = {...state, categoryId: <String>{}};
+    state = {...state, categoryId: []};
     debugPrint('🧹 [Selection] Cleared category: $categoryId');
   }
 
@@ -343,6 +360,6 @@ class SubcategorySelectionsNotifier extends Notifier<Map<String, Set<String>>> {
 }
 
 final subcategorySelectionsMapProvider =
-    NotifierProvider<SubcategorySelectionsNotifier, Map<String, Set<String>>>(
+    NotifierProvider<SubcategorySelectionsNotifier, Map<String, List<BenefitSubcategory>>>(
   SubcategorySelectionsNotifier.new,
 );

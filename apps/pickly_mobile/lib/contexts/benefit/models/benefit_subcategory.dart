@@ -43,6 +43,9 @@ class BenefitSubcategory extends Equatable {
   @JsonKey(name: 'icon_name')
   final String? iconName;
 
+  /// Description text from Admin (for FilterBottomSheet)
+  final String? description;
+
   /// Creation timestamp
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
@@ -60,6 +63,7 @@ class BenefitSubcategory extends Equatable {
     this.isActive = true,
     this.iconUrl,
     this.iconName,
+    this.description,
     required this.createdAt,
     this.updatedAt,
   });
@@ -81,6 +85,7 @@ class BenefitSubcategory extends Equatable {
     bool? isActive,
     String? iconUrl,
     String? iconName,
+    String? description,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -93,6 +98,7 @@ class BenefitSubcategory extends Equatable {
       isActive: isActive ?? this.isActive,
       iconUrl: iconUrl ?? this.iconUrl,
       iconName: iconName ?? this.iconName,
+      description: description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -109,6 +115,7 @@ class BenefitSubcategory extends Equatable {
         isActive,
         iconUrl,
         iconName,
+        description,
         createdAt,
         updatedAt,
       ];
