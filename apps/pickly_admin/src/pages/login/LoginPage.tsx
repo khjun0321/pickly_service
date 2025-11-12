@@ -6,8 +6,8 @@ import { LockOutlined as LockIcon } from '@mui/icons-material'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('dev@pickly.com')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('admin@pickly.com')
+  const [password, setPassword] = useState('pickly2025!')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -113,10 +113,10 @@ export default function LoginPage() {
 
               <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
                 <Typography variant="caption" display="block" gutterBottom>
-                  <strong>테스트 계정:</strong>
+                  <strong>Admin 계정:</strong>
                 </Typography>
                 <Typography variant="caption" display="block">
-                  Email: dev@pickly.com
+                  Email: admin@pickly.com
                 </Typography>
                 <Typography variant="caption" display="block">
                   Password: pickly2025!
