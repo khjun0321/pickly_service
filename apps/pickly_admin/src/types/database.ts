@@ -1,4 +1,3 @@
-Connecting to db 5432
 export type Json =
   | string
   | number
@@ -1009,4 +1008,11 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+// =============================
+// ✅ 타입 export 보강
+// =============================
+export type BenefitCategory = Database['public']['Tables']['benefit_categories']['Row'];
+export type Announcement = Database['public']['Tables']['announcements']['Row'];
+export type CategoryBannerDB = Database['public']['Tables']['category_banners']['Row'];
 

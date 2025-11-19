@@ -37,7 +37,6 @@ BEGIN
       recovery_token,
       email_change_token_new,
       email_change_token_current,
-      email_change,
       reauthentication_token,
       created_at,
       updated_at,
@@ -57,7 +56,6 @@ BEGIN
       '',  -- Empty string, NOT NULL
       '',  -- Empty string, NOT NULL
       '',  -- Empty string, NOT NULL
-      '',  -- Empty string, NOT NULL (email_change)
       '',  -- Empty string, NOT NULL
       now(),
       now(),

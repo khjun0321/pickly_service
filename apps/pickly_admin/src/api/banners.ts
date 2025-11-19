@@ -2,37 +2,44 @@ import { supabase } from '@/lib/supabase'
 
 export interface BenefitBanner {
   id: string
-  category_id: string
+  category_id: string | null
+  category_slug: string
   title: string
   subtitle: string | null
   image_url: string
+  link_type: string | null
   link_url: string | null
-  // background_color: string | null // ❌ REMOVED: Not in DB schema (category_banners table)
-  display_order: number
-  is_active: boolean
-  created_at: string
-  updated_at: string
+  background_color: string | null
+  sort_order: number
+  is_active: boolean | null
+  created_at: string | null
+  updated_at: string | null
 }
 
 export interface BenefitBannerInsert {
-  category_id: string
+  category_id?: string | null
+  category_slug: string
   title: string
   subtitle?: string | null
   image_url: string
+  link_type?: string | null
   link_url?: string | null
-  // background_color?: string | null // ❌ REMOVED: Not in DB schema
-  display_order?: number
-  is_active?: boolean
+  background_color?: string | null
+  sort_order?: number
+  is_active?: boolean | null
 }
 
 export interface BenefitBannerUpdate {
+  category_id?: string | null
+  category_slug?: string
   title?: string
   subtitle?: string | null
   image_url?: string
+  link_type?: string | null
   link_url?: string | null
-  // background_color?: string | null // ❌ REMOVED: Not in DB schema
-  display_order?: number
-  is_active?: boolean
+  background_color?: string | null
+  sort_order?: number
+  is_active?: boolean | null
 }
 
 /**
@@ -45,7 +52,7 @@ export async function fetchBannersByCategory(categoryId: string): Promise<Benefi
     .from('category_banners')
     .select('*')
     .eq('category_id', categoryId)
-    .order('display_order', { ascending: true })
+    .order('sort_order', { ascending: true })
 
   if (error) {
     console.error('❌ Error fetching banners:', error)
@@ -75,7 +82,7 @@ export async function fetchAllBanners(): Promise<BenefitBanner[]> {
         slug
       )
     `)
-    .order('display_order', { ascending: true })
+    .order('sort_order', { ascending: true })
 
   if (error) {
     console.error('❌ Error fetching all banners:', error)
@@ -187,17 +194,17 @@ export async function deleteBanner(id: string): Promise<void> {
 }
 
 /**
- * Reorder banners by updating display_order
+ * Reorder banners by updating sort_order
  */
 export async function reorderBanners(
-  banners: { id: string; display_order: number }[]
+  banners: { id: string; sort_order: number }[]
 ): Promise<void> {
   console.log('🔄 Reordering banners:', banners)
 
-  const updates = banners.map(({ id, display_order }) =>
+  const updates = banners.map(({ id, sort_order }) =>
     supabase
       .from('category_banners')
-      .update({ display_order })
+      .update({ sort_order })
       .eq('id', id)
   )
 

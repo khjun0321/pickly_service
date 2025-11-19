@@ -4,8 +4,6 @@
 -- Age Categories (6 standard categories)
 -- This seed file is for reference and testing purposes
 
-ON CONFLICT DO NOTHING;
-
 -- ================================================================
 -- 고정 관리자 계정 (Admin Account)
 -- ================================================================
@@ -123,46 +121,5 @@ END $$;
 -- 모바일 앱의 혜택 화면에서 표시됩니다
 -- ================================================================
 
-DO $$
-DECLARE
-    housing_id UUID;
-    welfare_id UUID;
-    education_id UUID;
-    employment_id UUID;
-    health_id UUID;
-    culture_id UUID;
-BEGIN
-    -- Get category IDs
-
-    -- Insert sample banners for each category (PRD v7.3 naming)
-    -- 주거 배너
-    (housing_id, '청년 주거 지원', '월세 최대 30만원 지원', 'https://picsum.photos/seed/housing1/800/400', '#E3F2FD', '/benefits/housing/youth-housing', 'internal', 1, true),
-    (housing_id, '전세자금 대출', '무이자 전세자금 대출 안내', 'https://picsum.photos/seed/housing2/800/400', '#E8F5E9', '/benefits/housing/jeonse-loan', 'internal', 2, true),
-
-    -- 복지 배너
-    (welfare_id, '다자녀 가구 혜택', '자녀 3명 이상 가구 지원', 'https://picsum.photos/seed/welfare1/800/400', '#FFF3E0', '/benefits/welfare/multi-child', 'internal', 1, true),
-    (welfare_id, '어르신 복지', '65세 이상 종합 복지 안내', 'https://picsum.photos/seed/welfare2/800/400', '#F3E5F5', '/benefits/welfare/senior', 'internal', 2, true),
-
-    -- 교육 배너
-    (education_id, '학자금 지원', '대학생 등록금 지원 프로그램', 'https://picsum.photos/seed/education1/800/400', '#E1F5FE', '/benefits/education/scholarship', 'internal', 1, true),
-    (education_id, '직업 훈련', '무료 직업훈련 과정 안내', 'https://picsum.photos/seed/education2/800/400', '#FFF9C4', '/benefits/education/training', 'internal', 2, true),
-
-    -- 취업 배너
-    (employment_id, '청년 일자리', '청년 취업 지원금 최대 300만원', 'https://picsum.photos/seed/employment1/800/400', '#E8EAF6', '/benefits/employment/youth-job', 'internal', 1, true),
-    (employment_id, '창업 지원', '초기 창업자 지원 프로그램', 'https://picsum.photos/seed/employment2/800/400', '#FCE4EC', '/benefits/employment/startup', 'internal', 2, true),
-
-    -- 건강 배너
-    (health_id, '건강검진 지원', '무료 종합 건강검진', 'https://picsum.photos/seed/health1/800/400', '#F1F8E9', '/benefits/health/checkup', 'internal', 1, true),
-    (health_id, '의료비 지원', '저소득층 의료비 지원 안내', 'https://picsum.photos/seed/health2/800/400', '#E0F2F1', '/benefits/health/medical', 'internal', 2, true),
-
-    -- 문화 배너
-    (culture_id, '문화누리카드', '연간 11만원 문화비 지원', 'https://picsum.photos/seed/culture1/800/400', '#F3E5F5', '/benefits/culture/card', 'internal', 1, true),
-    (culture_id, '공연 할인', '청년 공연 50% 할인', 'https://picsum.photos/seed/culture2/800/400', '#FFF3E0', '/benefits/culture/performance', 'internal', 2, true)
-    ON CONFLICT DO NOTHING;
-
-    RAISE NOTICE '✅ Category banners inserted successfully';
-
-EXCEPTION
-    WHEN others THEN
-        RAISE NOTICE '❌ Failed to insert category banners: %', SQLERRM;
-END $$;
+-- Category banners are optional - skipping for now
+-- Can be added later through admin UI

@@ -41,6 +41,7 @@ import {
   Upload as UploadIcon,
   Star,
   StarBorder,
+  ViewModule as TabIcon,
 } from '@mui/icons-material'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -49,11 +50,16 @@ import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { uploadAnnouncementThumbnail } from '@/utils/storage'
 import type { Announcement, AnnouncementFormData, AnnouncementType, AnnouncementStatus } from '@/types/benefit'
+import AnnouncementTabEditor from './AnnouncementTabEditor'
 
 interface AnnouncementManagerProps {
   categoryId: string
   categoryTitle: string
 }
+
+// Normalize date for <input type="date">
+const toDateOnly = (value?: string | null) =>
+  value ? value.split('T')[0] : ''
 
 const announcementSchema = z.object({
   category_id: z.string().nullable(),
@@ -63,8 +69,11 @@ const announcementSchema = z.object({
   region: z.string().nullable(),
   thumbnail_url: z.string().nullable(),
   application_start_date: z.string().nullable(),
+  application_end_date: z.string().nullable(),
   status: z.enum(['recruiting', 'closed', 'upcoming', 'draft']),
   is_priority: z.boolean(),
+  is_home_visible: z.boolean(),
+  is_featured: z.boolean(),
   detail_url: z.string().nullable(),
 })
 
@@ -75,6 +84,16 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<AnnouncementStatus | 'all'>('all')
+
+  // Tab editor state
+  const [tabEditorOpen, setTabEditorOpen] = useState(false)
+  const [tabEditorAnnouncementId, setTabEditorAnnouncementId] = useState<string | null>(null)
+  const [tabEditorAnnouncementTitle, setTabEditorAnnouncementTitle] = useState('')
+
+  // Detail content states (C-1 step)
+  const [detailText, setDetailText] = useState('')
+  const [detailImages, setDetailImages] = useState<{ url: string; caption: string; order: number }[]>([])
+  const [detailPdfs, setDetailPdfs] = useState<{ url: string; title: string; order: number }[]>([])
 
   // Fetch benefit subcategories for this category
   const { data: subcategories = [] } = useQuery({
@@ -135,47 +154,91 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
     },
   })
 
-  // Save mutation
-  const saveMutation = useMutation({
+  // RPC 기반 저장용 saveRpcMutation
+  const saveRpcMutation = useMutation({
     mutationFn: async (formData: AnnouncementFormData) => {
-      let thumbnailUrl = formData.thumbnail_url
+      const announcementId = editingAnnouncement?.id || crypto.randomUUID()
 
+      // Thumbnail upload
+      let thumbnailUrl = formData.thumbnail_url
       if (thumbnailFile) {
         const uploadResult = await uploadAnnouncementThumbnail(thumbnailFile)
         thumbnailUrl = uploadResult.url
       }
 
-      const dataToSave = {
-        ...formData,
-        thumbnail_url: thumbnailUrl,
+      // p_announcement MUST contain only these fields (Pickly standard)
+      const p_announcement = {
+        id: announcementId,
+        title: formData.title,
+        subtitle: '',
+        category_id: categoryId,
+        subcategory_id: formData.subcategory_id,
+        organization: formData.organization,
+        status: formData.status,
+        content: '',
+        thumbnail_url: thumbnailUrl || '',
+        external_url: '',
+        detail_url: formData.detail_url || '',
+        link_type: 'external',
+        region: formData.region || '',
+        application_start_date: formData.application_start_date || null,
+        application_end_date: formData.application_end_date || null,
+        deadline_date: null,
+        tags: [],
+        is_featured: formData.is_featured,
+        is_home_visible: formData.is_home_visible,
+        is_priority: formData.is_priority,
+        display_priority: 0,
+        views_count: 0,
       }
 
-      if (editingAnnouncement) {
-        const { data, error } = await supabase
-          .from('announcements')
-          .update(dataToSave)
-          .eq('id', editingAnnouncement.id)
-          .select()
-          .single()
+      // Build p_details
+      const p_details = []
 
-        if (error) throw error
-        return data
-      } else {
-        const { data, error } = await supabase
-          .from('announcements')
-          .insert(dataToSave)
-          .select()
-          .single()
-
-        if (error) throw error
-        return data
+      if (detailText.trim()) {
+        p_details.push({
+          field_key: 'description',
+          field_value: detailText,
+          field_type: 'text',
+        })
       }
+
+      detailImages.forEach((img) => {
+        if (img.url.trim()) {
+          p_details.push({
+            field_key: 'floor_plan_image',
+            field_value: img.url,
+            field_type: 'link',
+          })
+        }
+      })
+
+      detailPdfs.forEach((pdf) => {
+        if (pdf.url.trim()) {
+          p_details.push({
+            field_key: 'announcement_pdf',
+            field_value: pdf.url,
+            field_type: 'link',
+          })
+        }
+      })
+
+      // RPC 호출
+      const { data, error } = await supabase.rpc('save_announcement_with_details', {
+        p_announcement,
+        p_details,
+      })
+
+      if (error) throw error
+      return data
     },
+
     onSuccess: () => {
       toast.success(editingAnnouncement ? '공고가 수정되었습니다' : '공고가 추가되었습니다')
       queryClient.invalidateQueries({ queryKey: ['announcements', categoryId] })
       handleCloseDialog()
     },
+
     onError: (error: Error) => {
       toast.error(error.message || '저장에 실패했습니다')
     },
@@ -215,7 +278,7 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
     },
   })
 
-  const handleOpenDialog = (announcement?: Announcement) => {
+  const handleOpenDialog = async (announcement?: Announcement) => {
     if (announcement) {
       setEditingAnnouncement(announcement)
       reset({
@@ -225,12 +288,49 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
         organization: announcement.organization,
         region: announcement.region,
         thumbnail_url: announcement.thumbnail_url,
-        application_start_date: announcement.application_start_date,
+        application_start_date: toDateOnly(announcement.application_start_date),
+        application_end_date: toDateOnly(announcement.application_end_date),
         status: announcement.status,
         is_priority: announcement.is_priority,
+        is_home_visible: announcement.is_home_visible || false,
+        is_featured: announcement.is_featured || false,
         detail_url: announcement.detail_url,
       })
       setThumbnailPreview(announcement.thumbnail_url)
+
+      // Load existing announcement_details
+      const { data: detailsData } = await supabase
+        .from('announcement_details')
+        .select('*')
+        .eq('announcement_id', announcement.id)
+        .order('created_at', { ascending: true })
+
+      // description field
+      setDetailText(
+        detailsData?.find(d => d.field_key === 'description')?.field_value || ''
+      )
+
+      // images
+      setDetailImages(
+        detailsData
+          ?.filter(d => d.field_key === 'floor_plan_image')
+          .map((d, idx) => ({
+            url: d.field_value,
+            caption: '',
+            order: idx
+          })) ?? []
+      )
+
+      // pdfs (title kept only in UI)
+      setDetailPdfs(
+        detailsData
+          ?.filter(d => d.field_key === 'announcement_pdf')
+          .map((d, idx) => ({
+            url: d.field_value,
+            title: '', // UI only — NOT saved to DB
+            order: idx
+          })) ?? []
+      )
     } else {
       setEditingAnnouncement(null)
       reset({
@@ -241,11 +341,17 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
         region: null,
         thumbnail_url: null,
         application_start_date: new Date().toISOString().split('T')[0],
+        application_end_date: null,
         status: 'recruiting',
         is_priority: false,
+        is_home_visible: false,
+        is_featured: false,
         detail_url: null,
       })
       setThumbnailPreview(null)
+      setDetailText('')
+      setDetailImages([])
+      setDetailPdfs([])
     }
     setThumbnailFile(null)
     setDialogOpen(true)
@@ -256,6 +362,9 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
     setEditingAnnouncement(null)
     setThumbnailFile(null)
     setThumbnailPreview(null)
+    setDetailText('')
+    setDetailImages([])
+    setDetailPdfs([])
     reset()
   }
 
@@ -277,6 +386,106 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
     setThumbnailPreview(URL.createObjectURL(file))
   }
 
+  const handlePdfSelect = async (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast.error('PDF 파일만 업로드할 수 있습니다.')
+      return
+    }
+
+    // Validate file size (20MB max)
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('PDF 파일 크기는 20MB 이하만 가능합니다.')
+      return
+    }
+
+    const fileExt = file.name.split('.').pop()
+    const filePath = `pdfs/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('benefit-documents')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    if (uploadError) {
+      toast.error('PDF 업로드에 실패했습니다.')
+      return
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('benefit-documents')
+      .getPublicUrl(filePath)
+
+    // Save URL
+    const updated = [...detailPdfs]
+    updated[index].url = urlData.publicUrl
+    setDetailPdfs(updated)
+    toast.success('PDF가 업로드되었습니다.')
+  }
+
+  const handleAddPdf = () => {
+    setDetailPdfs([...detailPdfs, { url: '', title: '', order: detailPdfs.length }])
+  }
+
+  const handleRemovePdf = (index: number) => {
+    setDetailPdfs(detailPdfs.filter((_, i) => i !== index))
+  }
+
+  const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('이미지 파일만 업로드할 수 있습니다.')
+      return
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('이미지 파일 크기는 5MB 이하만 가능합니다.')
+      return
+    }
+
+    const fileExt = file.name.split('.').pop()
+    const filePath = `images/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('benefit-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    if (uploadError) {
+      toast.error('이미지 업로드에 실패했습니다.')
+      return
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('benefit-images')
+      .getPublicUrl(filePath)
+
+    // Save URL
+    const updated = [...detailImages]
+    updated[index].url = urlData.publicUrl
+    setDetailImages(updated)
+    toast.success('이미지가 업로드되었습니다.')
+  }
+
+  const handleAddImage = () => {
+    setDetailImages([...detailImages, { url: '', caption: '', order: detailImages.length }])
+  }
+
+  const handleRemoveImage = (index: number) => {
+    setDetailImages(detailImages.filter((_, i) => i !== index))
+  }
+
   const handleDelete = async (announcement: Announcement) => {
     if (!window.confirm(`"${announcement.title}" 공고를 삭제하시겠습니까?`)) {
       return
@@ -288,8 +497,20 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
     togglePriorityMutation.mutate({ id: announcement.id, is_priority: !announcement.is_priority })
   }
 
+  const handleOpenTabEditor = (announcement: Announcement) => {
+    setTabEditorAnnouncementId(announcement.id)
+    setTabEditorAnnouncementTitle(announcement.title)
+    setTabEditorOpen(true)
+  }
+
+  const handleCloseTabEditor = () => {
+    setTabEditorOpen(false)
+    setTabEditorAnnouncementId(null)
+    setTabEditorAnnouncementTitle('')
+  }
+
   const onSubmit = (data: AnnouncementFormData) => {
-    saveMutation.mutate(data)
+    saveRpcMutation.mutate(data)
   }
 
   const getStatusColor = (status: AnnouncementStatus) => {
@@ -438,6 +659,14 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
                           <IconButton size="small" onClick={() => handleOpenDialog(announcement)}>
                             <EditIcon fontSize="small" />
                           </IconButton>
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleOpenTabEditor(announcement)}
+                            title="평형 탭 관리"
+                          >
+                            <TabIcon fontSize="small" />
+                          </IconButton>
                           <IconButton size="small" color="error" onClick={() => handleDelete(announcement)}>
                             <DeleteIcon fontSize="small" />
                           </IconButton>
@@ -582,6 +811,23 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
 
               <Grid item xs={6}>
                 <Controller
+                  name="application_end_date"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      value={field.value || ''}
+                      fullWidth
+                      label="신청 마감일"
+                      type="date"
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={6}>
+                <Controller
                   name="status"
                   control={control}
                   render={({ field }) => (
@@ -626,6 +872,227 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
                   )}
                 />
               </Grid>
+
+              <Grid item xs={12}>
+                <Controller
+                  name="is_home_visible"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Switch {...field} checked={field.value} />}
+                      label="홈 화면 노출"
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Controller
+                  name="is_featured"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Switch {...field} checked={field.value} />}
+                      label="추천 공고"
+                    />
+                  )}
+                />
+              </Grid>
+
+              {/* Detail Content Section */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
+                  상세 내용
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="상세 설명"
+                  value={detailText}
+                  onChange={(e) => setDetailText(e.target.value)}
+                  placeholder="공고의 상세 내용을 입력하세요"
+                />
+              </Grid>
+
+              {/* Image Upload Section */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
+                  이미지 업로드
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddImage}
+                  size="small"
+                  sx={{ mb: 2 }}
+                >
+                  이미지 추가
+                </Button>
+
+                {detailImages.map((image, index) => (
+                  <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="이미지 설명 (선택)"
+                          value={image.caption}
+                          onChange={(e) => {
+                            const updated = [...detailImages]
+                            updated[index].caption = e.target.value
+                            setDetailImages(updated)
+                          }}
+                          placeholder="예: 평면도, 조감도 등"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} sm={6}>
+                        {!image.url ? (
+                          <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<UploadIcon />}
+                            size="small"
+                            fullWidth
+                          >
+                            이미지 업로드
+                            <input
+                              type="file"
+                              hidden
+                              accept="image/*"
+                              onChange={(e) => handleImageSelect(e, index)}
+                            />
+                          </Button>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box
+                              component="img"
+                              src={image.url}
+                              sx={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 1 }}
+                            />
+                            <Typography variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {image.url.split('/').pop()}
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => {
+                                const updated = [...detailImages]
+                                updated[index].url = ''
+                                setDetailImages(updated)
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        )}
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleRemoveImage(index)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                          이미지 항목 삭제
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                ))}
+              </Grid>
+
+              {/* PDF Upload Section */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
+                  PDF 문서 업로드
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddPdf}
+                  size="small"
+                  sx={{ mb: 2 }}
+                >
+                  PDF 추가
+                </Button>
+
+                {detailPdfs.map((pdf, index) => (
+                  <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="문서 제목"
+                          value={pdf.title}
+                          onChange={(e) => {
+                            const updated = [...detailPdfs]
+                            updated[index].title = e.target.value
+                            setDetailPdfs(updated)
+                          }}
+                          placeholder="예: 신청 양식, 안내문 등"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} sm={6}>
+                        {!pdf.url ? (
+                          <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<UploadIcon />}
+                            size="small"
+                            fullWidth
+                          >
+                            PDF 업로드
+                            <input
+                              type="file"
+                              hidden
+                              accept="application/pdf"
+                              onChange={(e) => handlePdfSelect(e, index)}
+                            />
+                          </Button>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {pdf.url.split('/').pop()}
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => {
+                                const updated = [...detailPdfs]
+                                updated[index].url = ''
+                                setDetailPdfs(updated)
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        )}
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleRemovePdf(index)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                          PDF 항목 삭제
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                ))}
+              </Grid>
             </Grid>
           </DialogContent>
           <DialogActions>
@@ -636,6 +1103,14 @@ export default function AnnouncementManager({ categoryId, categoryTitle }: Annou
           </DialogActions>
         </form>
       </Dialog>
+
+      {/* Tab Editor Dialog */}
+      <AnnouncementTabEditor
+        open={tabEditorOpen}
+        onClose={handleCloseTabEditor}
+        announcementId={tabEditorAnnouncementId}
+        announcementTitle={tabEditorAnnouncementTitle}
+      />
     </Paper>
   )
 }

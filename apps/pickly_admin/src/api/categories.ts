@@ -1,10 +1,12 @@
 import { supabase } from '@/lib/supabase'
 import type { AgeCategory } from '@/types/database'
 
+// ✅ v9.15.0: Fetch benefit_categories (대분류) for announcement form
 export async function fetchCategories() {
   const { data, error } = await supabase
-    .from('age_categories')
-    .select('*')
+    .from('benefit_categories')
+    .select('id, title, slug, icon_url, sort_order')
+    .eq('is_active', true)
     .order('sort_order', { ascending: true })
 
   if (error) {
@@ -13,7 +15,25 @@ export async function fetchCategories() {
     }
     throw error
   }
-  return data as AgeCategory[]
+  return data
+}
+
+// ✅ v9.15.0: Fetch benefit_subcategories (하위분류) by category_id
+export async function fetchSubcategories(categoryId: string) {
+  const { data, error } = await supabase
+    .from('benefit_subcategories')
+    .select('id, name, slug, icon_url, sort_order')
+    .eq('category_id', categoryId)
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    if (error.message.includes('JWT') || error.message.includes('expired')) {
+      throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.')
+    }
+    throw error
+  }
+  return data
 }
 
 export async function fetchCategoryById(id: string) {
