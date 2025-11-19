@@ -1,0 +1,199 @@
+name: onboarding-003-age-category-parallel
+coordinator: pickly-mesh-coordinator
+parallel: true
+memory: true
+
+context:
+  feature_name: "003_age_category_selection"
+  design_tokens: "packages/design_system/design_tokens.json"
+  figma_url: "https://www.figma.com/design/xOpx8v3FiYmCxSLkj9sgcu/pickly"
+  mode: "update_or_create"  # 기존 파일 있으면 수정, 없으면 생성
+
+tasks:
+  # 0. 기존 파일 확인 및 분석
+  - agent: file-analyzer-agent
+    goal: |
+      1. 기존 온보딩 화면 파일 존재 여부 확인
+         - apps/pickly_mobile/lib/features/onboarding/screens/*.dart
+         - apps/pickly_mobile/lib/features/onboarding/widgets/*.dart
+      2. 기존 구현 패턴 분석
+      3. 수정이 필요한 파일 목록 작성
+      4. 신규 생성이 필요한 파일 목록 작성
+    outputs:
+      - ".claude/temp/existing_files_analysis.json"
+
+  # 1. OnboardingHeader 공통 컴포넌트 생성 (우선순위 높음)
+  - agent: component-builder-agent
+    goal: |
+      1. OnboardingHeader 위젯 생성 또는 업데이트
+         - 프로그레스 바 표시
+         - 뒤로가기 버튼 (첫 화면 제외 옵션)
+         - 현재 단계 / 전체 단계 표시
+      2. 001 화면에서는 showBackButton: false
+      3. 003 이후 화면에서는 showBackButton: true
+    dependencies:
+      - file-analyzer-agent
+    outputs:
+      - "apps/pickly_mobile/lib/features/onboarding/widgets/onboarding_header.dart"
+
+  # 2. 디자인 토큰 검증 및 생성
+  - agent: design-system-agent
+    goal: |
+      1. design_tokens.json 파일에서 실제 typography 확인
+      2. Figma 스펙과 일치하는지 검증
+      3. Flutter 테마 클래스 생성 또는 업데이트:
+         - pickly_typography.dart (titleLarge, bodyLarge, bodyMedium, bodySmall, buttonLarge)
+         - pickly_colors.dart (backgroundApp, textPrimary, textSecondary, etc)
+         - pickly_spacing.dart (간격 상수들)
+      4. 존재하지 않는 스타일은 절대 생성하지 말것
+      5. 기존 파일이 있다면 수정, 없다면 신규 생성
+    dependencies:
+      - file-analyzer-agent
+    outputs:
+      - "apps/pickly_mobile/lib/core/theme/pickly_typography.dart"
+      - "apps/pickly_mobile/lib/core/theme/pickly_colors.dart"
+      - "apps/pickly_mobile/lib/core/theme/pickly_spacing.dart"
+
+  # 3. 백엔드 스키마 생성
+  - agent: supabase-agent
+    goal: |
+      1. 기존 마이그레이션 파일 확인
+      2. age_categories 테이블 마이그레이션 파일 생성 또는 업데이트
+      3. user_profiles 테이블에 selected_categories 컬럼 추가 (없으면)
+      4. RLS 정책 설정 또는 업데이트
+      5. 초기 데이터 6개 시딩 (없으면 추가)
+    dependencies:
+      - file-analyzer-agent
+    outputs:
+      - "backend/supabase/migrations/[timestamp]_age_categories.sql"
+      - "backend/supabase/seed.sql"
+
+  # 4. 모델 및 리포지토리 생성
+  - agent: coder-agent
+    goal: |
+      1. 기존 AgeCategory 모델 확인, 있으면 업데이트, 없으면 생성
+      2. AgeCategoryRepository 생성 또는 업데이트 (Supabase 연동)
+      3. JSON 직렬화/역직렬화 구현
+    dependencies:
+      - design-system-agent
+      - supabase-agent
+      - file-analyzer-agent
+    outputs:
+      - "apps/pickly_mobile/lib/contexts/user/models/age_category.dart"
+      - "apps/pickly_mobile/lib/contexts/user/repositories/age_category_repository.dart"
+
+  # 5. Riverpod Provider 생성
+  - agent: state-management-agent
+    goal: |
+      1. 기존 Provider 파일 확인
+      2. AsyncNotifier for data fetching (생성 또는 업데이트)
+      3. StateNotifier for selection management (생성 또는 업데이트)
+      4. Computed providers (isButtonEnabled 등)
+      5. 로컬 저장소 연동 (SharedPreferences)
+      6. 뒤로가기 시 상태 복원 로직 추가
+    dependencies:
+      - coder-agent
+      - file-analyzer-agent
+    outputs:
+      - "apps/pickly_mobile/lib/features/onboarding/providers/age_category_provider.dart"
+      - "apps/pickly_mobile/lib/features/onboarding/providers/age_category_controller.dart"
+
+  # 6. UI 컴포넌트 생성
+  - agent: ui-coder-agent
+    goal: |
+      1. AgeSelectionCard 위젯 생성 또는 업데이트
+         - 디자인 토큰 사용 (PicklyTypography, PicklyColors)
+         - 선택 상태에 따른 스타일 변경
+         - ⚠️ 중요: 선택 시 위치 이동 방지
+           * Container 크기 고정
+           * border width 변경 시 padding 자동 조정
+           * 선택: border 2px + padding 15px
+           * 미선택: border 1px + padding 16px
+         - 체크 아이콘 표시
+      2. OnboardingBottomButton 위젯 생성 또는 업데이트
+         - 활성화/비활성화 상태
+         - 디자인 토큰 사용
+      3. 기존 위젯 파일이 있으면 수정, 없으면 생성
+    dependencies:
+      - design-system-agent
+      - state-management-agent
+      - component-builder-agent
+      - file-analyzer-agent
+    outputs:
+      - "apps/pickly_mobile/lib/features/onboarding/widgets/age_selection_card.dart"
+      - "apps/pickly_mobile/lib/features/onboarding/widgets/onboarding_bottom_button.dart"
+
+  # 7. 메인 화면 생성
+  - agent: screen-builder-agent
+    goal: |
+      1. 기존 age_category_screen.dart 확인
+      2. 있으면 업데이트, 없으면 생성
+      3. OnboardingHeader 추가 (showBackButton: true, currentStep: 2)
+      4. 레이아웃 구조 구현 (Figma 스펙 정확히 준수)
+      5. Riverpod Provider 연결
+      6. 로딩/에러 처리
+      7. 저장 및 다음 화면 이동 로직
+      8. 뒤로가기 처리 (WillPopScope)
+      9. 001 화면도 확인하여 헤더 제거 (showBackButton: false)
+    dependencies:
+      - ui-coder-agent
+      - state-management-agent
+      - component-builder-agent
+      - file-analyzer-agent
+    outputs:
+      - "apps/pickly_mobile/lib/features/onboarding/screens/age_category_screen.dart"
+      - "apps/pickly_mobile/lib/features/onboarding/screens/001_welcome_screen.dart"
+
+  # 8. 테스트 코드 생성
+  - agent: tdd-agent
+    goal: |
+      1. 기존 테스트 파일 확인
+      2. 단위 테스트 작성 또는 업데이트
+         - Provider 테스트
+         - Repository 테스트
+      3. 위젯 테스트 작성 또는 업데이트
+         - 화면 렌더링
+         - 카드 선택/해제
+         - 카드 선택 시 위치 이동 없음 확인 ⭐
+         - 버튼 활성화/비활성화
+         - 뒤로가기 동작
+         - 상태 복원
+      4. 통합 테스트
+    dependencies:
+      - screen-builder-agent
+      - file-analyzer-agent
+    outputs:
+      - "apps/pickly_mobile/test/features/onboarding/age_category_screen_test.dart"
+      - "apps/pickly_mobile/test/features/onboarding/providers/age_category_provider_test.dart"
+      - "apps/pickly_mobile/test/features/onboarding/widgets/age_selection_card_test.dart"
+
+  # 9. 문서 생성
+  - agent: documentation-agent
+    goal: |
+      1. 기존 문서 확인 및 업데이트
+      2. API 문서 작성 또는 업데이트
+      3. 컴포넌트 사용 가이드 작성 또는 업데이트
+      4. 상태 관리 플로우 다이어그램
+      5. 온보딩 플로우 다이어그램 (001 → 003 → 004)
+    dependencies:
+      - screen-builder-agent
+      - file-analyzer-agent
+    outputs:
+      - "docs/api/age-category-api.md"
+      - "docs/components/age-selection-card.md"
+      - "docs/components/onboarding-header.md"
+      - "docs/flows/onboarding-flow.md"
+
+validation:
+  - name: "파일 분석 완료"
+    command: "test -f .claude/temp/existing_files_analysis.json"
+  - name: "Flutter 분석 통과"
+    command: "cd apps/pickly_mobile && flutter analyze"
+  - name: "테스트 통과"
+    command: "cd apps/pickly_mobile && flutter test"
+  - name: "디자인 토큰 검증"
+    command: "grep -q 'titleLarge' apps/pickly_mobile/lib/core/theme/pickly_typography.dart"
+  - name: "헤더 컴포넌트 존재"
+    command: "test -f apps/pickly_mobile/lib/features/onboarding/widgets/onboarding_header.dart"
+  - name: "카드 위치 이동 방지 로직 확인"
+    command: "grep -q 'innerPadding' apps/pickly_mobile/lib/features/onboarding/widgets/age_selection_card.dart"

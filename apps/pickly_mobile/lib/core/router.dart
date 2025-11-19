@@ -164,11 +164,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ),
 
     // Benefits screen
+    // PRD v9.6.1 Phase 3: Lazy Builder for deferred initialization
+    // Prevents blocking during Region → Home navigation
     GoRoute(
       path: Routes.benefits,
       name: 'benefits',
-      pageBuilder: (context, state) => const NoTransitionPage(
-        child: BenefitsScreen(),
+      pageBuilder: (context, state) => NoTransitionPage(
+        child: Builder(
+          builder: (context) => const BenefitsScreen(),
+        ),
       ),
     ),
 

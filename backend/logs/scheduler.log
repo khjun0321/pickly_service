@@ -1,0 +1,10 @@
+[2025-11-02T09:08:49.580Z] ======= Scheduled Job Started (Dry Run: true) =======
+[2025-11-02T09:08:49.580Z] DRY RUN: Simulated execution only
+[2025-11-02T09:08:49.580Z] ======= Scheduled Job Completed (Dry Run) =======
+[2025-11-02T09:09:03.510Z] ======= Scheduled Job Started (Dry Run: false) =======
+[2025-11-02T09:09:04.254Z] ERROR: API Collection failed with exit code 1
+[2025-11-02T09:09:04.254Z] STDERR: 
+❌ Collection failed: HTTP 404: Not Found
+
+
+[2025-11-02T09:09:04.254Z] ======= Scheduled Job Failed =======

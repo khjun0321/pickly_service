@@ -179,8 +179,11 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
         final category = categories[index];
         final isSelected = _selectedCategoryId == category.id;
 
+        // PRD v9.10.1: Pass iconUrl for dynamic icon loading
+        // CategoryIcon prioritizes iconUrl (Supabase Storage) over hardcoded iconComponent mapping
         return SelectionListItem(
           iconUrl: category.iconUrl,
+          iconComponent: category.iconComponent,
           title: category.title,
           description: category.description,
           isSelected: isSelected,
@@ -189,6 +192,7 @@ class _AgeCategoryScreenState extends ConsumerState<AgeCategoryScreen> {
       },
     );
   }
+
 
   Widget _buildLoadingState() {
     return const Center(

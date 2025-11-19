@@ -1,0 +1,378 @@
+-- ============================================
+-- Migration: Admin Announcement Search Extension
+-- PRD v9.12.0 - Thumbnails, Featured Sections & Search (with Pipes)
+-- Purpose: Enable thumbnail uploads, home featured sections, and full-text search with category sync pipes
+-- Date: 2025-11-12
+-- ============================================
+
+-- ============================================
+-- 1️⃣ Extend announcements table: thumbnail, featured, tags, search
+-- ============================================
+
+-- Add new columns for thumbnail and featured display
+ALTER TABLE public.announcements
+  ADD COLUMN IF NOT EXISTS thumbnail_url TEXT,
+  ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS featured_section TEXT,
+  ADD COLUMN IF NOT EXISTS featured_order INT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}';
+
+-- Add generated TSVECTOR column for full-text search
+-- searchable_text combines title (weight A), organization (weight B), and tags (weight C)
+ALTER TABLE public.announcements
+  ADD COLUMN IF NOT EXISTS searchable_text TSVECTOR
+  GENERATED ALWAYS AS (
+    setweight(to_tsvector('simple', coalesce(title,'')), 'A') ||
+    setweight(to_tsvector('simple', coalesce(organization,'')), 'B') ||
+    setweight(to_tsvector('simple', array_to_string(tags, ' ')), 'C')
+  ) STORED;
+
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_announcements_is_featured
+ON public.announcements(is_featured)
+WHERE is_featured = true;
+
+CREATE INDEX IF NOT EXISTS idx_announcements_featured_section_order
+ON public.announcements(featured_section, featured_order)
+WHERE is_featured = true;
+
+CREATE INDEX IF NOT EXISTS idx_announcements_search_gin
+ON public.announcements USING GIN (searchable_text);
+
+CREATE INDEX IF NOT EXISTS idx_announcements_tags_gin
+ON public.announcements USING GIN (tags);
+
+-- Add comments for documentation
+COMMENT ON COLUMN public.announcements.thumbnail_url IS '리스트/홈 노출용 썸네일 이미지 URL (Supabase Storage)';
+COMMENT ON COLUMN public.announcements.is_featured IS '홈 화면 등 주요 섹션 노출 여부';
+COMMENT ON COLUMN public.announcements.featured_section IS '노출 섹션 구분 (예: home, home_hot, city_gyeonggi)';
+COMMENT ON COLUMN public.announcements.featured_order IS '노출 섹션 내 정렬 우선순위 (낮을수록 상위)';
+COMMENT ON COLUMN public.announcements.tags IS '검색 태그 문자열 배열 (예: [''행복주택'', ''청년'', ''하남''])';
+COMMENT ON COLUMN public.announcements.searchable_text IS '제목/기관/태그 기반 Full-Text Search TSVECTOR (자동 생성)';
+
+-- ============================================
+-- 2️⃣ Create search_index table (for cross-entity search expansion)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS public.search_index (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  target_type TEXT NOT NULL,           -- 'announcement', 'benefit_category', etc.
+  target_id UUID NOT NULL,
+  title TEXT,
+  description TEXT,
+  tags TEXT[] DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  vector TSVECTOR,
+  UNIQUE (target_type, target_id)
+);
+
+-- Create GIN index for full-text search on vector column
+CREATE INDEX IF NOT EXISTS idx_search_index_vector
+ON public.search_index USING GIN(vector);
+
+CREATE INDEX IF NOT EXISTS idx_search_index_target
+ON public.search_index(target_type, target_id);
+
+COMMENT ON TABLE public.search_index IS '통합 검색 인덱스 테이블 (공고, 카테고리 등 크로스 엔터티 검색)';
+COMMENT ON COLUMN public.search_index.target_type IS '검색 대상 타입 (announcement, benefit_category 등)';
+COMMENT ON COLUMN public.search_index.target_id IS '검색 대상 ID (announcements.id, benefit_categories.id 등)';
+COMMENT ON COLUMN public.search_index.vector IS 'Full-Text Search TSVECTOR (title + description + tags)';
+
+-- ============================================
+-- 3️⃣ Pipe Function: Sync search index for announcement
+-- ============================================
+
+CREATE OR REPLACE FUNCTION public.sync_search_index_for_announcement(aid UUID)
+RETURNS VOID AS $$
+DECLARE
+  v_title TEXT;
+  v_desc TEXT;
+  v_tags TEXT[];
+  v_org TEXT;
+BEGIN
+  -- Fetch announcement data
+  SELECT a.title, a.subtitle, a.tags, a.organization
+  INTO v_title, v_desc, v_tags, v_org
+  FROM public.announcements a
+  WHERE a.id = aid;
+
+  -- Skip if announcement not found
+  IF v_title IS NULL THEN
+    RETURN;
+  END IF;
+
+  -- Upsert into search_index
+  INSERT INTO public.search_index (
+    target_type,
+    target_id,
+    title,
+    description,
+    tags,
+    vector,
+    updated_at
+  )
+  VALUES (
+    'announcement',
+    aid,
+    v_title,
+    v_desc,
+    v_tags,
+    to_tsvector('simple',
+      coalesce(v_title,'') || ' ' ||
+      coalesce(v_desc,'') || ' ' ||
+      coalesce(v_org,'') || ' ' ||
+      array_to_string(v_tags,' ')
+    ),
+    now()
+  )
+  ON CONFLICT (target_type, target_id) DO UPDATE
+  SET
+    title = EXCLUDED.title,
+    description = EXCLUDED.description,
+    tags = EXCLUDED.tags,
+    vector = EXCLUDED.vector,
+    updated_at = now();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION public.sync_search_index_for_announcement(UUID) IS
+'공고 검색 인덱스 동기화 함수 (파이프): announcements 변경 시 search_index 자동 갱신';
+
+-- ============================================
+-- 4️⃣ Trigger: Auto-sync search index on announcement changes
+-- ============================================
+
+DROP TRIGGER IF EXISTS trg_announcements_search_sync ON public.announcements;
+
+CREATE TRIGGER trg_announcements_search_sync
+  AFTER INSERT OR UPDATE OF title, subtitle, tags, organization ON public.announcements
+  FOR EACH ROW
+  EXECUTE FUNCTION public.sync_search_index_for_announcement(NEW.id);
+
+COMMENT ON TRIGGER trg_announcements_search_sync ON public.announcements IS
+'공고 변경 시 검색 인덱스 자동 동기화 트리거 (파이프)';
+
+-- ============================================
+-- 5️⃣ Pipe Functions: Category changes bump related announcements
+-- ============================================
+
+-- Bump announcements when benefit_category changes (wall & pipe pattern)
+CREATE OR REPLACE FUNCTION public.bump_announcements_by_category(cat_id UUID)
+RETURNS INTEGER AS $$
+DECLARE
+  cnt INTEGER;
+BEGIN
+  -- Update announcements that reference this category
+  UPDATE public.announcements a
+  SET updated_at = now()
+  WHERE a.category_id = cat_id;
+
+  GET DIAGNOSTICS cnt = ROW_COUNT;
+
+  RAISE NOTICE '카테고리 변경으로 % 개 공고 updated_at 갱신됨', cnt;
+  RETURN cnt;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION public.bump_announcements_by_category(UUID) IS
+'카테고리 변경 시 관련 공고 updated_at 갱신 (벽 & 파이프 패턴)';
+
+-- Bump announcements when benefit_subcategory changes
+CREATE OR REPLACE FUNCTION public.bump_announcements_by_subcategory(sub_id UUID)
+RETURNS INTEGER AS $$
+DECLARE
+  cnt INTEGER;
+BEGIN
+  -- Update announcements that reference this subcategory
+  UPDATE public.announcements a
+  SET updated_at = now()
+  WHERE a.subcategory_id = sub_id;
+
+  GET DIAGNOSTICS cnt = ROW_COUNT;
+
+  RAISE NOTICE '하위카테고리 변경으로 % 개 공고 updated_at 갱신됨', cnt;
+  RETURN cnt;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION public.bump_announcements_by_subcategory(UUID) IS
+'하위카테고리 변경 시 관련 공고 updated_at 갱신 (벽 & 파이프 패턴)';
+
+-- ============================================
+-- 6️⃣ Triggers: Category/Subcategory changes trigger announcement bump
+-- ============================================
+
+-- Trigger on benefit_categories changes
+DROP TRIGGER IF EXISTS trg_benefit_categories_bump ON public.benefit_categories;
+
+CREATE TRIGGER trg_benefit_categories_bump
+  AFTER UPDATE OF name, slug, icon_url ON public.benefit_categories
+  FOR EACH ROW
+  EXECUTE FUNCTION public.bump_announcements_by_category(NEW.id);
+
+COMMENT ON TRIGGER trg_benefit_categories_bump ON public.benefit_categories IS
+'카테고리 변경 → 공고 갱신 → 검색 인덱스 자동 반영 (파이프 체인)';
+
+-- Trigger on benefit_subcategories changes
+DROP TRIGGER IF EXISTS trg_benefit_subcategories_bump ON public.benefit_subcategories;
+
+CREATE TRIGGER trg_benefit_subcategories_bump
+  AFTER UPDATE OF name, slug ON public.benefit_subcategories
+  FOR EACH ROW
+  EXECUTE FUNCTION public.bump_announcements_by_subcategory(NEW.id);
+
+COMMENT ON TRIGGER trg_benefit_subcategories_bump ON public.benefit_subcategories IS
+'하위카테고리 변경 → 공고 갱신 → 검색 인덱스 자동 반영 (파이프 체인)';
+
+-- ============================================
+-- 7️⃣ RPC Function: Manual reindex all announcements
+-- ============================================
+
+CREATE OR REPLACE FUNCTION public.reindex_announcements()
+RETURNS INTEGER AS $$
+DECLARE
+  r RECORD;
+  cnt INTEGER := 0;
+BEGIN
+  FOR r IN SELECT id FROM public.announcements LOOP
+    PERFORM public.sync_search_index_for_announcement(r.id);
+    cnt := cnt + 1;
+  END LOOP;
+
+  RAISE NOTICE '전체 공고 % 개 검색 인덱스 재생성 완료', cnt;
+  RETURN cnt;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION public.reindex_announcements() IS
+'전체 공고 검색 인덱스 수동 재생성 (Admin UI에서 호출)';
+
+-- ============================================
+-- 8️⃣ RLS Policies for search_index table
+-- ============================================
+
+ALTER TABLE public.search_index ENABLE ROW LEVEL SECURITY;
+
+-- Public read access (for search queries)
+DROP POLICY IF EXISTS "search_index_select_public" ON public.search_index;
+CREATE POLICY "search_index_select_public"
+  ON public.search_index
+  FOR SELECT
+  USING (true);
+
+-- Authenticated users can insert/update/delete (Admin only)
+DROP POLICY IF EXISTS "search_index_write_auth" ON public.search_index;
+CREATE POLICY "search_index_write_auth"
+  ON public.search_index
+  FOR ALL
+  TO authenticated
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
+
+-- ============================================
+-- 9️⃣ Helper Functions for Search Queries
+-- ============================================
+
+-- Search announcements by keyword (full-text search)
+CREATE OR REPLACE FUNCTION public.search_announcements(
+  search_query TEXT,
+  result_limit INT DEFAULT 50
+)
+RETURNS TABLE (
+  id UUID,
+  title TEXT,
+  organization TEXT,
+  tags TEXT[],
+  thumbnail_url TEXT,
+  is_featured BOOLEAN,
+  rank REAL
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    a.id,
+    a.title,
+    a.organization,
+    a.tags,
+    a.thumbnail_url,
+    a.is_featured,
+    ts_rank(a.searchable_text, plainto_tsquery('simple', search_query)) AS rank
+  FROM public.announcements a
+  WHERE a.searchable_text @@ plainto_tsquery('simple', search_query)
+  ORDER BY rank DESC, a.created_at DESC
+  LIMIT result_limit;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION public.search_announcements(TEXT, INT) IS
+'키워드 기반 공고 Full-Text 검색 (제목, 기관, 태그 통합)';
+
+-- Get featured announcements by section
+CREATE OR REPLACE FUNCTION public.get_featured_announcements(
+  section_filter TEXT DEFAULT NULL,
+  result_limit INT DEFAULT 20
+)
+RETURNS TABLE (
+  id UUID,
+  title TEXT,
+  organization TEXT,
+  thumbnail_url TEXT,
+  featured_section TEXT,
+  featured_order INT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    a.id,
+    a.title,
+    a.organization,
+    a.thumbnail_url,
+    a.featured_section,
+    a.featured_order
+  FROM public.announcements a
+  WHERE a.is_featured = true
+    AND (section_filter IS NULL OR a.featured_section = section_filter)
+  ORDER BY a.featured_order ASC, a.created_at DESC
+  LIMIT result_limit;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION public.get_featured_announcements(TEXT, INT) IS
+'홈 노출 공고 조회 (섹션별 필터링 및 정렬)';
+
+-- ============================================
+-- ✅ Migration Complete
+-- ============================================
+
+DO $$
+BEGIN
+  RAISE NOTICE '==============================================';
+  RAISE NOTICE '✅ PRD v9.12.0 Migration Complete';
+  RAISE NOTICE '==============================================';
+  RAISE NOTICE '📊 Added Columns:';
+  RAISE NOTICE '   - announcements: thumbnail_url, is_featured, featured_section, featured_order, tags, searchable_text';
+  RAISE NOTICE '📋 Created Tables:';
+  RAISE NOTICE '   - search_index (통합 검색 인덱스)';
+  RAISE NOTICE '🔍 Created Indexes:';
+  RAISE NOTICE '   - 4 GIN indexes for full-text search';
+  RAISE NOTICE '🔄 Created Functions:';
+  RAISE NOTICE '   - sync_search_index_for_announcement()';
+  RAISE NOTICE '   - bump_announcements_by_category()';
+  RAISE NOTICE '   - bump_announcements_by_subcategory()';
+  RAISE NOTICE '   - reindex_announcements()';
+  RAISE NOTICE '   - search_announcements()';
+  RAISE NOTICE '   - get_featured_announcements()';
+  RAISE NOTICE '🔗 Created Triggers:';
+  RAISE NOTICE '   - trg_announcements_search_sync';
+  RAISE NOTICE '   - trg_benefit_categories_bump';
+  RAISE NOTICE '   - trg_benefit_subcategories_bump';
+  RAISE NOTICE '🔒 RLS Policies:';
+  RAISE NOTICE '   - search_index: public read, authenticated write';
+  RAISE NOTICE '==============================================';
+  RAISE NOTICE '📝 Next Steps:';
+  RAISE NOTICE '   1. Create announcement-thumbnails Storage bucket';
+  RAISE NOTICE '   2. Implement Admin UI components';
+  RAISE NOTICE '   3. Run reindex_announcements() to populate search_index';
+  RAISE NOTICE '==============================================';
+END $$;

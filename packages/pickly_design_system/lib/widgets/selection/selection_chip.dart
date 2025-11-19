@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pickly_design_system/pickly_design_system.dart';
 
 /// Size variants for SelectionChip
 enum ChipSize {
@@ -47,6 +48,12 @@ class SelectionChip extends StatelessWidget {
   /// Chip size variant (affects font size and line height)
   final ChipSize size;
 
+  /// Optional icon URL (network or asset)
+  final String? iconUrl;
+
+  /// Icon component key for CategoryIcon fallback
+  final String? iconComponent;
+
   const SelectionChip({
     super.key,
     required this.label,
@@ -54,6 +61,8 @@ class SelectionChip extends StatelessWidget {
     this.onTap,
     this.width,
     this.size = ChipSize.large,
+    this.iconUrl,
+    this.iconComponent,
   });
 
   @override
@@ -84,6 +93,17 @@ class SelectionChip extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Optional icon
+            if (iconUrl != null || iconComponent != null) ...[
+              CategoryIcon(
+                iconUrl: iconUrl,
+                iconComponent: iconComponent ?? 'category',
+                size: 20, // Chip icon size: 20x20
+                color: null,
+              ),
+              const SizedBox(width: 8),
+            ],
+
             // Label text
             Flexible(
               child: Text(

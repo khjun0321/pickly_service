@@ -11,7 +11,8 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    port: 5190,
+    strictPort: false, // Allow fallback to next available port
     open: true,
   },
 })

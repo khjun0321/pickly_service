@@ -36,7 +36,7 @@ import {
   deleteBanner,
   toggleBannerStatus,
   type BenefitBanner,
-  type BenefitBannerInsert,
+  // type BenefitBannerInsert, // ❌ REMOVED: Unused import
 } from '@/api/banners'
 import { supabase } from '@/lib/supabase'
 import type { BenefitCategory } from '@/types/database'
@@ -142,7 +142,7 @@ export default function BenefitBannerManager({ category }: BenefitBannerManagerP
       subtitle: banner.subtitle || '',
       image_url: banner.image_url,
       link_url: banner.link_url || '',
-      background_color: banner.background_color || '#E3F2FD',
+      background_color: '#E3F2FD', // ❌ REMOVED: banner.background_color (field doesn't exist in DB)
     })
     setDialogOpen(true)
   }
@@ -214,7 +214,7 @@ export default function BenefitBannerManager({ category }: BenefitBannerManagerP
           subtitle: formData.subtitle || null,
           image_url: formData.image_url,
           link_url: formData.link_url || null,
-          background_color: formData.background_color || null,
+          // background_color: formData.background_color || null, // ❌ REMOVED: Not in DB schema
         },
       })
     } else {
@@ -225,7 +225,7 @@ export default function BenefitBannerManager({ category }: BenefitBannerManagerP
         subtitle: formData.subtitle || null,
         image_url: formData.image_url,
         link_url: formData.link_url || null,
-        background_color: formData.background_color || null,
+        // background_color: formData.background_color || null, // ❌ REMOVED: Not in DB schema
         display_order: nextDisplayOrder,
         is_active: true,
       })
@@ -271,7 +271,7 @@ export default function BenefitBannerManager({ category }: BenefitBannerManagerP
                   height="160"
                   image={banner.image_url}
                   alt={banner.title}
-                  sx={{ objectFit: 'cover', backgroundColor: banner.background_color || '#f0f0f0' }}
+                  sx={{ objectFit: 'cover', backgroundColor: '#f0f0f0' }} // ❌ REMOVED: banner.background_color (not in DB)
                 />
                 <CardContent sx={{ pb: 1 }}>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>

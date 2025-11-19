@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:pickly_mobile/core/router.dart';
+import 'package:pickly_mobile/core/utils/media_resolver.dart';
 import 'package:pickly_mobile/features/onboarding/providers/onboarding_storage_provider.dart';
 import 'package:pickly_mobile/features/onboarding/providers/region_provider.dart';
 import 'package:pickly_mobile/features/onboarding/providers/age_category_provider.dart';
@@ -12,8 +12,10 @@ import 'package:pickly_mobile/features/benefits/widgets/housing_category_content
 import 'package:pickly_mobile/features/benefits/widgets/education_category_content.dart';
 import 'package:pickly_mobile/features/benefits/widgets/support_category_content.dart';
 import 'package:pickly_mobile/features/benefits/widgets/transportation_category_content.dart';
+import 'package:pickly_mobile/features/benefits/widgets/filter_bottom_sheet.dart';
 import 'package:pickly_mobile/features/benefits/providers/category_banner_provider.dart';
 import 'package:pickly_mobile/features/benefits/providers/category_id_provider.dart';
+import 'package:pickly_mobile/features/benefits/providers/benefit_category_provider.dart';
 
 /// Benefits screen (혜택 화면)
 ///
@@ -58,97 +60,32 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     });
   }
 
-  /// Get category index from category ID
-  int? _getCategoryIndexFromId(String categoryId) {
-    switch (categoryId) {
-      case 'popular': return 0;
-      case 'housing': return 1;
-      case 'education': return 2;
-      case 'health': return 3;
-      case 'transportation': return 4;
-      case 'welfare': return 5;
-      case 'employment': return 6;
-      case 'support': return 7;
-      case 'culture': return 8;
-      default: return null;
-    }
-  }
-
-  /// Get icon path for a selected program type
-  String _getIconForProgramType(String programTypeName) {
-    final programTypes = _programTypesByCategory[_selectedCategoryIndex] ?? [];
-
-    for (final type in programTypes) {
-      if (type['title'] == programTypeName) {
-        return type['icon'] ?? 'assets/icons/all.svg';
+  /// Get category index from category slug (now uses dynamic data from stream)
+  int? _getCategoryIndexFromId(String categorySlug) {
+    final categories = ref.read(categoriesStreamListProvider);
+    for (int i = 0; i < categories.length; i++) {
+      if (categories[i].slug == categorySlug) {
+        return i;
       }
     }
-
-    return 'assets/icons/all.svg'; // fallback
+    return null;
   }
 
-  // 탭별 공고 타입 목록
-  final Map<int, List<Map<String, String>>> _programTypesByCategory = {
-    0: [], // 인기: 공고 선택 없음 (전체만)
-    1: [ // 주거
-      {'icon': 'assets/icons/happy_apt.svg', 'title': '행복주택'},
-      {'icon': 'assets/icons/apt.svg', 'title': '국민임대주택'},
-      {'icon': 'assets/icons/home2.svg', 'title': '영구임대주택'},
-      {'icon': 'assets/icons/building.svg', 'title': '공공임대주택'},
-      {'icon': 'assets/icons/buy.svg', 'title': '매입임대주택'},
-      {'icon': 'assets/icons/ring.svg', 'title': '신혼희망타운'},
-    ],
-    2: [ // 교육
-      {'icon': 'assets/icons/school.svg', 'title': '학자금 지원'},
-      {'icon': 'assets/icons/book.svg', 'title': '교육비 지원'},
-    ],
-    3: [ // 건강
-      {'icon': 'assets/icons/health.svg', 'title': '건강 지원'},
-    ],
-    4: [ // 교통
-      {'icon': 'assets/icons/bus.svg', 'title': '교통비 지원'},
-    ],
-    5: [ // 복지
-      {'icon': 'assets/icons/happy_apt.svg', 'title': '복지 혜택'},
-    ],
-    6: [ // 취업
-      {'icon': 'assets/icons/dollar.svg', 'title': '취업 지원'},
-    ],
-    7: [ // 지원
-      {'icon': 'assets/icons/dollar.svg', 'title': '면접비'},
-      {'icon': 'assets/icons/buy.svg', 'title': '창업지원금'},
-    ],
-    8: [ // 문화
-      {'icon': 'assets/icons/speaker.svg', 'title': '문화 지원'},
-    ],
-  };
+  /// PRD v9.10.0: Removed _getIconForProgramType() - icons now loaded from database via FilterBottomSheet
 
-  final List<Map<String, String>> _categories = [
-    {'label': '인기', 'icon': 'assets/icons/fire.svg'},
-    {'label': '주거', 'icon': 'assets/icons/home.svg'},
-    {'label': '교육', 'icon': 'assets/icons/book.svg'},
-    {'label': '건강', 'icon': 'assets/icons/health.svg'},
-    {'label': '교통', 'icon': 'assets/icons/bus.svg'},
-    {'label': '복지', 'icon': 'assets/icons/heart.svg'},
-    {'label': '취업', 'icon': 'assets/icons/shirts.svg'},
-    {'label': '지원', 'icon': 'assets/icons/dollar.svg'},
-    {'label': '문화', 'icon': 'assets/icons/speaker.svg'},
-  ];
+  // PRD v9.10.0: Removed hardcoded _programTypesByCategory map
+  // Subcategory filters now loaded dynamically from database via FilterBottomSheet
 
-  /// Get category ID by index for banner provider
-  String _getCategoryId(int index) {
-    switch (index) {
-      case 0: return 'popular';
-      case 1: return 'housing';
-      case 2: return 'education';
-      case 3: return 'health';
-      case 4: return 'transportation';
-      case 5: return 'welfare';
-      case 6: return 'employment';
-      case 7: return 'support';
-      case 8: return 'culture';
-      default: return 'popular';
+  // NOTE: Categories are now loaded dynamically from database via benefitCategoriesStreamProvider
+  // This enables realtime updates when Admin modifies categories (PRD v9.6.1 Phase 3)
+
+  /// Get category slug by index (now uses dynamic data from stream)
+  String? _getCategorySlug(int index) {
+    final categories = ref.read(categoriesStreamListProvider);
+    if (index >= 0 && index < categories.length) {
+      return categories[index].slug;
     }
+    return null;
   }
 
   /// Build banner image widget (supports both network and asset images)
@@ -239,30 +176,94 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
             // Spacing from top: SafeArea(~44) + Header(60) + SizedBox(12) = 116px
             const SizedBox(height: 12),
 
-            // Category tabs (horizontal scroll)
+            // Category tabs (horizontal scroll) - Realtime stream from database
             SizedBox(
               height: 72,
-              child: ListView.separated(
-                padding: const EdgeInsets.only(left: Spacing.lg),
-                scrollDirection: Axis.horizontal,
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: _categories.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final category = _categories[index];
-                  final isActive = _selectedCategoryIndex == index;
+              child: Consumer(
+                builder: (context, ref, child) {
+                  // Watch categories from realtime stream (PRD v9.6.1 Phase 3)
+                  final categoriesAsync = ref.watch(benefitCategoriesStreamProvider);
 
-                  return TabCircleWithLabel(
-                    iconPath: category['icon']!,
-                    label: category['label']!,
-                    state: isActive
-                        ? TabCircleWithLabelState.active
-                        : TabCircleWithLabelState.default_,
-                    onTap: () {
-                      setState(() {
-                        _selectedCategoryIndex = index;
-                      });
+                  return categoriesAsync.when(
+                    data: (categories) {
+                      if (categories.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            '카테고리를 불러오는 중...',
+                            style: TextStyle(
+                              color: Color(0xFF828282),
+                              fontSize: 14,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.only(left: Spacing.lg),
+                        scrollDirection: Axis.horizontal,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: categories.length,
+                        separatorBuilder: (context, index) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final category = categories[index];
+                          final isActive = _selectedCategoryIndex == index;
+
+                          // PRD v9.9.4: Flexible icon loading - handles filename/URL/asset
+                          return FutureBuilder<String?>(
+                            future: resolveSvgUrlOrAssetFlexible(
+                              category.iconUrl,
+                              bucket: 'benefit-icons',
+                              folder: 'icons',
+                            ),
+                            builder: (context, snapshot) {
+                              // Determine the resolved path
+                              String resolvedIconPath;
+
+                              if (snapshot.hasData && snapshot.data != null) {
+                                final resolvedUrl = snapshot.data!;
+
+                                // If it's a network URL, use it directly
+                                if (resolvedUrl.startsWith('http://') ||
+                                    resolvedUrl.startsWith('https://')) {
+                                  resolvedIconPath = resolvedUrl;
+                                } else {
+                                  // Local asset path - add asset:// prefix for TabCircleWithLabel
+                                  resolvedIconPath = 'asset://$resolvedUrl';
+                                }
+                              } else {
+                                // Fallback to placeholder while loading or on error
+                                resolvedIconPath = 'asset://packages/pickly_design_system/assets/icons/placeholder.svg';
+                              }
+
+                              return TabCircleWithLabel(
+                                iconPath: resolvedIconPath,
+                                label: category.title,
+                                state: isActive
+                                    ? TabCircleWithLabelState.active
+                                    : TabCircleWithLabelState.default_,
+                                onTap: () {
+                                  setState(() {
+                                    _selectedCategoryIndex = index;
+                                  });
+                                },
+                              );
+                            },
+                          );
+                        },
+                      );
                     },
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    error: (error, stack) => Center(
+                      child: Text(
+                        '카테고리를 불러올 수 없습니다',
+                        style: TextStyle(
+                          color: TextColors.secondary,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
                   );
                 },
               ),
@@ -278,9 +279,12 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                     // Image banner (swipeable in fixed container, category-specific)
                     Consumer(
                       builder: (context, ref, child) {
-                        // Get banners for the currently selected category
-                        final categoryId = _getCategoryId(_selectedCategoryIndex);
-                        final banners = ref.watch(bannersByCategoryProvider(categoryId));
+                        // Get banners for the currently selected category (using slug from realtime stream)
+                        final categorySlug = _getCategorySlug(_selectedCategoryIndex);
+                        if (categorySlug == null) {
+                          return const SizedBox.shrink();
+                        }
+                        final banners = ref.watch(bannersByCategoryProvider(categorySlug));
 
                         if (banners.isEmpty) {
                           return const SizedBox.shrink();
@@ -296,7 +300,7 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: PageView.builder(
-                              key: ValueKey(categoryId), // Reset PageView when category changes
+                              key: ValueKey(categorySlug), // Reset PageView when category changes
                               itemCount: banners.length,
                               padEnds: false, // Don't add padding at the ends
                               clipBehavior: Clip.hardEdge, // Ensure proper clipping
@@ -305,7 +309,7 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
                                 final banner = banners[index];
                                 return GestureDetector(
                                   onTap: () {
-                                    debugPrint('Banner tapped: ${banner.actionUrl}');
+                                    debugPrint('Banner tapped: ${banner.linkTarget}');
                                   },
                                   child: Stack(
                                     fit: StackFit.expand,
@@ -350,77 +354,195 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Filter pills (horizontal scrollable)
-                    SizedBox(
-                      height: 40,
-                      child: ListView(
-                        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          // Region filter (location)
-                          if (selectedRegion != null) ...[
-                            TabPill.default_(
-                              iconPath: 'assets/icons/location.svg',
-                              text: selectedRegion.name,
-                              onTap: () {
-                                _showRegionSelector(context);
+                    // PRD v9.10.2: Filter pills with divider - Figma spec layout
+                    // Layout: (region)(age) | (subcategory chips with horizontal scroll)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+                      child: SizedBox(
+                        height: 40,
+                        child: Row(
+                          children: [
+                            // Region filter chip
+                            if (selectedRegion != null) ...[
+                              TabPill.default_(
+                                iconPath: 'assets/icons/location.svg',
+                                text: selectedRegion.name,
+                                onTap: () {
+                                  _showRegionSelector(context);
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+
+                            // Age category filter chip
+                            if (selectedAgeCategory != null) ...[
+                              TabPill.default_(
+                                iconPath: 'assets/icons/condition.svg',
+                                text: selectedAgeCategory.title,
+                                onTap: () {
+                                  _showAgeCategorySelector(context);
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+
+                            // Vertical divider (if region or age selected AND subcategories exist)
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final categories = ref.watch(categoriesStreamListProvider);
+
+                                if (_selectedCategoryIndex >= 0 && _selectedCategoryIndex < categories.length) {
+                                  final currentCategory = categories[_selectedCategoryIndex];
+                                  final subcategoriesAsync = ref.watch(subcategoriesStreamProvider(currentCategory.id));
+
+                                  return subcategoriesAsync.when(
+                                    data: (subcategories) {
+                                      // Show divider if region/age selected AND subcategories exist
+                                      if ((selectedRegion != null || selectedAgeCategory != null) && subcategories.isNotEmpty) {
+                                        return Row(
+                                          children: [
+                                            // Divider: 1px width, 24px height, #EBEBEB
+                                            Container(
+                                              width: 1,
+                                              height: 24,
+                                              decoration: const BoxDecoration(
+                                                color: Color(0xFFEBEBEB),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                          ],
+                                        );
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
+                                    loading: () => const SizedBox.shrink(),
+                                    error: (_, __) => const SizedBox.shrink(),
+                                  );
+                                }
+                                return const SizedBox.shrink();
                               },
                             ),
-                            const SizedBox(width: 8),
-                          ],
 
-                          // Age category filter (condition)
-                          if (selectedAgeCategory != null) ...[
-                            TabPill.default_(
-                              iconPath: 'assets/icons/condition.svg',
-                              text: selectedAgeCategory.title,
-                              onTap: () {
-                                _showAgeCategorySelector(context);
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                          ],
+                            // Subcategory chips (horizontal scrollable)
+                            Expanded(
+                              child: Consumer(
+                                builder: (context, ref, child) {
+                                  final categories = ref.watch(categoriesStreamListProvider);
 
-                          // Vertical divider if there are program type selections
-                          if ((_programTypesByCategory[_selectedCategoryIndex]?.isNotEmpty ?? false) &&
-                              (selectedRegion != null || selectedAgeCategory != null)) ...[
-                            Center(
-                              child: Container(
-                                height: 20,
-                                width: 1,
-                                margin: const EdgeInsets.symmetric(horizontal: 4),
-                                color: const Color(0xFFEBEBEB),
+                                  if (_selectedCategoryIndex >= 0 && _selectedCategoryIndex < categories.length) {
+                                    final currentCategory = categories[_selectedCategoryIndex];
+                                    // Use selectedSubcategoriesForCategoryProvider to get full objects with iconUrl
+                                    final selectedSubcategories = ref.watch(selectedSubcategoriesForCategoryProvider(currentCategory.id));
+                                    final subcategoriesAsync = ref.watch(subcategoriesStreamProvider(currentCategory.id));
+
+                                    return subcategoriesAsync.when(
+                                      data: (subcategories) {
+                                        if (subcategories.isEmpty) {
+                                          return const SizedBox.shrink();
+                                        }
+
+                                        // Build subcategory chip widgets
+                                        final chipWidgets = <Widget>[];
+
+                                        if (selectedSubcategories.isNotEmpty) {
+                                          // Show each selected subcategory as a chip with its iconUrl preserved
+                                          for (final subcategory in selectedSubcategories) {
+                                            debugPrint('🎨 [BenefitScreen] Rendering chip for: ${subcategory.name}');
+                                            debugPrint('   iconUrl: ${subcategory.iconUrl}');
+                                            chipWidgets.add(
+                                              FutureBuilder<String?>(
+                                                future: resolveSvgUrlOrAssetFlexible(
+                                                  subcategory.iconUrl,
+                                                  bucket: 'benefit-icons',
+                                                  folder: 'icons',
+                                                ),
+                                                builder: (context, snapshot) {
+                                                  // Determine the resolved path
+                                                  String resolvedIconPath;
+
+                                                  debugPrint('🔍 [Icon Resolve] ${subcategory.name}: hasData=${snapshot.hasData}, data=${snapshot.data}');
+
+                                                  if (snapshot.hasData && snapshot.data != null) {
+                                                    final resolvedUrl = snapshot.data!;
+
+                                                    // Handle different URL formats
+                                                    if (resolvedUrl.startsWith('http://') ||
+                                                        resolvedUrl.startsWith('https://')) {
+                                                      // Network SVG → use directly
+                                                      resolvedIconPath = resolvedUrl;
+                                                      debugPrint('   ✅ Using network URL: $resolvedIconPath');
+                                                    } else if (resolvedUrl.startsWith('asset://')) {
+                                                      // Local asset with asset:// prefix (already formatted)
+                                                      resolvedIconPath = resolvedUrl;
+                                                      debugPrint('   ✅ Using local asset (prefixed): $resolvedIconPath');
+                                                    } else {
+                                                      // Local asset path - add asset:// prefix for TabPill
+                                                      resolvedIconPath = 'asset://$resolvedUrl';
+                                                      debugPrint('   ✅ Adding asset prefix: $resolvedIconPath');
+                                                    }
+                                                  } else {
+                                                    // Fallback to all.svg while loading or on error
+                                                    resolvedIconPath = 'asset://packages/pickly_design_system/assets/icons/all.svg';
+                                                    debugPrint('   ⚠️ Fallback to all.svg (error: ${snapshot.error})');
+                                                  }
+
+                                                  debugPrint('   🎯 Final iconPath: $resolvedIconPath');
+
+                                                  return TabPill.default_(
+                                                    iconPath: resolvedIconPath,
+                                                    text: subcategory.name,
+                                                    onTap: () async {
+                                                      await showModalBottomSheet(
+                                                        context: context,
+                                                        isScrollControlled: true,
+                                                        backgroundColor: Colors.transparent,
+                                                        builder: (context) => FilterBottomSheet(category: currentCategory),
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                            chipWidgets.add(const SizedBox(width: 8));
+                                          }
+                                        } else {
+                                          // Show "전체" chip when no subcategories selected
+                                          chipWidgets.add(
+                                            TabPill.default_(
+                                              iconPath: 'assets/icons/all.svg',
+                                              text: '전체',
+                                              onTap: () async {
+                                                await showModalBottomSheet(
+                                                  context: context,
+                                                  isScrollControlled: true,
+                                                  backgroundColor: Colors.transparent,
+                                                  builder: (context) => FilterBottomSheet(category: currentCategory),
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        }
+
+                                        // Horizontal scrollable list of chips
+                                        return SizedBox(
+                                          height: 36,
+                                          child: ListView(
+                                            scrollDirection: Axis.horizontal,
+                                            children: chipWidgets,
+                                          ),
+                                        );
+                                      },
+                                      loading: () => const SizedBox.shrink(),
+                                      error: (_, __) => const SizedBox.shrink(),
+                                    );
+                                  }
+
+                                  return const SizedBox.shrink();
+                                },
                               ),
                             ),
-                            const SizedBox(width: 8),
                           ],
-
-                          // Program type filters (multiple selections possible)
-                          if (_programTypesByCategory[_selectedCategoryIndex]?.isNotEmpty ?? false)
-                            ...(_selectedProgramTypes[_selectedCategoryIndex] ?? []).map((type) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: TabPill.default_(
-                                  iconPath: _getIconForProgramType(type),
-                                  text: type,
-                                  onTap: () {
-                                    _showProgramTypeSelector(context);
-                                  },
-                                ),
-                              );
-                            }),
-
-                          // Show "전체" if no program types selected but category has program types
-                          if ((_programTypesByCategory[_selectedCategoryIndex]?.isNotEmpty ?? false) &&
-                              (_selectedProgramTypes[_selectedCategoryIndex]?.isEmpty ?? true))
-                            TabPill.default_(
-                              iconPath: 'assets/icons/all.svg',
-                              text: '전체',
-                              onTap: () {
-                                _showProgramTypeSelector(context);
-                              },
-                            ),
-                        ],
+                        ),
                       ),
                     ),
 
@@ -537,163 +659,7 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     );
   }
 
-  /// Show program type selector bottom sheet (category-specific, multiple selection)
-  void _showProgramTypeSelector(BuildContext context) {
-    final programTypes = _programTypesByCategory[_selectedCategoryIndex] ?? [];
-
-    if (programTypes.isEmpty) return;
-
-    // 현재 선택된 항목들을 임시 상태로 복사
-    final currentSelections = List<String>.from(_selectedProgramTypes[_selectedCategoryIndex] ?? []);
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (bottomSheetContext) {
-        return StatefulBuilder(
-          builder: (stateContext, setBottomSheetState) {
-            // 전체 선택 여부
-            final isAllSelected = currentSelections.isEmpty;
-
-            return SafeArea(
-              child: Container(
-                height: 600,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(Spacing.lg, Spacing.lg, Spacing.lg, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '주거 공고 선택',
-                          style: PicklyTypography.titleMedium.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: TextColors.primary,
-                          ),
-                        ),
-                        const SizedBox(height: Spacing.sm),
-                        Text(
-                          '해당 공고문을 안내해드립니다.',
-                          style: PicklyTypography.bodyMedium.copyWith(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: TextColors.secondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Scrollable program type list (expanded to fill available space)
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                      child: Column(
-                        children: [
-                          // "전체 선택" option
-                          _buildProgramTypeItem(
-                            icon: 'assets/icons/all.svg',
-                            title: '전체 선택',
-                            subtitle: '모든 주거 공고',
-                            isSelected: isAllSelected,
-                            onTap: () {
-                              setBottomSheetState(() {
-                                currentSelections.clear(); // 전체 선택 = 빈 리스트
-                              });
-                            },
-                          ),
-                          const SizedBox(height: Spacing.md),
-
-                          // Individual program types
-                          ...programTypes.map((type) {
-                            final isSelected = currentSelections.contains(type['title']);
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: Spacing.md),
-                              child: _buildProgramTypeItem(
-                                icon: type['icon']!,
-                                title: type['title']!,
-                                subtitle: 'LH 행복주택',
-                                isSelected: isSelected,
-                                onTap: () {
-                                  setBottomSheetState(() {
-                                    if (isSelected) {
-                                      // 선택 해제
-                                      currentSelections.remove(type['title']);
-                                    } else {
-                                      // 선택 (전체 선택 상태가 아니라면)
-                                      currentSelections.add(type['title']!);
-                                    }
-                                  });
-                                },
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Save button (Figma: height 48px) - Matching onboarding layout
-                  Padding(
-                    padding: const EdgeInsets.all(Spacing.lg),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final storage = ref.read(onboardingStorageServiceProvider);
-                          final categoryId = _getCategoryId(_selectedCategoryIndex);
-
-                          // Update main state
-                          setState(() {
-                            _selectedProgramTypes[_selectedCategoryIndex] = currentSelections;
-                          });
-
-                          // Save to storage
-                          await storage.setSelectedProgramTypes(categoryId, currentSelections);
-
-                          if (mounted) {
-                            Navigator.pop(bottomSheetContext);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: BrandColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 80),
-                        ),
-                        child: Text(
-                          '저장',
-                          style: PicklyTypography.bodyLarge.copyWith(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            );
-          },
-        );
-      },
-    );
-  }
+  /// PRD v9.10.0: Removed _showProgramTypeSelector() - replaced by FilterBottomSheet
 
   /// Show region selector bottom sheet
   void _showRegionSelector(BuildContext context) {
@@ -963,86 +929,5 @@ class _BenefitsScreenState extends ConsumerState<BenefitsScreen> {
     );
   }
 
-  /// Build program type selection item
-  Widget _buildProgramTypeItem({
-    required String icon,
-    required String title,
-    required String subtitle,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(
-            color: isSelected ? BrandColors.primary : const Color(0xFFEBEBEB),
-            width: 1,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            // Icon
-            SvgPicture.asset(
-              icon,
-              width: 32,
-              height: 32,
-              package: 'pickly_design_system',
-            ),
-            const SizedBox(width: 12),
-            // Title and subtitle
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Color(0xFF3E3E3E),
-                      fontSize: 14,
-                      fontFamily: 'Pretendard',
-                      fontWeight: FontWeight.w700,
-                      height: 1.43,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: Color(0xFF828282),
-                      fontSize: 12,
-                      fontFamily: 'Pretendard',
-                      fontWeight: FontWeight.w600,
-                      height: 1.50,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Checkbox
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: isSelected ? BrandColors.primary : const Color(0xFFDDDDDD),
-                shape: BoxShape.circle,
-              ),
-              child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 16,
-                    )
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  /// PRD v9.10.0: Removed _buildProgramTypeItem() - UI now in FilterBottomSheet widget
 }

@@ -1,0 +1,319 @@
+-- ================================================================
+-- Migration: 20251106000001_fix_rls_admin_role_guard_prd_v9_6_2
+-- Description: Complete RLS Policy Overhaul with Role-Based Access Control
+-- PRD: v9.6.2 — Admin Role-Based RLS & Storage Policy
+-- Date: 2025-11-06
+-- ================================================================
+
+-- Purpose:
+-- 1. Replace ALL existing RLS policies with role-based policies
+-- 2. Use auth.jwt() ->> 'user_role' = 'admin' for admin access
+-- 3. Ensure service_role bypasses RLS (no explicit policies needed)
+-- 4. Allow public/anon access to active data only
+
+-- ================================================================
+-- Step 1: Drop ALL Existing RLS Policies
+-- ================================================================
+
+-- benefit_categories
+DROP POLICY IF EXISTS "Public can view active benefit_categories" ON public.benefit_categories;
+DROP POLICY IF EXISTS "Public read access" ON public.benefit_categories;
+DROP POLICY IF EXISTS "Authenticated users can view all benefit_categories" ON public.benefit_categories;
+DROP POLICY IF EXISTS "Admin can insert benefit_categories" ON public.benefit_categories;
+DROP POLICY IF EXISTS "Admin can update benefit_categories" ON public.benefit_categories;
+DROP POLICY IF EXISTS "Admin can delete benefit_categories" ON public.benefit_categories;
+DROP POLICY IF EXISTS "admin_full_access" ON public.benefit_categories;
+
+-- benefit_subcategories
+DROP POLICY IF EXISTS "Public read access" ON public.benefit_subcategories;
+DROP POLICY IF EXISTS "Authenticated users can view all benefit_subcategories" ON public.benefit_subcategories;
+DROP POLICY IF EXISTS "Admin can insert benefit_subcategories" ON public.benefit_subcategories;
+DROP POLICY IF EXISTS "Admin can update benefit_subcategories" ON public.benefit_subcategories;
+DROP POLICY IF EXISTS "Admin can delete benefit_subcategories" ON public.benefit_subcategories;
+
+-- age_categories
+DROP POLICY IF EXISTS "Anyone views active categories" ON public.age_categories;
+DROP POLICY IF EXISTS "Admins manage categories" ON public.age_categories;
+DROP POLICY IF EXISTS "Authenticated users can view all age_categories" ON public.age_categories;
+
+-- announcements
+DROP POLICY IF EXISTS "Public read access" ON public.announcements;
+DROP POLICY IF EXISTS "Authenticated users can insert announcements" ON public.announcements;
+DROP POLICY IF EXISTS "Authenticated users can update announcements" ON public.announcements;
+DROP POLICY IF EXISTS "Authenticated users can delete announcements" ON public.announcements;
+
+RAISE NOTICE '✅ Step 1: All existing RLS policies dropped';
+
+-- ================================================================
+-- Step 2: Create New Role-Based RLS Policies
+-- ================================================================
+
+-- ================================================================
+-- 2.1 — benefit_categories
+-- ================================================================
+
+-- Admin SELECT (all rows including inactive)
+CREATE POLICY "admin_select_benefit_categories"
+ON public.benefit_categories
+FOR SELECT
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin INSERT
+CREATE POLICY "admin_insert_benefit_categories"
+ON public.benefit_categories
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin UPDATE
+CREATE POLICY "admin_update_benefit_categories"
+ON public.benefit_categories
+FOR UPDATE
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin')
+WITH CHECK (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin DELETE
+CREATE POLICY "admin_delete_benefit_categories"
+ON public.benefit_categories
+FOR DELETE
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Public SELECT (active rows only)
+CREATE POLICY "public_select_active_benefit_categories"
+ON public.benefit_categories
+FOR SELECT
+TO anon, authenticated
+USING (is_active = true);
+
+RAISE NOTICE '✅ Step 2.1: benefit_categories RLS policies created';
+
+-- ================================================================
+-- 2.2 — benefit_subcategories
+-- ================================================================
+
+-- Admin SELECT
+CREATE POLICY "admin_select_benefit_subcategories"
+ON public.benefit_subcategories
+FOR SELECT
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin INSERT
+CREATE POLICY "admin_insert_benefit_subcategories"
+ON public.benefit_subcategories
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin UPDATE
+CREATE POLICY "admin_update_benefit_subcategories"
+ON public.benefit_subcategories
+FOR UPDATE
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin')
+WITH CHECK (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin DELETE
+CREATE POLICY "admin_delete_benefit_subcategories"
+ON public.benefit_subcategories
+FOR DELETE
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Public SELECT (active rows only)
+CREATE POLICY "public_select_active_benefit_subcategories"
+ON public.benefit_subcategories
+FOR SELECT
+TO anon, authenticated
+USING (is_active = true);
+
+RAISE NOTICE '✅ Step 2.2: benefit_subcategories RLS policies created';
+
+-- ================================================================
+-- 2.3 — age_categories
+-- ================================================================
+
+-- Admin SELECT
+CREATE POLICY "admin_select_age_categories"
+ON public.age_categories
+FOR SELECT
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin INSERT
+CREATE POLICY "admin_insert_age_categories"
+ON public.age_categories
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin UPDATE
+CREATE POLICY "admin_update_age_categories"
+ON public.age_categories
+FOR UPDATE
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin')
+WITH CHECK (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin DELETE
+CREATE POLICY "admin_delete_age_categories"
+ON public.age_categories
+FOR DELETE
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Public SELECT (active rows only)
+CREATE POLICY "public_select_active_age_categories"
+ON public.age_categories
+FOR SELECT
+TO anon, authenticated
+USING (is_active = true);
+
+RAISE NOTICE '✅ Step 2.3: age_categories RLS policies created';
+
+-- ================================================================
+-- 2.4 — announcements
+-- ================================================================
+
+-- Admin SELECT
+CREATE POLICY "admin_select_announcements"
+ON public.announcements
+FOR SELECT
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin INSERT
+CREATE POLICY "admin_insert_announcements"
+ON public.announcements
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin UPDATE
+CREATE POLICY "admin_update_announcements"
+ON public.announcements
+FOR UPDATE
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin')
+WITH CHECK (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Admin DELETE
+CREATE POLICY "admin_delete_announcements"
+ON public.announcements
+FOR DELETE
+TO authenticated
+USING (auth.jwt() ->> 'user_role' = 'admin');
+
+-- Public SELECT (active/recruiting announcements only)
+CREATE POLICY "public_select_active_announcements"
+ON public.announcements
+FOR SELECT
+TO anon, authenticated
+USING (status = 'recruiting');
+
+RAISE NOTICE '✅ Step 2.4: announcements RLS policies created';
+
+-- ================================================================
+-- Step 3: Verification
+-- ================================================================
+
+DO $$
+DECLARE
+  benefit_categories_count INTEGER;
+  benefit_subcategories_count INTEGER;
+  age_categories_count INTEGER;
+  announcements_count INTEGER;
+BEGIN
+  -- Count policies per table
+  SELECT COUNT(*) INTO benefit_categories_count
+  FROM pg_policies
+  WHERE tablename = 'benefit_categories';
+
+  SELECT COUNT(*) INTO benefit_subcategories_count
+  FROM pg_policies
+  WHERE tablename = 'benefit_subcategories';
+
+  SELECT COUNT(*) INTO age_categories_count
+  FROM pg_policies
+  WHERE tablename = 'age_categories';
+
+  SELECT COUNT(*) INTO announcements_count
+  FROM pg_policies
+  WHERE tablename = 'announcements';
+
+  -- Report results
+  RAISE NOTICE '📊 RLS Policy Count:';
+  RAISE NOTICE '  benefit_categories: %', benefit_categories_count;
+  RAISE NOTICE '  benefit_subcategories: %', benefit_subcategories_count;
+  RAISE NOTICE '  age_categories: %', age_categories_count;
+  RAISE NOTICE '  announcements: %', announcements_count;
+
+  -- Validate
+  IF benefit_categories_count != 5 THEN
+    RAISE WARNING '⚠️ benefit_categories should have exactly 5 policies (has %)', benefit_categories_count;
+  END IF;
+
+  IF benefit_subcategories_count != 5 THEN
+    RAISE WARNING '⚠️ benefit_subcategories should have exactly 5 policies (has %)', benefit_subcategories_count;
+  END IF;
+
+  IF age_categories_count != 5 THEN
+    RAISE WARNING '⚠️ age_categories should have exactly 5 policies (has %)', age_categories_count;
+  END IF;
+
+  IF announcements_count != 5 THEN
+    RAISE WARNING '⚠️ announcements should have exactly 5 policies (has %)', announcements_count;
+  END IF;
+
+  RAISE NOTICE '✅ All RLS policies created successfully';
+END $$;
+
+-- ================================================================
+-- Step 4: Add Comments
+-- ================================================================
+
+COMMENT ON TABLE benefit_categories IS 'PRD v9.6.2 - Role-based RLS policies with admin user_role check';
+COMMENT ON TABLE benefit_subcategories IS 'PRD v9.6.2 - Role-based RLS policies with admin user_role check';
+COMMENT ON TABLE age_categories IS 'PRD v9.6.2 - Role-based RLS policies with admin user_role check';
+COMMENT ON TABLE announcements IS 'PRD v9.6.2 - Role-based RLS policies with admin user_role check';
+
+-- ================================================================
+-- Expected Final State
+-- ================================================================
+/*
+Each table should have EXACTLY 5 RLS policies:
+1. admin_select_<table> (SELECT, authenticated, USING user_role='admin')
+2. admin_insert_<table> (INSERT, authenticated, WITH CHECK user_role='admin')
+3. admin_update_<table> (UPDATE, authenticated, USING+WITH CHECK user_role='admin')
+4. admin_delete_<table> (DELETE, authenticated, USING user_role='admin')
+5. public_select_active_<table> (SELECT, anon/authenticated, USING is_active=true)
+
+service_role bypasses RLS automatically (no policies needed)
+*/
+
+-- ================================================================
+-- Test Queries (Run after migration)
+-- ================================================================
+/*
+-- Verify admin policies exist
+SELECT tablename, policyname, cmd, roles
+FROM pg_policies
+WHERE tablename IN ('benefit_categories', 'benefit_subcategories', 'age_categories', 'announcements')
+ORDER BY tablename, cmd;
+
+-- Check for admin role check in policies
+SELECT tablename, policyname, qual, with_check
+FROM pg_policies
+WHERE tablename = 'benefit_categories'
+AND policyname LIKE 'admin_%';
+
+-- Count policies per table
+SELECT tablename, COUNT(*) as policy_count
+FROM pg_policies
+WHERE tablename IN ('benefit_categories', 'benefit_subcategories', 'age_categories', 'announcements')
+GROUP BY tablename
+ORDER BY tablename;
+*/

@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Supabase Security - Environment Variables
+.env
+.env.local
+.env.production
+.env.production.local
+.env.development.local
+.env.*.backup
+*.env.backup
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

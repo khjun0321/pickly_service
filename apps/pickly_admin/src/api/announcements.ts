@@ -126,7 +126,6 @@ export async function createAnnouncement(announcement: AnnouncementInsert) {
 
   const { data, error } = await supabase
     .from('announcements')
-    // @ts-expect-error - Supabase type inference issue
     .insert(announcement)
     .select()
     .single()
@@ -154,7 +153,6 @@ export async function updateAnnouncement(id: string, announcement: AnnouncementU
 
   const { data, error } = await supabase
     .from('announcements')
-    // @ts-expect-error - Supabase type inference issue
     .update(announcement)
     .eq('id', id)
     .select()
@@ -231,7 +229,7 @@ export async function fetchAnnouncementsByCategory(categoryId: string) {
 export async function incrementAnnouncementViewCount(id: string) {
   console.log('👁️ Incrementing view count for announcement:', id)
 
-  const { error } = await supabase.rpc('increment_announcement_view_count', {
+  const { error } = await (supabase.rpc as any)('increment_announcement_view_count', {
     announcement_id: id
   })
 

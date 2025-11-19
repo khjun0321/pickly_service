@@ -1,0 +1,240 @@
+-- ================================================================
+-- Migration: 20251106000002_fix_storage_bucket_policies_prd_v9_6_2
+-- Description: Fix Storage Bucket Policies for Admin File Upload
+-- PRD: v9.6.2 — Storage Upload Security
+-- Date: 2025-11-06
+-- ================================================================
+
+-- Purpose:
+-- 1. Create storage buckets if they don't exist
+-- 2. Replace all storage.objects policies with role-based policies
+-- 3. Allow admin uploads using user_role='admin' check
+-- 4. Allow public read access for Flutter app
+
+-- ================================================================
+-- Step 1: Create Storage Buckets (if not exists)
+-- ================================================================
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('benefit-icons', 'benefit-icons', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('home-banners', 'home-banners', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+RAISE NOTICE '✅ Step 1: Storage buckets created/updated';
+
+-- ================================================================
+-- Step 2: Drop ALL Existing Storage Policies
+-- ================================================================
+
+DROP POLICY IF EXISTS "admin_upload_benefit_icons" ON storage.objects;
+DROP POLICY IF EXISTS "admin_update_benefit_icons" ON storage.objects;
+DROP POLICY IF EXISTS "admin_delete_benefit_icons" ON storage.objects;
+DROP POLICY IF EXISTS "public_view_benefit_icons" ON storage.objects;
+
+DROP POLICY IF EXISTS "admin_upload_home_banners" ON storage.objects;
+DROP POLICY IF EXISTS "admin_update_home_banners" ON storage.objects;
+DROP POLICY IF EXISTS "admin_delete_home_banners" ON storage.objects;
+DROP POLICY IF EXISTS "public_view_home_banners" ON storage.objects;
+
+DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON storage.objects;
+DROP POLICY IF EXISTS "Enable update for users based on user_id" ON storage.objects;
+DROP POLICY IF EXISTS "Enable delete for users based on user_id" ON storage.objects;
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+
+RAISE NOTICE '✅ Step 2: All existing storage policies dropped';
+
+-- ================================================================
+-- Step 3: Create New Role-Based Storage Policies
+-- ================================================================
+
+-- ================================================================
+-- 3.1 — benefit-icons bucket policies
+-- ================================================================
+
+-- Admin can upload files
+CREATE POLICY "admin_upload_benefit_icons"
+ON storage.objects
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'benefit-icons' AND
+  auth.jwt() ->> 'user_role' = 'admin'
+);
+
+-- Admin can update existing files
+CREATE POLICY "admin_update_benefit_icons"
+ON storage.objects
+FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'benefit-icons' AND
+  auth.jwt() ->> 'user_role' = 'admin'
+)
+WITH CHECK (
+  bucket_id = 'benefit-icons' AND
+  auth.jwt() ->> 'user_role' = 'admin'
+);
+
+-- Admin can delete files
+CREATE POLICY "admin_delete_benefit_icons"
+ON storage.objects
+FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'benefit-icons' AND
+  auth.jwt() ->> 'user_role' = 'admin'
+);
+
+-- Public can view all files (for Flutter app)
+CREATE POLICY "public_view_benefit_icons"
+ON storage.objects
+FOR SELECT
+USING (bucket_id = 'benefit-icons');
+
+RAISE NOTICE '✅ Step 3.1: benefit-icons storage policies created';
+
+-- ================================================================
+-- 3.2 — home-banners bucket policies
+-- ================================================================
+
+-- Admin can upload files
+CREATE POLICY "admin_upload_home_banners"
+ON storage.objects
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'home-banners' AND
+  auth.jwt() ->> 'user_role' = 'admin'
+);
+
+-- Admin can update existing files
+CREATE POLICY "admin_update_home_banners"
+ON storage.objects
+FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'home-banners' AND
+  auth.jwt() ->> 'user_role' = 'admin'
+)
+WITH CHECK (
+  bucket_id = 'home-banners' AND
+  auth.jwt() ->> 'user_role' = 'admin'
+);
+
+-- Admin can delete files
+CREATE POLICY "admin_delete_home_banners"
+ON storage.objects
+FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'home-banners' AND
+  auth.jwt() ->> 'user_role' = 'admin'
+);
+
+-- Public can view all files
+CREATE POLICY "public_view_home_banners"
+ON storage.objects
+FOR SELECT
+USING (bucket_id = 'home-banners');
+
+RAISE NOTICE '✅ Step 3.2: home-banners storage policies created';
+
+-- ================================================================
+-- Step 4: Verification
+-- ================================================================
+
+DO $$
+DECLARE
+  bucket_count INTEGER;
+  policy_count INTEGER;
+  benefit_icons_policies INTEGER;
+  home_banners_policies INTEGER;
+BEGIN
+  -- Check buckets exist
+  SELECT COUNT(*) INTO bucket_count
+  FROM storage.buckets
+  WHERE id IN ('benefit-icons', 'home-banners');
+
+  -- Count total storage policies
+  SELECT COUNT(*) INTO policy_count
+  FROM pg_policies
+  WHERE schemaname = 'storage' AND tablename = 'objects';
+
+  -- Count policies per bucket
+  SELECT COUNT(*) INTO benefit_icons_policies
+  FROM pg_policies
+  WHERE schemaname = 'storage'
+  AND tablename = 'objects'
+  AND policyname LIKE '%benefit_icons%';
+
+  SELECT COUNT(*) INTO home_banners_policies
+  FROM pg_policies
+  WHERE schemaname = 'storage'
+  AND tablename = 'objects'
+  AND policyname LIKE '%home_banners%';
+
+  -- Report results
+  RAISE NOTICE '📊 Storage Configuration:';
+  RAISE NOTICE '  Buckets created: %', bucket_count;
+  RAISE NOTICE '  Total storage.objects policies: %', policy_count;
+  RAISE NOTICE '  benefit-icons policies: %', benefit_icons_policies;
+  RAISE NOTICE '  home-banners policies: %', home_banners_policies;
+
+  -- Validate
+  IF bucket_count != 2 THEN
+    RAISE WARNING '⚠️ Expected 2 buckets, found %', bucket_count;
+  END IF;
+
+  IF benefit_icons_policies != 4 THEN
+    RAISE WARNING '⚠️ benefit-icons should have 4 policies (has %)', benefit_icons_policies;
+  END IF;
+
+  IF home_banners_policies != 4 THEN
+    RAISE WARNING '⚠️ home-banners should have 4 policies (has %)', home_banners_policies;
+  END IF;
+
+  RAISE NOTICE '✅ All storage policies created successfully';
+END $$;
+
+-- ================================================================
+-- Expected Final State
+-- ================================================================
+/*
+Buckets:
+1. benefit-icons (public = true)
+2. home-banners (public = true)
+
+Each bucket should have 4 storage.objects policies:
+1. admin_upload_<bucket> (INSERT, authenticated, user_role='admin')
+2. admin_update_<bucket> (UPDATE, authenticated, user_role='admin')
+3. admin_delete_<bucket> (DELETE, authenticated, user_role='admin')
+4. public_view_<bucket> (SELECT, all users)
+
+Total: 8 storage.objects policies
+*/
+
+-- ================================================================
+-- Test Queries (Run after migration)
+-- ================================================================
+/*
+-- Check buckets exist and are public
+SELECT id, name, public
+FROM storage.buckets
+WHERE id IN ('benefit-icons', 'home-banners');
+
+-- Check all storage policies
+SELECT policyname, cmd, definition
+FROM pg_policies
+WHERE schemaname = 'storage' AND tablename = 'objects'
+ORDER BY policyname;
+
+-- Verify admin upload policies
+SELECT policyname, with_check
+FROM pg_policies
+WHERE schemaname = 'storage'
+AND tablename = 'objects'
+AND cmd = 'INSERT';
+*/

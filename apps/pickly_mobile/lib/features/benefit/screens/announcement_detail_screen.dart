@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pickly_mobile/core/router.dart';
-import '../widgets/income_section_widget.dart';
+import '../providers/announcement_provider.dart';
+import '../../../contexts/benefit/models/announcement_tab.dart';
+import '../../../contexts/benefit/models/announcement_section.dart';
 
 /// 공고 상세 화면
 /// SafeArea + Column 레이아웃 구조로 온보딩 화면과 동일한 스타일 적용
 /// 소득 기준 섹션은 IncomeSectionWidget을 사용하여 특별한 UI로 표시
-class AnnouncementDetailScreen extends StatefulWidget {
+/// TabBar를 통한 평형별/연령별 정보 표시
+class AnnouncementDetailScreen extends ConsumerStatefulWidget {
   final String announcementId;
 
   const AnnouncementDetailScreen({
@@ -18,12 +22,13 @@ class AnnouncementDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<AnnouncementDetailScreen> createState() =>
+  ConsumerState<AnnouncementDetailScreen> createState() =>
       _AnnouncementDetailScreenState();
 }
 
-class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
+class _AnnouncementDetailScreenState extends ConsumerState<AnnouncementDetailScreen> {
   bool isBookmarked = false;
+  int selectedTabIndex = 0;
 
   void _onShare() {
     // TODO: 공유 기능 구현
@@ -40,155 +45,178 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Fetch announcement data
+    final announcementAsync = ref.watch(announcementDetailProvider(widget.announcementId));
+    final tabsAsync = ref.watch(announcementTabsProvider(widget.announcementId));
+    final sectionsAsync = ref.watch(announcementSectionsProvider(widget.announcementId));
+
     return Scaffold(
       backgroundColor: BackgroundColors.app, // #F4F4F4
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header - Portal type with bookmark and share
-            AppHeader.portal(
-              title: '하남미사 C3BL 행복주택',
-              onBack: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go(Routes.benefits);
-                }
-              },
-              onBookmark: _onBookmark,
-              onShare: _onShare,
-              isBookmarked: isBookmarked,
-            ),
-
-            // Scrollable content
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: Spacing.xl),
-                    // 마감 알림 배너
-                    const _DeadlineBanner(
-                      daysLeft: 3,
-                      status: '모집중',
-                    ),
-                    const SizedBox(height: Spacing.lg),
-                    // 기본 정보 섹션
-                    _SectionCard(
-                      title: '기본 정보',
-                      children: const [
-                        _InfoItem(
-                          icon: '🏠',
-                          label: '공급 기관',
-                          value: 'LH 행복 주택',
-                        ),
-                        _InfoItem(
-                          icon: '',
-                          label: '카테고리',
-                          value: '행복주택',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: Spacing.md),
-                    // 일정 섹션
-                    _SectionCard(
-                      title: '일정',
-                      children: const [
-                        _InfoItem(
-                          icon: '📅',
-                          label: '접수 기간',
-                          value: '2025.09.30(월) - 2025.11.30(화)',
-                        ),
-                        _InfoItem(
-                          icon: '',
-                          label: '서류 대상자 발표 일정',
-                          value: '2025.12.25',
-                        ),
-                        _InfoItem(
-                          icon: '',
-                          label: '당첨자 발표일',
-                          value: '2025.02.04',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: Spacing.md),
-                    // 신청 자격 섹션
-                    _SectionCard(
-                      title: '신청 자격',
-                      children: const [
-                        _InfoItem(
-                          icon: '👤',
-                          label: '조건',
-                          value: '만 19세 - 39세\n'
-                              '경기도 6개월 이상 거주\n'
-                              '월 소득 300만원 이하\n'
-                              '무주택 세대주\n'
-                              '대학생 / 사회초년생',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: Spacing.md),
-                    // 소득 기준 섹션 (특별 UI)
-                    IncomeSectionWidget(
-                      description: '전년도 도시근로자 가구당 월평균 소득 기준',
-                      fields: const [
-                        IncomeField(
-                          label: '가구 소득',
-                          value: '전년도 도시근로자 월평균 소득 100% 이하',
-                          detail: '1인 가구: 4,445,807원',
-                        ),
-                        IncomeField(
-                          label: '본인 소득',
-                          value: '전년도 도시근로자 월평균 소득 70% 이하',
-                          detail: '1인 가구: 3,112,065원',
-                        ),
-                        IncomeField(
-                          label: '자산',
-                          value: '총자산 2억 8,800만원 이하',
-                          detail: '부동산, 금융자산 등 합산',
-                        ),
-                        IncomeField(
-                          label: '자동차',
-                          value: '자동차 가액 3,683만원 이하',
-                          detail: '차량 1대 기준',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: Spacing.md),
-                    // 단지 정보 섹션
-                    const _ComplexInfoCard(),
-                    const SizedBox(height: Spacing.md),
-                    // 평형 정보 (탭)
-                    const _UnitTypesSection(),
-                    const SizedBox(height: Spacing.xl),
-                  ],
-                ),
-              ),
-            ),
-
-            // Bottom button - matches onboarding style
-            Padding(
-              padding: const EdgeInsets.all(Spacing.lg),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: PicklyButton.primary(
-                  onPressed: () async {
-                    const url = 'https://www.lh.or.kr';
-                    final uri = Uri.parse(url);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(
-                        uri,
-                        mode: LaunchMode.externalApplication,
-                      );
+        child: announcementAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Text('Error: $error'),
+          ),
+          data: (announcement) {
+            return Column(
+              children: [
+                // Header - Portal type with bookmark and share
+                AppHeader.portal(
+                  title: announcement.title,
+                  onBack: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go(Routes.benefits);
                     }
                   },
-                  text: '공고문 보러가기',
+                  onBookmark: _onBookmark,
+                  onShare: _onShare,
+                  isBookmarked: isBookmarked,
                 ),
-              ),
-            ),
-          ],
+
+                // Scrollable content
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: Spacing.xl),
+                        // 마감 알림 배너
+                        _DeadlineBanner(
+                          daysLeft: 3,
+                          status: announcement.statusDisplay,
+                        ),
+                        const SizedBox(height: Spacing.lg),
+
+                        // Dynamic sections
+                        sectionsAsync.when(
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (error, stack) => const SizedBox.shrink(),
+                          data: (sections) {
+                            return Column(
+                              children: sections.map((section) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: Spacing.md),
+                                  child: _buildSectionFromData(section),
+                                );
+                              }).toList(),
+                            );
+                          },
+                        ),
+
+                        // TabBar for unit types (평형별 정보)
+                        tabsAsync.when(
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (error, stack) => const SizedBox.shrink(),
+                          data: (tabs) {
+                            if (tabs.isEmpty) return const SizedBox.shrink();
+
+                            return Column(
+                              children: [
+                                const SizedBox(height: Spacing.md),
+                                _UnitTypeTabBar(
+                                  tabs: tabs,
+                                  selectedIndex: selectedTabIndex,
+                                  onTabSelected: (index) {
+                                    setState(() {
+                                      selectedTabIndex = index;
+                                    });
+                                  },
+                                ),
+                                const SizedBox(height: Spacing.md),
+                                _UnitTypeContent(tab: tabs[selectedTabIndex]),
+                              ],
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: Spacing.xl),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Bottom button - matches onboarding style
+                Padding(
+                  padding: const EdgeInsets.all(Spacing.lg),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: PicklyButton.primary(
+                      onPressed: () async {
+                        final url = announcement.externalUrl ?? 'https://www.lh.or.kr';
+                        final uri = Uri.parse(url);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
+                      text: '공고문 보러가기',
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
+    );
+  }
+
+  Widget _buildSectionFromData(AnnouncementSection section) {
+    // Parse content based on section type
+    final content = section.content;
+    final children = <Widget>[];
+
+    // Handle different content structures
+    if (content['items'] is List) {
+      for (final item in content['items']) {
+        if (item is Map) {
+          children.add(_InfoItem(
+            icon: item['icon']?.toString() ?? '',
+            label: item['label']?.toString() ?? '',
+            value: item['value']?.toString() ?? '',
+          ));
+        }
+      }
+    } else if (content['text'] != null) {
+      children.add(_InfoItem(
+        icon: '',
+        label: '',
+        value: content['text'].toString(),
+      ));
+    } else {
+      // Fallback: render key-value pairs
+      content.forEach((key, value) {
+        if (key != 'images' && key != 'pdfs') {
+          children.add(_InfoItem(
+            icon: '',
+            label: key,
+            value: value.toString(),
+          ));
+        }
+      });
+    }
+
+    // Add images if present
+    if (section.imageUrls.isNotEmpty) {
+      children.add(
+        _ImagesRow(imageUrls: section.imageUrls),
+      );
+    }
+
+    return _SectionCard(
+      title: section.title ?? section.sectionTypeDisplay,
+      children: children.isNotEmpty ? children : [
+        const _InfoItem(
+          icon: '',
+          label: '',
+          value: '내용이 없습니다.',
+        ),
+      ],
     );
   }
 }
@@ -359,57 +387,48 @@ class _InfoItem extends StatelessWidget {
   }
 }
 
-/// 단지 정보 카드
-class _ComplexInfoCard extends StatelessWidget {
-  const _ComplexInfoCard();
+/// Images row widget for sections
+class _ImagesRow extends StatelessWidget {
+  final List<String> imageUrls;
+
+  const _ImagesRow({required this.imageUrls});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-      padding: const EdgeInsets.all(Spacing.lg),
-      decoration: BoxDecoration(
-        color: SurfaceColors.base,
-        border: Border.all(
-          color: BorderColors.subtle,
-          width: 1,
+    return Padding(
+      padding: const EdgeInsets.only(top: Spacing.lg),
+      child: SizedBox(
+        height: 120,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: imageUrls.length,
+          separatorBuilder: (context, index) => const SizedBox(width: Spacing.md),
+          itemBuilder: (context, index) {
+            return ClipRRect(
+              borderRadius: PicklyBorderRadius.radiusMd,
+              child: Image.network(
+                imageUrls[index],
+                width: 120,
+                height: 120,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: BackgroundColors.muted,
+                      borderRadius: PicklyBorderRadius.radiusMd,
+                    ),
+                    child: const Icon(
+                      Icons.broken_image_outlined,
+                      color: TextColors.tertiary,
+                    ),
+                  );
+                },
+              ),
+            );
+          },
         ),
-        borderRadius: PicklyBorderRadius.radiusXl,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '단지 정보',
-            style: PicklyTypography.titleSmall.copyWith(
-              color: TextColors.primary,
-            ),
-          ),
-          const SizedBox(height: Spacing.lg),
-          // 단지 이미지
-          Center(
-            child: Container(
-              width: 142,
-              height: 142,
-              decoration: BoxDecoration(
-                color: BackgroundColors.muted,
-                borderRadius: PicklyBorderRadius.radiusMd,
-              ),
-              child: const Icon(
-                Icons.apartment,
-                size: 64,
-                color: TextColors.tertiary,
-              ),
-            ),
-          ),
-          const SizedBox(height: Spacing.xl),
-          // 정보 항목들
-          const _DetailRow(label: '단지명', value: '하남미사 C3BL 행복주택'),
-          const _DetailRow(label: '공사', value: '경기도 하남시 미사강변한강로 290-3 (망월동)'),
-          const _DetailRow(label: '건설호수', value: '4개동 1,492호'),
-          const _DetailRow(label: '최초입주', value: '2028.09.XX'),
-          const _DetailRow(label: '모집 구분', value: '예비입주자 모집'),
-        ],
       ),
     );
   }
@@ -452,22 +471,72 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-/// 평형 타입 섹션
-class _UnitTypesSection extends StatefulWidget {
-  const _UnitTypesSection();
+/// TabBar for unit types
+class _UnitTypeTabBar extends StatelessWidget {
+  final List<AnnouncementTab> tabs;
+  final int selectedIndex;
+  final Function(int) onTabSelected;
+
+  const _UnitTypeTabBar({
+    required this.tabs,
+    required this.selectedIndex,
+    required this.onTabSelected,
+  });
 
   @override
-  State<_UnitTypesSection> createState() => _UnitTypesSectionState();
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: List.generate(tabs.length, (index) {
+            final tab = tabs[index];
+            final isSelected = index == selectedIndex;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                right: index < tabs.length - 1 ? Spacing.md : 0,
+              ),
+              child: GestureDetector(
+                onTap: () => onTabSelected(index),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: Spacing.lg,
+                    vertical: Spacing.md,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF2E2E2E) : SurfaceColors.base,
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFF2E2E2E) : BorderColors.subtle,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Text(
+                    tab.tabName,
+                    style: PicklyTypography.bodyMedium.copyWith(
+                      color: isSelected ? TextColors.inverse : TextColors.primary,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
 }
 
-class _UnitTypesSectionState extends State<_UnitTypesSection> {
-  int selectedIndex = 0;
-  final List<String> unitTypes = [
-    '청년 16A',
-    '청년 26C',
-    '청년 32C',
-    '신혼 부부 36A',
-  ];
+/// Content for selected unit type tab
+class _UnitTypeContent extends StatelessWidget {
+  final AnnouncementTab tab;
+
+  const _UnitTypeContent({
+    required this.tab,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -485,77 +554,79 @@ class _UnitTypesSectionState extends State<_UnitTypesSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Unit type title
           Text(
-            '16㎡ (약 5평)',
+            tab.unitType ?? tab.tabName,
             style: PicklyTypography.titleSmall.copyWith(
               color: TextColors.primary,
             ),
           ),
           const SizedBox(height: Spacing.lg),
-          // 평형 도면 (2개)
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 148,
-                  decoration: BoxDecoration(
-                    color: SurfaceColors.base,
-                    border: Border.all(color: BorderColors.subtle),
-                    borderRadius: PicklyBorderRadius.radiusMd,
-                  ),
-                  child: const Icon(
-                    Icons.image_outlined,
-                    size: 48,
-                    color: TextColors.tertiary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: Spacing.md),
-              Expanded(
-                child: Container(
-                  height: 148,
-                  decoration: BoxDecoration(
-                    color: SurfaceColors.base,
-                    border: Border.all(color: BorderColors.subtle),
-                    borderRadius: PicklyBorderRadius.radiusMd,
-                  ),
-                  child: const Icon(
-                    Icons.image_outlined,
-                    size: 48,
-                    color: TextColors.tertiary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: Spacing.xl),
-          // 공급 호수
-          const _DetailRow(label: '공급 호수', value: '200호'),
-          // 임대 조건
-          const _DetailRow(
-            label: '임대 조건',
-            value: '대학생: 보증금 3,284만원 / 월세 13.8만원\n'
-                '청년 (소득有): 보증금 3,477만원 / 월세 14.6만원',
-          ),
-          // 지도
-          Container(
-            height: 253,
-            decoration: BoxDecoration(
-              color: BackgroundColors.muted,
-              border: Border.all(color: BorderColors.subtle),
+
+          // Floor plan image
+          if (tab.floorPlanImageUrl != null) ...[
+            ClipRRect(
               borderRadius: PicklyBorderRadius.radiusMd,
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.map_outlined,
-                size: 64,
-                color: TextColors.tertiary,
+              child: Image.network(
+                tab.floorPlanImageUrl!,
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: BackgroundColors.muted,
+                      borderRadius: PicklyBorderRadius.radiusMd,
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.image_outlined,
+                        size: 48,
+                        color: TextColors.tertiary,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-          ),
-          const SizedBox(height: Spacing.lg),
-          // 위치
-          const _DetailRow(label: '위치', value: '경기도 하남시 미사강변한강로 290-3 (망월동)'),
+            const SizedBox(height: Spacing.xl),
+          ],
+
+          // Supply count
+          if (tab.supplyCount != null)
+            _DetailRow(
+              label: '공급 호수',
+              value: '${tab.supplyCount}호',
+            ),
+
+          // Income conditions
+          if (tab.deposit != null || tab.monthlyRent != null) ...[
+            _DetailRow(
+              label: '임대 조건',
+              value: '${tab.deposit != null ? '보증금: ${tab.deposit}' : ''}'
+                  '${tab.monthlyRent != null ? '\n월세: ${tab.monthlyRent}' : ''}',
+            ),
+          ],
+
+          // Eligible condition
+          if (tab.eligibleCondition != null) ...[
+            _DetailRow(
+              label: '자격 조건',
+              value: tab.eligibleCondition!,
+            ),
+          ],
+
+          // Additional info
+          if (tab.additionalInfo != null && tab.additionalInfo!.isNotEmpty) ...[
+            const SizedBox(height: Spacing.md),
+            ...tab.additionalInfo!.entries.map((entry) {
+              return _DetailRow(
+                label: entry.key,
+                value: entry.value.toString(),
+              );
+            }),
+          ],
         ],
       ),
     );

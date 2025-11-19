@@ -11,7 +11,6 @@
 // - Smooth animations
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pickly_design_system/pickly_design_system.dart';
 
 /// A list item widget for selectable options with checkmark
@@ -24,6 +23,7 @@ class SelectionListItem extends StatelessWidget {
     super.key,
     this.icon,
     this.iconUrl,
+    this.iconComponent = 'category',
     required this.title,
     this.description,
     this.isSelected = false,
@@ -34,8 +34,11 @@ class SelectionListItem extends StatelessWidget {
   /// The icon to display (backward compatibility)
   final IconData? icon;
 
-  /// The SVG asset path to display
+  /// The SVG asset path or network URL to display
   final String? iconUrl;
+
+  /// The local icon component key (for CategoryIcon fallback)
+  final String iconComponent;
 
   /// The main title text
   final String title;
@@ -160,40 +163,12 @@ class SelectionListItem extends StatelessWidget {
     );
   }
 
-  /// Builds the actual icon content (SVG or Icon)
+  /// Builds the actual icon content using CategoryIcon
   /// Figma spec: 32x32px, color changes with selection (#27B473 selected, #828282 unselected)
   Widget _buildIconContent(Color iconColor) {
     const double iconSize = 32.0; // Figma spec: 32x32px
 
-    // SVG 우선 - Figma에서 emoji 아이콘 사용, colorFilter 제거하여 원본 색상 유지
-    if (iconUrl != null) {
-      // Check if iconUrl is a network URL (http:// or https://)
-      if (iconUrl!.startsWith('http://') || iconUrl!.startsWith('https://')) {
-        // Load from network (Supabase Storage)
-        return SvgPicture.network(
-          iconUrl!,
-          width: iconSize,
-          height: iconSize,
-          placeholderBuilder: (context) => SizedBox(
-            width: iconSize,
-            height: iconSize,
-            child: Center(
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-        );
-      } else {
-        // Load from assets
-        return SvgPicture.asset(
-          iconUrl!,
-          width: iconSize,
-          height: iconSize,
-          // colorFilter 제거: emoji 아이콘은 원본 색상 사용
-        );
-      }
-    }
-
-    // Icon fallback
+    // Legacy icon support (backward compatibility)
     if (icon != null) {
       return Icon(
         icon,
@@ -202,11 +177,12 @@ class SelectionListItem extends StatelessWidget {
       );
     }
 
-    // 기본 아이콘
-    return Icon(
-      Icons.category_outlined,
+    // Use CategoryIcon for all image-based icons
+    return CategoryIcon(
+      iconUrl: iconUrl,
+      iconComponent: iconComponent,
       size: iconSize,
-      color: iconColor,
+      color: null, // Don't override colors - let CategoryIcon handle it
     );
   }
 

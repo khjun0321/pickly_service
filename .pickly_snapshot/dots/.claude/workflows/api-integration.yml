@@ -1,0 +1,199 @@
+---
+name: api-integration
+description: 도메인별 API 통합 자동화 워크플로우 (기존 코드 보호)
+version: 1.0.0
+priority: high
+
+# 워크플로우 실행 조건
+triggers:
+  - manual  # 수동 실행만 허용
+  - command: "api-integration phase <1|2>"
+
+# 환경 변수
+environment:
+  project_root: "apps/pickly_mobile"
+  protected_paths:
+    - "lib/contexts/user/**"
+    - "lib/contexts/benefit/**"
+    - "lib/features/onboarding/**"
+    - "lib/features/benefits/**"
+    - "lib/core/router.dart"
+    - "lib/core/supabase_config.dart"
+    - "packages/pickly_design_system/**"
+
+# Phase 1: 공통 인프라 구축
+phases:
+  - id: phase-1
+    name: "공통 API 인프라 구축"
+    description: "Dio 클라이언트, 에러 핸들링, 인터셉터 생성"
+
+    agents:
+      - type: api-integration-builder
+        role: specialist
+        tasks:
+          - name: "API 설정 파일 생성"
+            description: "core/network/api_config.dart 생성"
+            output: "lib/core/network/api_config.dart"
+            template: "agent_spec:lines:73-97"
+
+          - name: "Dio 클라이언트 팩토리 생성"
+            description: "core/network/api_client.dart 생성"
+            output: "lib/core/network/api_client.dart"
+            template: "agent_spec:lines:100-147"
+
+          - name: "API 인터셉터 생성"
+            description: "core/network/api_interceptor.dart 생성"
+            output: "lib/core/network/api_interceptor.dart"
+            template: |
+              import 'package:dio/dio.dart';
+
+              class ApiInterceptor extends Interceptor {
+                @override
+                void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+                  print('🌐 API Request: ${options.method} ${options.path}');
+                  print('📦 Query Params: ${options.queryParameters}');
+                  super.onRequest(options, handler);
+                }
+
+                @override
+                void onResponse(Response response, ResponseInterceptorHandler handler) {
+                  print('✅ API Response: ${response.statusCode} ${response.requestOptions.path}');
+                  super.onResponse(response, handler);
+                }
+
+                @override
+                void onError(DioException err, ErrorInterceptorHandler handler) {
+                  print('❌ API Error: ${err.requestOptions.path}');
+                  print('❌ Error Message: ${err.message}');
+                  super.onError(err, handler);
+                }
+              }
+
+          - name: "커스텀 에러 클래스 생성"
+            description: "core/errors/api_exception.dart 생성"
+            output: "lib/core/errors/api_exception.dart"
+            template: |
+              class ApiException implements Exception {
+                final String message;
+                final int? statusCode;
+                final dynamic data;
+
+                ApiException({
+                  required this.message,
+                  this.statusCode,
+                  this.data,
+                });
+
+                @override
+                String toString() => 'ApiException: $message (Status: $statusCode)';
+              }
+
+              class NetworkException extends ApiException {
+                NetworkException({required super.message}) : super(statusCode: 0);
+              }
+
+              class ServerException extends ApiException {
+                ServerException({required super.message, super.statusCode});
+              }
+
+    validations:
+      - type: file-exists
+        files:
+          - "lib/core/network/api_config.dart"
+          - "lib/core/network/api_client.dart"
+          - "lib/core/network/api_interceptor.dart"
+          - "lib/core/errors/api_exception.dart"
+
+      - type: flutter-analyze
+        command: "cd apps/pickly_mobile && flutter analyze"
+        expect: "No issues found"
+
+      - type: protected-files-unchanged
+        paths: "${environment.protected_paths}"
+        error_message: "기존 코드가 수정되었습니다! 롤백 필요"
+
+  # Phase 2: LH API 통합
+  - id: phase-2
+    name: "주거 도메인 LH API 통합"
+    description: "LH 공사 API 모델, Repository, Provider, UI 생성"
+    depends_on: phase-1
+
+    agents:
+      - type: api-integration-builder
+        role: specialist
+        tasks:
+          - name: "LH 공고 모델 생성"
+            description: "contexts/housing/models/lh_announcement.dart 생성"
+            output: "lib/contexts/housing/models/lh_announcement.dart"
+
+          - name: "LH Repository 생성"
+            description: "contexts/housing/repositories/lh_repository.dart 생성"
+            output: "lib/contexts/housing/repositories/lh_repository.dart"
+
+          - name: "Housing Provider 생성"
+            description: "features/housing/providers/housing_provider.dart 생성"
+            output: "lib/features/housing/providers/housing_provider.dart"
+
+          - name: "Housing List Screen 생성"
+            description: "features/housing/screens/housing_list_screen.dart 생성"
+            output: "lib/features/housing/screens/housing_list_screen.dart"
+
+    validations:
+      - type: file-exists
+        files:
+          - "lib/contexts/housing/models/lh_announcement.dart"
+          - "lib/contexts/housing/repositories/lh_repository.dart"
+          - "lib/features/housing/providers/housing_provider.dart"
+          - "lib/features/housing/screens/housing_list_screen.dart"
+
+      - type: flutter-test
+        command: "cd apps/pickly_mobile && flutter test"
+        expect: "All tests passed"
+
+      - type: protected-files-unchanged
+        paths: "${environment.protected_paths}"
+        error_message: "기존 코드가 수정되었습니다! 롤백 필요"
+
+# 성공 기준
+success_criteria:
+  phase-1:
+    - "flutter pub get 성공"
+    - "flutter analyze 에러 없음"
+    - "기존 온보딩 화면 정상 작동"
+    - "기존 혜택 화면 정상 작동 (9개 카테고리)"
+
+  phase-2:
+    - "LH Repository API 호출 성공"
+    - "LhAnnouncement 모델 JSON 파싱 성공"
+    - "housing_list_screen 데이터 표시"
+    - "에러 발생 시 사용자 친화적 메시지 표시"
+    - "기존 모든 기능 정상 작동"
+
+# 롤백 전략
+rollback:
+  - step: "Git stash 생성된 파일들"
+    command: "git stash push -m 'rollback api integration'"
+  - step: "보호된 파일 복원"
+    command: "git checkout HEAD -- ${environment.protected_paths}"
+  - step: "앱 재시작 및 확인"
+    command: "flutter run"
+
+# 문서화
+documentation:
+  - file: "docs/api/api-integration-spec.md"
+    description: "API 통합 스펙"
+  - file: "docs/api/api-integration-guide.md"
+    description: "실행 가이드"
+  - file: "docs/category-sync-guide.md"
+    description: "카테고리 동기화 가이드"
+
+# 실행 예시
+examples:
+  - name: "Phase 1 실행"
+    command: "npx claude-flow@alpha workflow run api-integration --phase 1"
+
+  - name: "Phase 2 실행"
+    command: "npx claude-flow@alpha workflow run api-integration --phase 2"
+
+  - name: "전체 파이프라인 실행"
+    command: "npx claude-flow@alpha workflow run api-integration --all"

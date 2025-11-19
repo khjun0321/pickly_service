@@ -62,7 +62,6 @@ export async function createBenefitCategory(category: BenefitCategoryInsert) {
 
   const { data, error } = await supabase
     .from('benefit_categories')
-    // @ts-expect-error - Supabase type inference issue
     .insert(category)
     .select()
     .single()
@@ -90,7 +89,6 @@ export async function updateBenefitCategory(id: string, category: BenefitCategor
 
   const { data, error } = await supabase
     .from('benefit_categories')
-    // @ts-expect-error - Supabase type inference issue
     .update(category)
     .eq('id', id)
     .select()

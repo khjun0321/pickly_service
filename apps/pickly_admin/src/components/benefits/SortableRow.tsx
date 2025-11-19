@@ -1,4 +1,5 @@
-import { useState } from 'react'
+// ❌ REMOVED: unused import
+// import { useState } from 'react'
 import {
   TableRow,
   TableCell,
@@ -142,8 +143,8 @@ export function SortableRow({
       <TableCell>
         <Typography variant="body2" noWrap>
           {formatDateRange(
-            announcement.application_period_start,
-            announcement.application_period_end
+            announcement.application_start_date, // ✅ FIXED: application_period_start → application_start_date
+            announcement.application_end_date // ✅ FIXED: application_period_end → application_end_date
           )}
         </Typography>
       </TableCell>

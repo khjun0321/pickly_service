@@ -95,9 +95,9 @@ class _PicklySearchBarState extends State<PicklySearchBar> {
       ),
       child: Row(
         children: [
-          // Fire icon (left)
+          // Popular icon (left)
           SvgPicture.asset(
-            'assets/icons/fire.svg',
+            'assets/icons/popular.svg',
             width: 24,
             height: 24,
             package: 'pickly_design_system',

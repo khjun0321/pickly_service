@@ -365,3 +365,199 @@ final validateCategoryIdsProvider = FutureProvider.family<bool, List<String>>((r
     return ids.every((id) => categoryIds.contains(id));
   }
 });
+
+// ==================== Realtime Streams (v8.6 Phase 4) ====================
+
+/// StreamProvider for watching age categories in realtime
+///
+/// This is the modern Stream-based alternative to the old
+/// AsyncNotifier + subscribeToCategories() + refresh() pattern.
+///
+/// Benefits over the old pattern:
+/// - Simpler: No manual subscription management
+/// - More efficient: Stream replaces polling with push updates
+/// - Less code: Riverpod handles subscription lifecycle
+/// - Consistent: Same pattern as announcements and banners
+///
+/// Usage:
+/// ```dart
+/// // In your widget
+/// final categoriesAsync = ref.watch(ageCategoriesStreamProvider);
+///
+/// categoriesAsync.when(
+///   data: (categories) => CategoryGrid(categories: categories),
+///   loading: () => CircularProgressIndicator(),
+///   error: (err, stack) => ErrorWidget(err),
+/// );
+/// ```
+///
+/// The stream will automatically emit updates when:
+/// - Admin creates a new age category
+/// - Admin updates category title/description/icon
+/// - Admin activates/deactivates a category
+/// - Admin deletes a category
+///
+/// Graceful fallback:
+/// - If Supabase not initialized → Uses mock data
+/// - If network error → Uses mock data
+final ageCategoriesStreamProvider = StreamProvider<List<AgeCategory>>((ref) {
+  final repository = ref.watch(ageCategoryRepositoryProvider);
+
+  // Fallback to mock data if Supabase not available
+  if (repository == null) {
+    debugPrint('ℹ️ Supabase not initialized, using mock age category stream');
+    return Stream.value(_getMockCategories());
+  }
+
+  // Use Stream from repository
+  try {
+    debugPrint('🌊 [Stream Provider] Starting age categories stream');
+    return repository.watchActiveCategories();
+  } catch (e, stackTrace) {
+    debugPrint('❌ Error creating age categories stream: $e');
+    debugPrint('Stack trace: $stackTrace');
+    debugPrint('→ Falling back to mock data stream');
+    return Stream.value(_getMockCategories());
+  }
+});
+
+/// StreamProvider for watching a single age category by ID
+///
+/// Parameters:
+/// - [id]: Category UUID
+///
+/// Returns a stream of the category (or null if not found/deleted/inactive)
+final ageCategoryStreamByIdProvider = StreamProvider.family<AgeCategory?, String>((ref, id) {
+  final repository = ref.watch(ageCategoryRepositoryProvider);
+
+  // Fallback to null if Supabase not available
+  if (repository == null) {
+    debugPrint('ℹ️ Supabase not initialized, cannot watch category by ID');
+    return Stream.value(null);
+  }
+
+  try {
+    debugPrint('🌊 [Stream Provider] Starting age category stream for ID: $id');
+    return repository.watchCategoryById(id);
+  } catch (e) {
+    debugPrint('❌ Error creating age category stream by ID: $e');
+    return Stream.value(null);
+  }
+});
+
+/// Provider to get age categories list from stream
+///
+/// This is a convenience provider that extracts data from AsyncValue
+/// and returns an empty list if loading or error.
+final ageCategoriesStreamListProvider = Provider<List<AgeCategory>>((ref) {
+  final asyncCategories = ref.watch(ageCategoriesStreamProvider);
+  return asyncCategories.maybeWhen(
+    data: (categories) => categories,
+    orElse: () => [],
+  );
+});
+
+/// Provider to check if stream is currently loading
+final ageCategoriesStreamLoadingProvider = Provider<bool>((ref) {
+  final asyncCategories = ref.watch(ageCategoriesStreamProvider);
+  return asyncCategories.isLoading;
+});
+
+/// Provider to get stream error state
+final ageCategoriesStreamErrorProvider = Provider<Object?>((ref) {
+  final asyncCategories = ref.watch(ageCategoriesStreamProvider);
+  return asyncCategories.error;
+});
+
+/// Provider to get stream category count
+final ageCategoriesStreamCountProvider = Provider<int>((ref) {
+  final categories = ref.watch(ageCategoriesStreamListProvider);
+  return categories.length;
+});
+
+/// Helper function to generate mock categories (shared between old and new providers)
+///
+/// Icons are loaded from pickly_design_system package
+List<AgeCategory> _getMockCategories() {
+  final now = DateTime.now();
+  return [
+    AgeCategory(
+      id: 'mock-1',
+      title: '청년',
+      description: '(만 19세-39세) 대학생, 취업준비생, 직장인',
+      iconComponent: 'youth',
+      iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/young_man.svg',
+      minAge: 19,
+      maxAge: 39,
+      sortOrder: 1,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    ),
+    AgeCategory(
+      id: 'mock-2',
+      title: '신혼부부·예비부부',
+      description: '결혼 예정 또는 결혼 7년이내',
+      iconComponent: 'newlywed',
+      iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/bride.svg',
+      minAge: null,
+      maxAge: null,
+      sortOrder: 2,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    ),
+    AgeCategory(
+      id: 'mock-3',
+      title: '육아중인 부모',
+      description: '영유아~초등 자녀 양육 중',
+      iconComponent: 'parenting',
+      iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/baby.svg',
+      minAge: null,
+      maxAge: null,
+      sortOrder: 3,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    ),
+    AgeCategory(
+      id: 'mock-4',
+      title: '다자녀 가구',
+      description: '자녀 2명 이상 양육중',
+      iconComponent: 'multi_child',
+      iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/kinder.svg',
+      minAge: null,
+      maxAge: null,
+      sortOrder: 4,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    ),
+    AgeCategory(
+      id: 'mock-5',
+      title: '어르신',
+      description: '만 65세 이상',
+      iconComponent: 'elderly',
+      iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/old_man.svg',
+      minAge: 65,
+      maxAge: null,
+      sortOrder: 5,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    ),
+    AgeCategory(
+      id: 'mock-6',
+      title: '장애인',
+      description: '장애인 등록 대상',
+      iconComponent: 'disability',
+      iconUrl: 'packages/pickly_design_system/assets/icons/age_categories/wheel_chair.svg',
+      minAge: null,
+      maxAge: null,
+      sortOrder: 6,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    ),
+  ];
+}

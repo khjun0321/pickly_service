@@ -10,13 +10,23 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import Login from '@/pages/auth/Login'
 import Dashboard from '@/pages/dashboard/Dashboard'
 import UserList from '@/pages/users/UserList'
-import CategoryList from '@/pages/categories/CategoryList'
-import CategoryForm from '@/pages/categories/CategoryForm'
-import BenefitCategoryList from '@/pages/benefits/BenefitCategoryList'
-import BenefitAnnouncementList from '@/pages/benefits/BenefitAnnouncementList'
-import BenefitAnnouncementForm from '@/pages/benefits/BenefitAnnouncementForm'
-import BenefitCategoryPage from '@/pages/benefits/BenefitCategoryPage'
-import AnnouncementEditCompletePage from '@/pages/benefits/AnnouncementEditCompletePage'
+// Legacy imports disabled - now using unified AnnouncementManagementPage
+// import BenefitCategoryList from '@/pages/benefits/BenefitCategoryList'
+// import BenefitAnnouncementList from '@/pages/benefits/BenefitAnnouncementList'
+// import BenefitAnnouncementForm from '@/pages/benefits/BenefitAnnouncementForm'
+// import BenefitCategoryPage from '@/pages/benefits/BenefitCategoryPage'
+// import BenefitManagementPage from '@/pages/benefits/BenefitManagementPage'
+// import AnnouncementEditCompletePage from '@/pages/benefits/AnnouncementEditCompletePage'
+import AgeCategoriesPage from '@/pages/age-categories/AgeCategoriesPage'
+import AnnouncementTypesPage from '@/pages/announcement-types/AnnouncementTypesPage'
+import HomeManagementPage from '@/pages/home/HomeManagementPage'
+import CategoryManagementPage from '@/pages/benefits/CategoryManagementPage'
+import SubcategoryManagementPage from '@/pages/benefits/SubcategoryManagementPage'
+import BannerManagementPage from '@/pages/benefits/BannerManagementPage'
+import AnnouncementManagementPage from '@/pages/benefits/AnnouncementManagementPage'
+import ApiSourcesPage from '@/pages/api-mapping/ApiSourcesPage'
+import MappingConfigPage from '@/pages/api-mapping/MappingConfigPage'
+import MappingSimulatorPage from '@/pages/api-mapping/MappingSimulatorPage'
 
 function App() {
   return (
@@ -35,15 +45,28 @@ function App() {
               }
             >
               <Route index element={<Dashboard />} />
+              {/* PRD v9.6 Home Management */}
+              <Route path="home-management" element={<HomeManagementPage />} />
+              {/* PRD v9.6 Benefits Management - Unified Structure */}
+              <Route path="benefits/categories" element={<CategoryManagementPage />} />
+              <Route path="benefits/subcategories" element={<SubcategoryManagementPage />} />
+              <Route path="benefits/banners" element={<BannerManagementPage />} />
+              <Route path="benefits/announcements" element={<AnnouncementManagementPage />} />
+              {/* User & Roles */}
               <Route path="users" element={<UserList />} />
-              <Route path="categories" element={<CategoryList />} />
-              <Route path="categories/new" element={<CategoryForm />} />
-              <Route path="categories/:id/edit" element={<CategoryForm />} />
-              <Route path="benefits/:categorySlug" element={<BenefitCategoryPage />} />
-              <Route path="benefits/categories" element={<BenefitCategoryList />} />
-              <Route path="benefits/announcements" element={<BenefitAnnouncementList />} />
-              <Route path="benefits/announcements/new" element={<BenefitAnnouncementForm />} />
-              <Route path="benefits/announcements/:id/edit" element={<AnnouncementEditCompletePage />} />
+              <Route path="age-categories" element={<AgeCategoriesPage />} />
+              <Route path="announcement-types" element={<AnnouncementTypesPage />} />
+              {/* Legacy routes disabled - use /benefits/announcements instead */}
+              {/* <Route path="benefits/manage/:categorySlug" element={<BenefitManagementPage />} /> */}
+              {/* <Route path="benefits/:categorySlug" element={<BenefitCategoryPage />} /> */}
+              {/* <Route path="benefits/categories-old" element={<BenefitCategoryList />} /> */}
+              {/* <Route path="benefits/new" element={<BenefitAnnouncementForm />} /> */}
+              {/* <Route path="benefits/announcements/new" element={<BenefitAnnouncementForm />} /> */}
+              {/* <Route path="benefits/announcements/:id/edit" element={<AnnouncementEditCompletePage />} /> */}
+              {/* PRD v9.8.1 API Mapping Management */}
+              <Route path="api-mapping/sources" element={<ApiSourcesPage />} />
+              <Route path="api-mapping/config" element={<MappingConfigPage />} />
+              <Route path="api-mapping/simulator" element={<MappingSimulatorPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

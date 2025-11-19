@@ -1,0 +1,5 @@
+  backup-claude-flow-20251011              b872952 backup: before Claude Flow restructure
+  backup-component-cleanup-20251012-195849 d95fcbe refactor(v5.2): 프로젝트 구조 정리 및 라우팅 개선
+  feature/onboarding-common-structure      f5c81ee [origin/feature/onboarding-common-structure: ahead 5] backup: 현재 작업 상태 저장 - DB/백오피스 포함
+* feature/refactor-db-schema               67ecb98 refactor(mobile): convert Announcement model to regular Dart class per PRD v7.0
+  main                                     5a0e801 [origin/main] refactor: reorganize design tokens and add splash screen

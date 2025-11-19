@@ -1,0 +1,51 @@
+{
+  "tables": {
+    "announcement_details": {
+      "status": "ERROR",
+      "error": {
+        "message": "Invalid API key",
+        "hint": "Double check your Supabase `anon` or `service_role` API key."
+      }
+    },
+    "announcement_complex_info": {
+      "status": "ERROR",
+      "error": {
+        "message": "Invalid API key",
+        "hint": "Double check your Supabase `anon` or `service_role` API key."
+      }
+    },
+    "announcements_new_fields": {
+      "status": "ERROR",
+      "error": {
+        "message": "Invalid API key",
+        "hint": "Double check your Supabase `anon` or `service_role` API key."
+      }
+    }
+  },
+  "storage": {
+    "buckets": {
+      "status": "SKIPPED",
+      "reason": "No service role key"
+    },
+    "pdf_upload": {
+      "status": "ERROR",
+      "error": {
+        "name": "StorageApiError",
+        "message": "signature verification failed",
+        "status": 400,
+        "statusCode": "403"
+      }
+    },
+    "image_upload": {
+      "status": "ERROR",
+      "error": {
+        "name": "StorageApiError",
+        "message": "signature verification failed",
+        "status": 400,
+        "statusCode": "403"
+      }
+    }
+  },
+  "policies": {},
+  "summary": []
+}

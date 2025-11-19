@@ -3,7 +3,8 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
 // 🚨 DEVELOPMENT MODE: Bypass authentication for local development
-const IS_DEV_MODE = import.meta.env.DEV && import.meta.env.VITE_BYPASS_AUTH === 'true'
+// ONLY bypass if explicitly set to 'true' in .env
+const IS_DEV_MODE = import.meta.env.VITE_BYPASS_AUTH === 'true'
 
 // Mock user for development
 const DEV_USER: User = {
@@ -21,14 +22,7 @@ export function useAuth() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 🚨 DEV MODE: Skip authentication entirely
-    if (IS_DEV_MODE) {
-      console.warn('🚨 DEV MODE: Authentication bypassed - dev@pickly.com')
-      setUser(DEV_USER)
-      setLoading(false)
-      return
-    }
-
+    // Always use real authentication - no bypass
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       setLoading(false)
@@ -44,13 +38,6 @@ export function useAuth() {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    // 🚨 DEV MODE: Auto-login
-    if (IS_DEV_MODE) {
-      console.warn('🚨 DEV MODE: Auto-login as dev@pickly.com')
-      setUser(DEV_USER)
-      return
-    }
-
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -59,14 +46,27 @@ export function useAuth() {
   }
 
   const signOut = async () => {
-    // 🚨 DEV MODE: Mock signout
-    if (IS_DEV_MODE) {
-      console.warn('🚨 DEV MODE: Mock signout')
-      return
+    try {
+      // 1. Sign out from Supabase (even in dev mode)
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error('Supabase signOut error:', error)
     }
 
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    // 2. Clear all local state
+    setUser(null)
+    localStorage.clear()
+    sessionStorage.clear()
+
+    // 3. Clear cookies
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
+    })
+
+    // 4. Force redirect to login page
+    window.location.href = '/login'
   }
 
   return { user, loading, signIn, signOut, isDevMode: IS_DEV_MODE }

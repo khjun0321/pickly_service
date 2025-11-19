@@ -168,9 +168,11 @@ export default function CategoryBannerList() {
       minWidth: 120,
       valueGetter: (params: GridValueGetterParams) => {
         const cat = categories?.find((c: any) => c.id === params.row.category_id)
-        return cat?.title || '-'
+        return cat?.name || '-' // ✅ FIXED: Changed title → name
       },
     },
+    // ❌ REMOVED: background_color column - field doesn't exist in DB schema
+    /*
     {
       field: 'background_color',
       headerName: '배경색',
@@ -187,6 +189,7 @@ export default function CategoryBannerList() {
         />
       ),
     },
+    */
     {
       field: 'is_active',
       headerName: '상태',
@@ -269,7 +272,7 @@ export default function CategoryBannerList() {
               <MenuItem value="all">전체</MenuItem>
               {categories?.map((category) => (
                 <MenuItem key={category.id} value={category.id}>
-                  {category.title}
+                  {category.name} {/* ✅ FIXED: Changed title → name */}
                 </MenuItem>
               ))}
             </Select>
